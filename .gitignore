@@ -1,0 +1,9 @@
+*.pyc
+.DS_store
+build/
+dist/
+casiopeia.egg-info/
+files.txt
+*.pdf
+*.lprof
+*.coverage

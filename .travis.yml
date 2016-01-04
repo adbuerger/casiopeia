@@ -1,0 +1,57 @@
+language: python
+
+matrix:
+  include:
+    - python: 2.7
+      env: NUMPY=1.8 SCIPY=0.13 CASADIVERSION=2.4.1
+
+notifications:
+  email: false
+
+# Installation of Numpy 1.8 in Travis CI:
+# http://stackoverflow.com/questions/30588634/install-numpy-1-8-in-travis-ci
+
+before_install:
+ - travis_retry wget http://repo.continuum.io/miniconda/Miniconda-3.8.3-Linux-x86_64.sh -O miniconda.sh
+ - chmod +x miniconda.sh
+ - bash miniconda.sh -b -p $HOME/miniconda
+ - export PATH=/home/travis/miniconda/bin:$PATH
+ - conda update --yes conda
+
+install:
+ - conda install --yes numpy=$NUMPY scipy=$SCIPY matplotlib nose mock
+
+# Specific version of coverage (3.7.1) necessary here, higher versions include
+# the renaming of a class used by python-coveralls that else won't be found
+
+ - pip --version
+ - pip install coverage==3.7.1 coveralls python-coveralls nose-cov
+ - pip --version
+
+ - wget http://sourceforge.net/projects/casadi/files/CasADi/$CASADIVERSION/linux/casadi-py27-np1.9.1-v$CASADIVERSION.tar.gz/download -O casadi-py27-np1.9.1-v$CASADIVERSION.tar.gz
+ - mkdir $HOME/casadi-py27-np1.9.1-v$CASADIVERSION
+ - tar -zxvf casadi-py27-np1.9.1-v$CASADIVERSION.tar.gz -C $HOME/casadi-py27-np1.9.1-v$CASADIVERSION
+
+ - export PYTHONPATH=$PYTHONPATH:$HOME/casadi-py27-np1.9.1-v$CASADIVERSION
+
+ - python setup.py install
+
+before_script:
+
+# Fake display for testing the plotting features
+# http://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
+
+ - export DISPLAY=:99.0
+ - sh -e /etc/init.d/xvfb start
+
+script:
+ - nosetests --exe -v --with-cov
+
+after_success:
+ - coveralls --config_file .coveragerc
+
+deploy:
+  provider: pypi
+  user: "adbuerger"
+  password:
+    secure: DJNaSFmggRNyoy863oEpCWKAP9zqRwo/D/kg6X3LykuToyua7HhKr6k7m1nVkU811S1+c5OBvN6cn7GEbL8bIVVxSpRh3RnSAmzxEPv0ljz4y00LYmj3CG6stlPGLdWmdQTrvWT9mDrpwG9LY1M5nMywC9y0OKUJM0RrZRVWSQQ=
