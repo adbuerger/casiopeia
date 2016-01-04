@@ -61,7 +61,7 @@ royalty-free even in commercial applications.
         if not float(casadi_version[:3]) >= 2.4:
 
             errmsg = '''
-The version of CasADi found on your system is {0} <= 2.4.0-rc2, and therefor
+The version of CasADi found on your system is {0} <= 2.4.2, and therefor
 not suitable for use with casiopeia.
 
 If you think that you have already installed a newer version of CasADi on your
