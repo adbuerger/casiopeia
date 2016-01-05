@@ -527,6 +527,10 @@ but will be in future versions.
                                    all possible options)
         :type integrator_options: dict
 
+        You do not need to specify initial guesses for the estimated states,
+        since these are obtained with a system simulation using the initial
+        states and the provided initial guesses for the controls.
+
         The resulting optimization problem has the following form:
 
         .. math::
@@ -580,6 +584,31 @@ but will be in future versions.
 
 
     def run_experimental_design(self, solver_options = {}):
+
+        r'''
+        :param solver_options: options to be passed to the IPOPT solver 
+                               (see the CasADi documentation for a list of all
+                               possible options)
+        :type solver_options: dict
+
+        This functions will pass the experimental design problem
+        to the IPOPT solver. The status of IPOPT printed to the 
+        console provides information whether the
+        optimization finished successfully. The optimized controls
+        :math:`\hat{u}` can afterwards be accessed via the class attribute
+        ``LSq.optimized_controls``.
+
+        .. note::
+
+            IPOPT finishing successfully does not necessarily
+            mean that the optimized controls are useful
+            for your purposes, it just means that IPOPT was able to solve the
+            given optimization problem.
+            A poorly chosen "guess" for the values of the parameters to be
+            estimated can lead to very suboptimal controls, an with this,
+            to more repetitions in optimization and estimation.
+
+        '''  
 
         nlpsolver = ci.NlpSolver("solver", "ipopt", self.__nlp, \
             options = solver_options)
