@@ -69,9 +69,8 @@ xmax = [1.2390, 0.014, 0.013, 0.7102]
 doe = cp.doe.DoE(system = system, time_points = time_points, \
     uinit = uinit, pdata = pdata, x0 = ydata[0,:], \
     umin = umin, umax = umax, \
-    xmin = xmin, xmax = xmax, \
-    discretization_method = "multiple_shooting")
+    xmin = xmin, xmax = xmax)
 
-doe.run_experimental_design({"linear_solver": "ma57"})
+doe.run_experimental_design()
 
 pl.savetxt("results_2d_vehicle_doe_coll.txt", doe.design_results["x"])
