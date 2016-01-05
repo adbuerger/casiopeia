@@ -68,6 +68,9 @@ can be accessed, please run run_system_simulation() first.
 
     def __generate_scaled_dae(self):
 
+        # ODE time scaling according to:
+        # https://groups.google.com/forum/#!topic/casadi-users/AeXzJmBH0-Y
+
         t_scale = ci.mx_sym("t_scale", 1)
 
         dae_scaled = \

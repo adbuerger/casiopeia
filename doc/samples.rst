@@ -1,19 +1,20 @@
-.. Copyright 2014-2015 Adrian Bürger
+.. Copyright 2014-2016 Adrian Bürger
 ..
-.. This file is part of PECas.
+.. This file is part of casiopeia.
 ..
-.. PECas is free software: you can redistribute it and/or modify
+.. casiopeia is free software: you can redistribute it and/or modify
 .. it under the terms of the GNU Lesser General Public License as published by
 .. the Free Software Foundation, either version 3 of the License, or
 .. (at your option) any later version.
 ..
-.. PECas is distributed in the hope that it will be useful,
+.. casiopeia is distributed in the hope that it will be useful,
 .. but WITHOUT ANY WARRANTY; without even the implied warranty of
 .. MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 .. GNU Lesser General Public License for more details.
 ..
 .. You should have received a copy of the GNU Lesser General Public License
-.. along with PECas. If not, see <http://www.gnu.org/licenses/>.
+.. along with casiopeia. If not, see <http://www.gnu.org/licenses/>.
+
 
 .. _samples:
 
@@ -99,6 +100,7 @@ The results for the system simulation using the estimated parameter in compariso
 
     Figure: Simulation results for the pedulum model using the estimated parameters, compared to the given measurement data
 
+.. _racecarpe:
 
 Parameter estimation for a model race car
 -----------------------------------------
@@ -157,7 +159,27 @@ An evaluation of the covariance matrix for the estimated parameters shows that t
     \hat{p} = \begin{pmatrix} {\hat{C_{1}}} \\ {\hat{C_{2}}} \\ {\hat{C_{m_{1}}}}  \\ {\hat{C_{m_{2}}}} \\ {\hat{C_{r_{2}}}} \\ {\hat{C_{r_{0}}}} \end{pmatrix} = \begin{pmatrix} {  0.273408} \\ { 11.5602} \\ {2.45652} \\ {7.90959} \\ {-0.44353} \\ {-0.249098} \end{pmatrix} \pm \begin{pmatrix} {0.034497452} \\ {0.058569592} \\ {2.72097859} \\ {5.448817078} \\ {1.478999406} \\ {0.37343932} \end{pmatrix}
 
 
-This intends that the estimation results for the parameters  :math:`\hat{C_{m_{1}}}`, :math:`\hat{C_{m_{2}}}`, :math:`\hat{C_{r_{2}}}` and :math:`\hat{C_{r_{0}}}` are probably not accurate, and might change substantially for other measurement and control data. Optimum experimental design might be an option to encounter this problem.
+This intends that the estimation results for the parameters  :math:`\hat{C_{m_{1}}}`, :math:`\hat{C_{m_{2}}}`, :math:`\hat{C_{r_{2}}}` and :math:`\hat{C_{r_{0}}}` are probably not accurate, and might change substantially for other measurement and control data. Optimum experimental design can be an option to encounter this problem.
+
+
+Optimum experimental design for a model race car
+------------------------------------------------
+
+The aim of the application `2d_vehicle_doe.py <https://github.com/adbuerger/casiopeia/blob/master/examples/2d_vehicle_doe.py>`_ is to solve an optimum experimental design problem for the 2D race car model from `Parameter estimation for a model race car`_ to obtain control values that allow for a better estimation of the unknown parameters of the model.
+
+For this application, we assume that we are not bound to the previous race track to obtain measurements for the race car, but can drive the car on a big-enough mat of the racetrack's material. The estimation results :math:`\hat{p}` from `Parameter estimation for a model race car`_ are use as a "guess" for the parameter values for the experimental design.
+
+.. note:: Running this optimization takes about one hour each for collocation and multiple shooting discretization on an Intel(R) Core(TM) i5-4570 3.20GHz CPU.
+
+The results of the optimization can be analyzed and visualized with the script `2d_vehicle_doe_validation.py <https://github.com/adbuerger/casiopeia/blob/master/examples/2d_vehicle_validation.py>`_. The figure below shows the optimized control values in comparison to the initially used control values, while the suffixes `coll` and `ms` indicate whether the values were obtained using collocation or multiple shooting discretization.
+
+..  figure:: rc_doe_controls.png
+    :scale: 70%
+    :align: center
+
+    Figure: Optimized control values in comparison to the initially used control values
+
+One can see that the use of different discretization methods already leads to similar but different results for the optimized control values.
 
 .. rubric:: References
 

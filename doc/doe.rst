@@ -15,10 +15,6 @@
 .. You should have received a copy of the GNU Lesser General Public License
 .. along with casiopeia. If not, see <http://www.gnu.org/licenses/>.
 
-.. casiopeia documentation master file, created by
-.. sphinx-quickstart on Mon Dec  8 09:36:29 2014.
-.. You can adapt this file completely to your liking, but it should at least
-.. contain the root `toctree` directive.
 
 Optimum experimental design
 ===========================

@@ -613,7 +613,7 @@ but will be in future versions.
         nlpsolver = ci.NlpSolver("solver", "ipopt", self.__nlp, \
             options = solver_options)
 
-        self.design_results = \
+        self.__design_results = \
             nlpsolver(x0 = self.__optimization_variables_initials, \
                 lbg = 0, ubg = 0, \
                 lbx = self.__optimization_variables_lower_bounds, \
