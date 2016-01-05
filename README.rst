@@ -6,7 +6,7 @@ Casadi Interface for Optimum experimental design and Parameter Estimation and Id
 
 |travis| |rtd|
 
-.. |travis| image:: image:: https://travis-ci.org/adbuerger/casiopeia.svg?branch=master
+.. |travis| image:: https://travis-ci.org/adbuerger/casiopeia.svg?branch=master
     :target: https://travis-ci.org/adbuerger/casiopeia
     :alt: Travis CI build status master branch
 
