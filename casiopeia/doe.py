@@ -204,7 +204,7 @@ but will be in future versions.
             ])
 
 
-    def __set_optimization_variables_lower_bounds(self, umin, xmin):
+    def __set_optimization_variables_lower_bounds(self, umin, xmin, x0):
 
         umin_user_provided = umin
 
@@ -231,6 +231,8 @@ but will be in future versions.
         Xmin = ci.repmat(xmin, 1, \
             self.__discretization.optimization_variables["X"].shape[1])
 
+        Xmin[:,0] = x0
+
 
         self.__optimization_variables_lower_bounds = ci.veccat([ \
 
@@ -240,7 +242,7 @@ but will be in future versions.
             ])
 
 
-    def __set_optimization_variables_upper_bounds(self, umax, xmax):
+    def __set_optimization_variables_upper_bounds(self, umax, xmax, x0):
 
         umax_user_provided = umax
 
@@ -266,6 +268,8 @@ but will be in future versions.
 
         Xmax = ci.repmat(xmax, 1, \
             self.__discretization.optimization_variables["X"].shape[1])
+
+        Xmax[:,0] = x0
 
 
         self.__optimization_variables_upper_bounds = ci.veccat([ \
@@ -362,7 +366,7 @@ but will be in future versions.
     def __apply_parameters_to_objective(self, pdata):
 
         # As mentioned above, the objective does not depend on the actual
-        # values of V, EPS_E and EPS_U
+        # values of V, EPS_E and EPS_U, but on the values of P
 
         objective_free_variables = ci.veccat([ \
 
@@ -560,9 +564,9 @@ but will be in future versions.
 
         self.__set_optimization_variables_initials(pdata, x0, uinit)
 
-        self.__set_optimization_variables_lower_bounds(umin, xmin)
+        self.__set_optimization_variables_lower_bounds(umin, xmin, x0)
 
-        self.__set_optimization_variables_upper_bounds(umax, xmax)
+        self.__set_optimization_variables_upper_bounds(umax, xmax, x0)
 
         self.__set_measurement_data()
 
