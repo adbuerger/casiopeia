@@ -155,42 +155,9 @@ but will be in future versions.
             equality_constraints_fcn([optimization_variables_parameters_applied])
 
 
-    def __apply_parameters_to_measurements(self, pdata):
-
-        udata = inputchecks.check_parameter_data(pdata, \
-            self.__discretization.system.np)
-
-        optimization_variables_for_measurements = ci.veccat([ \
-
-                self.__discretization.optimization_variables["U"], 
-                self.__discretization.optimization_variables["X"], 
-                self.__discretization.optimization_variables["EPS_U"], 
-                self.__discretization.optimization_variables["P"], 
-
-            ])
-
-        optimization_variables_parameters_applied = ci.veccat([ \
-
-                self.__discretization.optimization_variables["U"], 
-                self.__discretization.optimization_variables["X"], 
-                self.__discretization.optimization_variables["EPS_U"], 
-                pdata, 
-
-            ])
-
-        measurements_fcn = ci.mx_function( \
-            "measurements_fcn", \
-            [optimization_variables_for_measurements], \
-            [self.__discretization.measurements])
-
-        [self.__measurements_parameters_applied] = \
-            measurements_fcn([optimization_variables_parameters_applied])
-
-
     def __apply_parameters_to_discretization(self, pdata):
 
         self.__apply_parameters_to_equality_constraints(pdata)
-        self.__apply_parameters_to_measurements(pdata)
 
 
     def __set_optimization_variables(self):
@@ -346,7 +313,7 @@ but will be in future versions.
 
         self.__measurement_deviations = ci.vertcat([ \
 
-                ci.vec(self.__measurements_parameters_applied) - \
+                ci.vec(self.__discretization.measurements) - \
                 self.__measurement_data_vectorized + \
                 ci.vec(self.__discretization.optimization_variables["V"])
 
@@ -358,7 +325,7 @@ but will be in future versions.
         self.__constraints = ci.vertcat([ \
 
                 self.__measurement_deviations,
-                self.__equality_constraints_parameters_applied,
+                self.__discretization.equality_constraints,
 
             ])
 
@@ -372,7 +339,7 @@ but will be in future versions.
 
         self.__cov_matrix_derivative_directions = ci.veccat([ \
 
-                self.__discretization.optimization_variables["U"],
+                self.__discretization.optimization_variables["P"],
                 self.__discretization.optimization_variables["X"],
                 self.__discretization.optimization_variables["V"],
                 self.__discretization.optimization_variables["EPS_E"],
@@ -388,7 +355,36 @@ but will be in future versions.
                 self.__weightings_vectorized, \
                 self.__constraints, self.__discretization.system.np)
 
-        self.__objective = setup_a_criterion(self.__covariance_matrix_symbolic)
+        self.__objective_parameters_free = \
+            setup_a_criterion(self.__covariance_matrix_symbolic)
+
+
+    def __apply_parameters_to_objective(self, pdata):
+
+        # As mentioned above, the objective does not depend on the actual
+        # values of V, EPS_E and EPS_U
+
+        objective_free_variables = ci.veccat([ \
+
+                self.__discretization.optimization_variables["P"],
+                self.__discretization.optimization_variables["U"],
+                self.__discretization.optimization_variables["X"],
+
+            ])
+
+        objective_free_variables_parameters_applied = ci.veccat([ \
+
+                pdata,
+                self.__discretization.optimization_variables["U"],
+                self.__discretization.optimization_variables["X"],
+
+            ])
+
+        objective_fcn = ci.mx_function("objective_fcn", \
+            [objective_free_variables], [self.__objective_parameters_free])
+
+        [self.__objective] = objective_fcn( \
+            [objective_free_variables_parameters_applied])
 
 
     def __setup_nlp(self):
@@ -579,6 +575,8 @@ but will be in future versions.
         self.__setup_constraints()
 
         self.__setup_objective()
+
+        self.__apply_parameters_to_objective(pdata)
 
         self.__setup_nlp()
 
