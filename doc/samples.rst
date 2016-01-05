@@ -167,11 +167,13 @@ Optimum experimental design for a model race car
 
 The aim of the application `2d_vehicle_doe.py <https://github.com/adbuerger/casiopeia/blob/master/examples/2d_vehicle_doe.py>`_ is to solve an optimum experimental design problem for the 2D race car model from `Parameter estimation for a model race car`_ to obtain control values that allow for a better estimation of the unknown parameters of the model.
 
-For this application, we assume that we are not bound to the previous race track to obtain measurements for the race car, but can drive the car on a big-enough mat of the racetrack's material. The estimation results :math:`\hat{p}` from `Parameter estimation for a model race car`_ are use as a "guess" for the parameter values for the experimental design.
+For this application, we assume that we are not bound to the previous race track to obtain measurements for the race car, but can drive the car on a rectangular mat of the racetrack's material. The controls are bounded by the maximum and minimum values of the controls measurements from `Parameter estimation for a model race car`_, as well as the states are bounded by their corresponding maximum and minimum values of the states measurements. The bounds are introduced to prevent the optimizer from creating unrealistic scenarios that could e. g. cause the race car to fall over when taking too sharp turns, which is not explicitly considered within the model.
 
-.. note:: Running this optimization takes about one hour each for collocation and multiple shooting discretization on an Intel(R) Core(TM) i5-4570 3.20GHz CPU.
+The estimation results :math:`\hat{p}` from `Parameter estimation for a model race car`_ are use as a "guess" for the parameter values for the experimental design. The control values from the previous estimation are used as initial guesses for the optimized controls.
 
-The results of the optimization can be analyzed and visualized with the script `2d_vehicle_doe_validation.py <https://github.com/adbuerger/casiopeia/blob/master/examples/2d_vehicle_validation.py>`_. The figure below shows the optimized control values in comparison to the initially used control values, while the suffixes `coll` and `ms` indicate whether the values were obtained using collocation or multiple shooting discretization.
+.. note:: Running this optimization takes about 10 min on an Intel(R) Core(TM) i5-4570 3.20GHz CPU.
+
+The results of the optimization can be analyzed and visualized with the script `2d_vehicle_doe_validation.py <https://github.com/adbuerger/casiopeia/blob/master/examples/2d_vehicle_validation.py>`_. The figure below shows the optimized control values in comparison to the initially used control values, while the suffix `coll` indicates that the values were obtained using collocation discretization.
 
 ..  figure:: rc_doe_controls.png
     :scale: 70%
@@ -179,7 +181,13 @@ The results of the optimization can be analyzed and visualized with the script `
 
     Figure: Optimized control values in comparison to the initially used control values
 
-One can see that the use of different discretization methods already leads to similar but different results for the optimized control values.
+The figure below shows a comparison of the simulated states values for both initially used and optimized control values, and with this, the effect of the optimization on the route of the race car and it's velocity during the measurements.
+
+..  figure:: rc_doe_states.png
+    :scale: 70%
+    :align: center
+
+    Figure: Comparison of the simulated states values for initial and optimized controls
 
 .. rubric:: References
 
