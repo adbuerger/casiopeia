@@ -558,8 +558,9 @@ Possible values are "A" and "D".
                 \text{arg}\,\underset{u, x}{\text{min}} & & I(\Sigma_{p}(x, u)) &\\
                 \text{subject to:} & & \text{Cov}(p) & = \Sigma_p\\
                 & & g(p, x, v, \epsilon_e, \epsilon_u) & = 0\\
-                & & u_{min} \leq u_k  & \leq u_{max} \hspace{1cm} k = 1, \dots, N\\
-                & & x_{min} \leq x_k  & \leq x_{max} \hspace{1cm} k = 1, \dots, N
+                & & u_{min} \leq u_k  & \leq u_{max} \hspace{1cm} k = 1, \dots, N-1\\
+                & & x_{min} \leq x_k  & \leq x_{max} \hspace{1cm} k = 1, \dots, N\\
+                & & x_1 \leq x(t_1) & \leq x_1
             \end{aligned}
 
         while :math:`g(\cdot)` contains the discretized system dynamics
