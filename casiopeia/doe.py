@@ -29,7 +29,8 @@ from discretization.odecollocation import ODECollocation
 from discretization.odemultipleshooting import ODEMultipleShooting
 
 from interfaces import casadi_interface as ci
-from covariance_matrix import setup_covariance_matrix, setup_a_criterion
+from covariance_matrix import setup_covariance_matrix, setup_a_criterion, \
+    setup_d_criterion
 from intro import intro
 from sim import Simulation
 
@@ -351,6 +352,23 @@ but will be in future versions.
 
             ])
 
+    def __set_optimiality_criterion(self, optimality_criterion):
+
+            if str(optimality_criterion).upper() == "A":
+
+                self.__optimality_criterion = setup_a_criterion
+
+            elif str(optimality_criterion).upper() == "D":
+
+                self.__optimality_criterion = setup_d_criterion
+
+            else:
+
+                raise NotImplementedError('''
+Unknown optimality criterion: {0}.
+Possible values are "A" and "D".
+'''.format(str(discretization_method)))
+
 
     def __setup_objective(self):
 
@@ -360,7 +378,7 @@ but will be in future versions.
                 self.__constraints, self.__discretization.system.np)
 
         self.__objective_parameters_free = \
-            setup_a_criterion(self.__covariance_matrix_symbolic)
+            self.__optimality_criterion(self.__covariance_matrix_symbolic)
 
 
     def __apply_parameters_to_objective(self, pdata):
@@ -404,7 +422,8 @@ but will be in future versions.
         pdata = None, x0 = None, \
         xmin = None, xmax = None, \
         wv = None, weps_e = None, weps_u = None, \
-        discretization_method = "collocation", **kwargs):
+        discretization_method = "collocation", \
+        optimality_criterion = "A", **kwargs):
 
         r'''
         :raises: AttributeError, NotImplementedError
@@ -578,6 +597,8 @@ but will be in future versions.
 
         self.__setup_constraints()
 
+        self.__set_optimiality_criterion(optimality_criterion)
+
         self.__setup_objective()
 
         self.__apply_parameters_to_objective(pdata)
@@ -612,6 +633,16 @@ but will be in future versions.
 
         '''  
 
+        print('\n' + '# ' +  18 * '-' + \
+            ' casiopeia optimum experimental design ' + 17 * '-' + ' #')
+
+        print('''
+Starting optimum experimental design using IPOPT, 
+this might take some time ...
+''')
+
+        self.__tstart_optimum_experimental_design = time.time()
+
         nlpsolver = ci.NlpSolver("solver", "ipopt", self.__nlp, \
             options = solver_options)
 
@@ -620,3 +651,12 @@ but will be in future versions.
                 lbg = 0, ubg = 0, \
                 lbx = self.__optimization_variables_lower_bounds, \
                 ubx = self.__optimization_variables_upper_bounds)
+
+        print('''
+Optimum experimental design finished. Check IPOPT output for status information.
+''')
+
+        self.__tend_optimum_experimental_deisng = time.time()
+        self.__duration_optimum_experimental_design = \
+            self.__tend_optimum_experimental_deisng - \
+            self.__tstart_optimum_experimental_design
