@@ -22,6 +22,6 @@ casiopeia is still in it's testing state, and does not yet contain all the featu
 
 For an installation guide, a tutorial on how to use casiopeia and a detailed documentation, please visit `the manual pages <http://casiopeia.readthedocs.org/>`_ .
 
-**New and experimental:** `try casiopeia live in your browser <https://ec2-52-29-32-46.eu-central-1.compute.amazonaws.com:8888/b312ce4c-7f26-4573-be66-9cd35d678c90>`_ [#f1]_
+**New and experimental:** `try casiopeia live in your browser <https://ec2-52-29-32-46.eu-central-1.compute.amazonaws.com:8888/8cacf81e-3d6e-488d-972a-679cb5befefb>`_ [#f1]_
 
 .. [#f1] This service is at the moment limited to one user at a time, due to restricted resources. If your computations do no start immediately, there's probably another user testing casiopeia at the moment. 
