@@ -31,11 +31,18 @@ Casadi Interface for Optimum experimental design and Parameter Estimation and Id
 casiopeia makes use of the optimization framework
 `CasADi <http://casadi.org>`_ to solve parameter estimation problems.
 
+.. note:: casiopeia is still in it's testing state, and does not yet contain all the features it will provide in future versions. Therefore, you should check for updates on a regular basis.
+
 In the following sections, you will receive the information necessary to obtain,
 install and use casiopeia. If you encounter any problems using this software, please feel free
 to submit your errors with a description of how it occurred to adrian.buerger@hs-karlsruhe.de.
 
-.. note:: casiopeia is still in it's testing state, and does not yet contain all the features it will provide in future versions. Therefore, you should check for updates on a regular basis.
+**New and experimental:** `try casiopeia live in your browser <https://ec2-52-29-32-46.eu-central-1.compute.amazonaws.com:8888/b312ce4c-7f26-4573-be66-9cd35d678c90>`_ [#f1]_
+
+
+
+
+
 
 Contents
 --------
@@ -50,6 +57,8 @@ Contents
    pe
    doe
    samples
+
+.. [#f1] This service is at the moment limited to one user at a time, due to restricted resources. If your computations do no start immediately, there's probably another user testing casiopeia at the moment. 
 
 .. Indices and tables
 .. ------------------
