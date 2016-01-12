@@ -64,9 +64,10 @@ def setup_covariance_matrix(optimization_variables, weightings, \
         kkt_matrix_B, kkt_matrix_C)
 
     # Construct the covariance matrix from the inverse of the KKT matrix;
-    # using the Schur complement, only the relevant part of the covariance
-    # matrix that contains the information about the unknown parameters
-    # (cov_mat_A) is constructed
+    # only the relevant part of the covariance matrix that contains the
+    # information about the unknown parameters (cov_mat_A) is constructed,
+    # see http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/
+    # Freising10_19_-_Kostina_-_Towards_Optimum.pdf
 
     cov_mat_inv_A = kkt_matrix[: number_of_unknown_parameters, \
         : number_of_unknown_parameters]

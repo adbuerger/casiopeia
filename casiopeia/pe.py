@@ -625,16 +625,27 @@ and compute_covariance_matrix() before all results can be displayed.
         This function computes the covariance matrix for the estimated
         parameters from the inverse of the KKT matrix for the parameter
         estimation problem, which allows for statements on the quality of
-        the values of the estimated parameters.
+        the values of the estimated parameters [#f1]_.
 
         For efficiency, only the inverse of the relevant part of the matrix
-        is computed using the Schur complement.
+        is computed [#f2]_.
 
         The values of the covariance matrix :math:`\Sigma_{\hat{p}}` can afterwards
         be accessed via the class attribute ``LSq.covariance_matrix``, and the
         contained standard deviations :math:`\sigma_{\hat{p}}` for the
         estimated parameters directly via 
         ``LSq.standard_deviations``.
+
+        .. rubric:: References
+
+        .. [#f1] |linkf1|_
+
+        .. _linkf1: http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/Freising10_19_-_Kostina_-_Towards_Optimum.pdf
+
+        .. |linkf1| replace:: *Kostina, Ekaterina and Kriwet, Gregor: Towards Optimum Experimental Design for Partial Differential Equations, SPP 1253 annual conference 2010, slides 12/13.*
+
+        .. [#f2] *Walter, Eric and Prozanto, Luc: Identification of Parametric Models from Experimental Data, Springer, 1997, pages 288/289.*
+
         '''
 
         print('\n' + '# ' + 17 * '-' + \

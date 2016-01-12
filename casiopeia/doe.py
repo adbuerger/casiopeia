@@ -569,7 +569,11 @@ Possible values are "A" and "D".
 
         .. rubric:: References
 
-        .. [#f1] *Körkel, Stefan: Numerische Methoden für Optimale Versuchsplanungsprobleme bei nichtlinearen DAE-Modellen, PhD Thesis, Heidelberg university, 2002, pages 74/75.*
+        .. [#f1] |linkf1|_
+        
+        .. _linkf1: http://ginger.iwr.uni-heidelberg.de/vplan/images/5/54/Koerkel2002.pdf
+
+        .. |linkf1| replace:: *Körkel, Stefan: Numerische Methoden für Optimale Versuchsplanungsprobleme bei nichtlinearen DAE-Modellen, PhD Thesis, Heidelberg university, 2002, pages 74/75.*
 
         '''
 

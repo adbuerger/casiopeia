@@ -191,9 +191,19 @@ The figure below shows a comparison of the simulated states values for both init
 
 .. rubric:: References
 
-.. [#f1] *Bock, Sager et al.: Übungen zur Numerischen Mathematik II, sheet 9, IWR, Heidelberg university, 2006*. The original resource (in German) can be found at http://www.iwr.uni-heidelberg.de/~agbock/TEACHING/2006ws/NUM2/UEBUNGSBLAETTER/THEORIE/t09.pdf.
+.. Process for italic links, see: http://stackoverflow.com/questions/10669099/italicize-text-containing-a-link
 
-.. [#f2] *Diehl, Moritz: Course on System Identification, exercise 7, SYSCOP, IMTEK, University of Freiburg, 2014/2015*. The original resource can be found at https://www.imtek.de/professuren/systemtheorie/events/dateien/exercise7.pdf.
+.. [#f1] |linkf1|_
+
+.. _linkf1: http://www.iwr.uni-heidelberg.de/~agbock/TEACHING/2006ws/NUM2/UEBUNGSBLAETTER/THEORIE/t09.pdf
+
+.. |linkf1| replace:: *Bock, Sager et al.: Übungen zur Numerischen Mathematik II, sheet 9, IWR, Heidelberg university, 2006.*
+
+.. [#f2] |linkf2|_
+
+.. _linkf2: https://www.imtek.de/professuren/systemtheorie/events/dateien/exercise7.pdf
+
+.. |linkf2| replace:: *Diehl, Moritz: Course on System Identification, exercise 7, SYSCOP, IMTEK, University of Freiburg, 2014/2015.*
 
 .. [#f3] *Verschueren, Robin: Design and implementation of a time-optimal controller for model race cars, Master's thesis, KU Leuven, 2014.*
 
