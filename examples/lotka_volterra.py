@@ -52,7 +52,7 @@ phi = x
 
 system = cp.system.System(x = x, p = p, f = f, phi = phi)
 
-# The weightings for the measurements errors given to PECas are calculated
+# The weightings for the measurements errors given to casiopeia are calculated
 # from the standard deviations of the measurements, so that the least squares
 # estimator ist the maximum likelihood estimator for the estimation problem.
 

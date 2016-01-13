@@ -69,7 +69,7 @@ udata = [psi] * (N-1)
 sigmanu = pl.std(numeas, ddof=1)
 sigmaw = pl.std(wmeas, ddof=1)
 
-# The weightings for the measurements errors given to PECas are calculated
+# The weightings for the measurements errors given to casiopeia are calculated
 # from the standard deviations of the measurements, so that the least squares
 # estimator ist the maximum likelihood estimator for the estimation problem.
 
