@@ -90,7 +90,7 @@ can be accessed, please run run_system_simulation() first.
         :type system: casiopeia.system.System
 
         :param pdata: values of the time-constant parameters 
-                      :math:`p \in \mathbb{R}^{n_p}`
+                      :math:`p \in \mathbb{R}^{\text{n}_\text{p}}`
         :type pdata: numpy.ndarray, casadi.DMatrix
 
         '''
@@ -130,17 +130,17 @@ can be accessed, please run run_system_simulation() first.
         integrator_options = {}):
 
         r'''
-        :param x0: state values :math:`x_0 \in \mathbb{R}^{n_x}`
+        :param x0: state values :math:`x_0 \in \mathbb{R}^{\text{n}_\text{x}}`
                    at the first time point :math:`t_0`
         :type x0: numpy.ndarray, casadi.DMatrix, list
 
         :param time_points: switching time points for the controls
-                            :math:`t_N \in \mathbb{R}^{N}`
+                            :math:`t_\text{N} \in \mathbb{R}^\text{N}`
         :type time_points: numpy.ndarray, casadi.DMatrix, list
 
         :param udata: optional, values for the controls at the first :math:`N-1`
                       switching time points 
-                      :math:`u_N \in \mathbb{R}^{n_u \times N-1}`; if no values
+                      :math:`u_\text{N} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N}-1}`; if no values
                       are given, 0 will be used
         :type udata: numpy.ndarray, casadi.DMatrix
 
@@ -151,14 +151,14 @@ can be accessed, please run run_system_simulation() first.
 
         This function will run a system simulation for the specified initial
         state values and control data from :math:`t_0` to
-        :math:`t_N`.
+        :math:`t_\text{N}`.
 
         If you receive integrator-related error messages during the simulation,
         please check the corresponding parts of the
         CasADi documentation.
 
         After the simulation has finished, the simulation results
-        :math:`x_N` can be accessed via the class attribute
+        :math:`x_\text{N}` can be accessed via the class attribute
         ``Simulation.simulation_results``.
 
         '''

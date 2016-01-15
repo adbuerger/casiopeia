@@ -118,10 +118,10 @@ The 2D model of the race car is an ODE of the form :math:`\dot{x} = f(x,u,p)`, g
 .. math::
 
     \begin{aligned}
-        \dot{X} &= v \, cos(\psi + C_{1} \delta)\\
-        \dot{Y} &= v \, sin(\psi + C_{1} \delta) \\
+        \dot{X} &= v \, \text{cos}(\psi + C_{1} \delta)\\
+        \dot{Y} &= v \, \text{sin}(\psi + C_{1} \delta) \\
         \dot{\psi} &= v \, \delta \, C_{2} \\
-        \dot{v} &= C_{m_{1}} \, D - C_{m_{2}} \, D \, v - C_{r_{2}} \, v^{2} - C_{r_{0}} - (v \, \delta)^{2} \, C_{2} \, C_{1},
+        \dot{v} &= C_{\text{m}_{1}} \, D - C_{\text{m}_{2}} \, D \, v - C_{\text{r}_{2}} \, v^{2} - C_{\text{r}_{0}} - (v \, \delta)^{2} \, C_{2} \, C_{1},
     \end{aligned}
 
 
@@ -129,7 +129,7 @@ where the states :math:`x`, controls :math:`u` and parameters :math:`p` are defi
 
 .. math::
 
-    x = \begin{pmatrix} {X} \\ {Y} \\ {\psi} \\ {v} \end{pmatrix}, ~ u = \begin{pmatrix} {\delta} \\ D \end{pmatrix}, ~ p = \begin{pmatrix} {C_{1}} \\ {C_{2}} \\ {C_{m_{1}}}  \\ {C_{m_{2}}} \\ {C_{r_{2}}} \\ {C_{r_{0}}} \end{pmatrix},
+    x = \begin{pmatrix} {X} \\ {Y} \\ {\psi} \\ {v} \end{pmatrix}, ~ u = \begin{pmatrix} {\delta} \\ D \end{pmatrix}, ~ p = \begin{pmatrix} {C_{1}} \\ {C_{2}} \\ {C_{\text{m}_{1}}}  \\ {C_{\text{m}_{2}}} \\ {C_{\text{r}_{2}}} \\ {C_{\text{r}_{0}}} \end{pmatrix},
 
 and we can measure the full state, i. e.  
 
@@ -142,7 +142,7 @@ The values resulting from the parameter estimation are
 
 .. math::
 
-    \hat{p} = \begin{pmatrix} {\hat{C_{1}}} \\ {\hat{C_{2}}} \\ {\hat{C_{m_{1}}}}  \\ {\hat{C_{m_{2}}}} \\ {\hat{C_{r_{2}}}} \\ {\hat{C_{r_{0}}}} \end{pmatrix} = \begin{pmatrix} {  0.273408} \\ { 11.5602} \\ {2.45652} \\ {7.90959} \\ {-0.44353} \\ {-0.249098} \end{pmatrix}.
+    \hat{p} = \begin{pmatrix} {\hat{C_{1}}} \\ {\hat{C_{2}}} \\ {\hat{C_{\text{m}_{1}}}}  \\ {\hat{C_{\text{m}_{2}}}} \\ {\hat{C_{\text{r}_{2}}}} \\ {\hat{C_{\text{r}_{0}}}} \end{pmatrix} = \begin{pmatrix} {  0.273408} \\ { 11.5602} \\ {2.45652} \\ {7.90959} \\ {-0.44353} \\ {-0.249098} \end{pmatrix}.
 
 The results for the system simulation using the estimated parameter in comparison to the measurement data are shown in the figures below.
 
@@ -156,10 +156,10 @@ An evaluation of the covariance matrix for the estimated parameters shows that t
 
 .. math::
 
-    \hat{p} = \begin{pmatrix} {\hat{C_{1}}} \\ {\hat{C_{2}}} \\ {\hat{C_{m_{1}}}}  \\ {\hat{C_{m_{2}}}} \\ {\hat{C_{r_{2}}}} \\ {\hat{C_{r_{0}}}} \end{pmatrix} = \begin{pmatrix} {  0.273408} \\ { 11.5602} \\ {2.45652} \\ {7.90959} \\ {-0.44353} \\ {-0.249098} \end{pmatrix} \pm \begin{pmatrix} {0.034497452} \\ {0.058569592} \\ {2.72097859} \\ {5.448817078} \\ {1.478999406} \\ {0.37343932} \end{pmatrix}
+    \hat{p} = \begin{pmatrix} {\hat{C_{1}}} \\ {\hat{C_{2}}} \\ {\hat{C_{\text{m}_{1}}}}  \\ {\hat{C_{\text{m}_{2}}}} \\ {\hat{C_{\text{r}_{2}}}} \\ {\hat{C_{\text{r}_{0}}}} \end{pmatrix} = \begin{pmatrix} {  0.273408} \\ { 11.5602} \\ {2.45652} \\ {7.90959} \\ {-0.44353} \\ {-0.249098} \end{pmatrix} \pm \begin{pmatrix} {0.034497452} \\ {0.058569592} \\ {2.72097859} \\ {5.448817078} \\ {1.478999406} \\ {0.37343932} \end{pmatrix}
 
 
-This intends that the estimation results for the parameters  :math:`\hat{C_{m_{1}}}`, :math:`\hat{C_{m_{2}}}`, :math:`\hat{C_{r_{2}}}` and :math:`\hat{C_{r_{0}}}` are probably not accurate, and might change substantially for other measurement and control data. Optimum experimental design can be an option to encounter this problem.
+This intends that the estimation results for the parameters  :math:`\hat{C_{\text{m}_{1}}}`, :math:`\hat{C_{\text{m}_{2}}}`, :math:`\hat{C_{\text{r}_{2}}}` and :math:`\hat{C_{\text{r}_{0}}}` are probably not accurate, and might change substantially for other measurement and control data. Optimum experimental design can be an option to encounter this problem.
 
 
 Optimum experimental design for a model race car

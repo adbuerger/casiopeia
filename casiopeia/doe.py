@@ -432,7 +432,7 @@ Possible values are "A" and "D".
                        using the :class:`casiopeia.system.System` class
         :type system: casiopeia.system.System
 
-        :param time_points: time points :math:`t_N \in \mathbb{R}^{N}`
+        :param time_points: time points :math:`t_\text{N} \in \mathbb{R}^\text{N}`
                    used to discretize the continuous time problem. Controls
                    will be applied at the first :math:`N-1` time points,
                    while measurements take place at all :math:`N` time points.
@@ -440,7 +440,7 @@ Possible values are "A" and "D".
 
         :param uinit: optional, initial guess for the optimal values of the
                    controls at the switching time
-                   points :math:`u_{init} \in \mathbb{R}^{n_u \times N-1}`;
+                   points :math:`u_\text{init} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N}-1}`;
                    if not values are given, 0 will be used; note that a poorly
                    or wrongly chosen initial guess can cause the optimization
                    to fail, and note that the
@@ -450,45 +450,45 @@ Possible values are "A" and "D".
         :type uinit: numpy.ndarray, casadi.DMatrix
 
         :param umin: optional, lower bounds of the
-                   controls :math:`u_{min} \in \mathbb{R}^{n_u \times N-1}`;
+                   controls :math:`u_\text{min} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N-1}}`;
                    if not values are given, :math:`-\infty` will be used
         :type umin: numpy.ndarray, casadi.DMatrix
 
         :param umax: optional, upper bounds of the
-                   controls :math:`u_max \in \mathbb{R}^{n_u \times N-1}`;
+                   controls :math:`u_\text{max} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N}-1}`;
                    if not values are given, :math:`\infty` will be used
         :type umax: numpy.ndarray, casadi.DMatrix
 
         :param pdata: values of the time-constant parameters 
-                      :math:`p \in \mathbb{R}^{n_p}`
+                      :math:`p \in \mathbb{R}^{\text{n}_\text{p}}`
         :type pdata: numpy.ndarray, casadi.DMatrix
 
-        :param x0: state values :math:`x_0 \in \mathbb{R}^{n_x}`
+        :param x0: state values :math:`x_0 \in \mathbb{R}^{\text{n}_\text{x}}`
                    at the first time point :math:`t_0`
         :type x0: numpy.ndarray, casadi.DMatrix, list
 
         :param xmin: optional, lower bounds of the states
-                      :math:`x_{min} \in \mathbb{R}^{n_x \times N}`;
+                      :math:`x_\text{min} \in \mathbb{R}^{\text{n}_\text{x} \times \text{N}}`;
                       if no value is given, :math:`-\infty` will be used
         :type xmin: numpy.ndarray, casadi.DMatrix
 
         :param xmax: optional, lower bounds of the states
-                      :math:`x_{max} \in \mathbb{R}^{n_x \times N}`;
+                      :math:`x_\text{max} \in \mathbb{R}^{\text{n}_\text{x} \times \text{N}}`;
                       if no value is given, :math:`\infty` will be used
         :type xmax: numpy.ndarray, casadi.DMatrix 
 
         :param wv: weightings for the measurements
-                   :math:`w_v \in \mathbb{R}^{n_y \times N}`
-        :type wv: numpy.ndarray, casadi.DMatrix    
+                   :math:`w_\text{v} \in \mathbb{R}^{\text{n}_\text{y} \times \text{N}}`
+        :type wv: numpy.ndarray, casadi.DMatrix
 
         :param weps_e: weightings for equation errors
-                   :math:`w_{\epsilon_e} \in \mathbb{R}^{n_{\epsilon_e}}`
+                   :math:`w_{\epsilon_\text{e}} \in \mathbb{R}^{\text{n}_{\epsilon_\text{e}}}`
                    (only necessary 
                    if equation errors are used within ``system``)
         :type weps_e: numpy.ndarray, casadi.DMatrix    
 
         :param weps_u: weightings for the input errors
-                   :math:`w_{\epsilon_u} \in \mathbb{R}^{n_{\epsilon_u}}`
+                   :math:`w_{\epsilon_\text{u}} \in \mathbb{R}^{\text{n}_{\epsilon_\text{u}}}`
                    (only necessary
                    if input errors are used within ``system``)
         :type weps_u: numpy.ndarray, casadi.DMatrix    
@@ -496,21 +496,21 @@ Possible values are "A" and "D".
         :param discretization_method: optional, the method that shall be used for
                                       discretization of the continuous time
                                       problem w. r. t. the time points given 
-                                      in :math:`t_N`; possible values are
+                                      in :math:`t_\text{N}`; possible values are
                                       "collocation" (default) and
                                       "multiple_shooting"
         :type discretization_method: str
 
         :param optimality_criterion: optional, the information function
-                                    :math:`I_X(\cdot)` to be used on the 
+                                    :math:`I_\text{X}(\cdot)` to be used on the 
                                     covariance matrix, possible values are
                                     `A` (default) and `D`, while
 
                                     .. math ::
 
                                         \begin{aligned}
-                                          I_A(\Sigma_p) & = \frac{1}{n_p} \text{Tr}(\Sigma_p),\\
-                                          I_D(\Sigma_p) & = \begin{vmatrix} \Sigma_p \end{vmatrix} ^{\frac{1}{n_p}},
+                                          I_\text{A}(\Sigma_\text{p}) & = \frac{1}{n_\text{p}} \text{Tr}(\Sigma_\text{p}),\\
+                                          I_\text{D}(\Sigma_\text{p}) & = \begin{vmatrix} \Sigma_\text{p} \end{vmatrix} ^{\frac{1}{n_\text{p}}},
                                         \end{aligned}
 
                                     for further information see e. g. [#f1]_
@@ -555,15 +555,15 @@ Possible values are "A" and "D".
         .. math::
 
             \begin{aligned}
-                \text{arg}\,\underset{u, x}{\text{min}} & & I(\Sigma_{p}(x, u)) &\\
-                \text{subject to:} & & \text{Cov}(p) & = \Sigma_p\\
-                & & g(p, x, v, \epsilon_e, \epsilon_u) & = 0\\
-                & & u_{min} \leq u_k  & \leq u_{max} \hspace{1cm} k = 1, \dots, N-1\\
-                & & x_{min} \leq x_k  & \leq x_{max} \hspace{1cm} k = 1, \dots, N\\
+                \text{arg}\,\underset{u, x}{\text{min}} & & I(\Sigma_{\text{p}}(x, u; p)) &\\
+                \text{subject to:} & & g(x, u; p) & = 0\\
+                & & u_\text{min} \leq u_\text{k} & \leq u_\text{max} \hspace{1cm} k = 1, \dots, N-1\\
+                & & x_\text{min} \leq x_\text{k}  & \leq x_\text{max} \hspace{1cm} k = 1, \dots, N\\
                 & & x_1 \leq x(t_1) & \leq x_1
             \end{aligned}
 
-        while :math:`g(\cdot)` contains the discretized system dynamics
+        where :math:`\Sigma_p = \text{Cov}(p)` and :math:`g(\cdot)` contains the
+        discretized system dynamics
         according to the specified discretization method. If the system is
         non-dynamic, it only contains the user-provided equality constraints.
 

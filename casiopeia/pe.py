@@ -355,43 +355,43 @@ but will be in future versions.
                        using the :class:`casiopeia.system.System` class
         :type system: casiopeia.system.System
 
-        :param time_points: time points :math:`t_N \in \mathbb{R}^{N}`
+        :param time_points: time points :math:`t_\text{N} \in \mathbb{R}^\text{N}`
                    used to discretize the continuous time problem. Controls
                    will be applied at the first :math:`N-1` time points,
                    while measurements take place at all :math:`N` time points.
         :type time_points: numpy.ndarray, casadi.DMatrix, list
 
         :param udata: optional, values for the controls at the switching time
-                   points :math:`u_N \in \mathbb{R}^{n_u \times N-1}`;
+                   points :math:`u_\text{N} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N}-1}`;
                    if not values are given, 0 will be used; note that the
-                   the second dimension of :math:`u_N` is :math:`N-1` and not
+                   the second dimension of :math:`u_\text{N}` is :math:`N-1` and not
                    :math:`N`, since there is no control value applied at the
                    last time point
         :type udata: numpy.ndarray, casadi.DMatrix
 
         :param ydata: values for the measurements at the switching time points
-                   :math:`u_y \in \mathbb{R}^{n_y \times N}`
+                   :math:`y_\text{N} \in \mathbb{R}^{\text{n}_\text{y} \times \text{N}}`
         :type ydata: numpy.ndarray, casadi.DMatrix    
 
         :param wv: weightings for the measurements
-                   :math:`w_v \in \mathbb{R}^{n_y \times N}`
+                   :math:`w_\text{v} \in \mathbb{R}^{\text{n}_\text{y} \times \text{N}}`
         :type wv: numpy.ndarray, casadi.DMatrix    
 
         :param weps_e: weightings for equation errors
-                   :math:`w_{\epsilon_e} \in \mathbb{R}^{n_{\epsilon_e}}`
+                   :math:`w_{\epsilon_\text{e}} \in \mathbb{R}^{\text{n}_{\epsilon_\text{e}}}`
                    (only necessary 
                    if equation errors are used within ``system``)
         :type weps_e: numpy.ndarray, casadi.DMatrix    
 
         :param weps_u: weightings for the input errors
-                   :math:`w_{\epsilon_u} \in \mathbb{R}^{n_{\epsilon_u}}`
+                   :math:`w_{\epsilon_\text{u}} \in \mathbb{R}^{\text{n}_{\epsilon_\text{u}}}`
                    (only necessary
                    if input errors are used within ``system``)
         :type weps_u: numpy.ndarray, casadi.DMatrix    
 
         :param pinit: optional, initial guess for the values of the
                       parameters that will be estimated
-                      :math:`p_{init} \in \mathbb{R}^{n_p}`; if no
+                      :math:`p_\text{init} \in \mathbb{R}^{\text{n}_\text{p}}`; if no
                       value is given, 0 will be used; note that a poorly or
                       wrongly chosen initial guess can cause the estimation
                       to fail
@@ -399,7 +399,7 @@ but will be in future versions.
 
         :param xinit: optional, initial guess for the values of the
                       states that will be estimated
-                      :math:`x_{init} \in \mathbb{R}^{n_x \times N}`;
+                      :math:`x_\text{init} \in \mathbb{R}^{\text{n}_\text{x} \times \text{N}}`;
                       if no value is given, 0 will be used; note that a poorly
                       or wrongly chosen initial guess can cause the estimation
                       to fail
@@ -408,7 +408,7 @@ but will be in future versions.
         :param discretization_method: optional, the method that shall be used for
                                       discretization of the continuous time
                                       problem w. r. t. the time points given 
-                                      in :math:`t_N`; possible values are
+                                      in :math:`t_\text{N}`; possible values are
                                       "collocation" (default) and
                                       "multiple_shooting"
         :type discretization_method: str
@@ -447,10 +447,10 @@ but will be in future versions.
         .. math::
 
             \begin{aligned}
-                \text{arg}\,\underset{p, x, v, \epsilon_e, \epsilon_u}{\text{min}} & & \frac{1}{2} \| R(w, v, \epsilon_e, \epsilon_u) \|_2^2 &\\
-                \text{subject to:} & & \begin{pmatrix} {w_{v}}^T & {w_{\epsilon_{e}}}^T & {w_{\epsilon_{u}}}^T \end{pmatrix}^{^\mathbb{1}/_\mathbb{2}} \begin{pmatrix} {v} \\ {\epsilon_e} \\ {\epsilon_u} \end{pmatrix} & = R \\
-                & & v_{l} + y_{l} - \phi(t_{l}, u_{l}, x_{l}, p) & = 0 \hspace{1cm} l = 1, \dots, N\\
-                & & g(p, x, v, \epsilon_e, \epsilon_u) & = 0
+                \text{arg}\,\underset{p, x, v, \epsilon_\text{e}, \epsilon_\text{u}}{\text{min}} & & \frac{1}{2} \| R(w, v, \epsilon_\text{e}, \epsilon_\text{u}) \|_2^2 &\\
+                \text{subject to:} & & v_\text{k} + y_\text{k} - \phi(x_\text{k}, p; t_\text{k}, u_\text{k}) & = 0 \hspace{1cm} k = 1, \dots, N\\
+                & & g(p, x, v, \epsilon_\text{e}, \epsilon_\text{u}; u) & = 0 \\
+                \text{with:} & & \begin{pmatrix} {w_\text{v}}^T & {w_{\epsilon_\text{e}}}^T & {w_{\epsilon_\text{u}}}^T \end{pmatrix}^{^\mathbb{1}/_\mathbb{2}} \begin{pmatrix} {v} \\ {\epsilon_\text{e}} \\ {\epsilon_\text{u}} \end{pmatrix} & = R \\
             \end{aligned}
 
         while :math:`g(\cdot)` contains the discretized system dynamics

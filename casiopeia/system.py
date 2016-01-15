@@ -189,31 +189,31 @@ See the documentation for a list of valid definitions.
         :param t: time :math:`t \in \mathbb{R}` *(not yet supported)*
         :type t: casadi.casadi.MX
 
-        :param u: controls :math:`u \in \mathbb{R}^{n_{u}}` (optional)
+        :param u: controls :math:`u \in \mathbb{R}^{\text{n}_\text{u}}` (optional)
         :type u: casadi.casadi.MX
 
-        :param p: unknown parameters :math:`p \in \mathbb{R}^{n_{p}}`
+        :param p: unknown parameters :math:`p \in \mathbb{R}^{\text{n}_\text{p}}`
         :type p: casadi.casadi.MX
 
-        :param x: differential states :math:`x \in \mathbb{R}^{n_{x}}` (optional)
+        :param x: differential states :math:`x \in \mathbb{R}^{\text{n}_\text{x}}` (optional)
         :type x: casadi.casadi.MX
 
-        :param z: algebraic states :math:`x \in \mathbb{R}^{n_{z}}` (optional)
+        :param z: algebraic states :math:`x \in \mathbb{R}^{\text{n}_\text{z}}` (optional)
         :type z: casadi.casadi.MX
 
-        :param eps_e: equation errors :math:`\epsilon_{e} \in \mathbb{R}^{n_{\epsilon_{e}}}` (optional)
+        :param eps_e: equation errors :math:`\epsilon_{e} \in \mathbb{R}^{\text{n}_{\epsilon_\text{e}}}` (optional)
         :type eps_e: casadi.casadi.MX
 
-        :param eps_u: input errors :math:`\epsilon_{u} \in \mathbb{R}^{n_{\epsilon_{u}}}` (optional)
+        :param eps_u: input errors :math:`\epsilon_{u} \in \mathbb{R}^{\text{n}_{\epsilon_\text{u}}}` (optional)
         :type eps_u: casadi.casadi.MX
 
-        :param phi: output function :math:`\phi(t, u, x, p) = y \in \mathbb{R}^{n_{y}}`
+        :param phi: output function :math:`\phi(t, u, x, p) = y \in \mathbb{R}^{\text{n}_\text{y}}`
         :type phi: casadi.casadi.MX
 
-        :param f: explicit system of ODEs :math:`f(t, u, x, z, p, \epsilon_{e}, \epsilon_{u}) = \dot{x} \in \mathbb{R}^{n_{x}}` (optional)
+        :param f: explicit system of ODEs :math:`f(t, u, x, z, p, \epsilon_\text{e}, \epsilon_\text{u}) = \dot{x} \in \mathbb{R}^{\text{n}_\text{x}}` (optional)
         :type f: casadi.casadi.MX
 
-        :param g: equality constraints :math:`g(t, u, x, z, p) = 0 \in \mathbb{R}^{n_{g}}` (optional)
+        :param g: equality constraints :math:`g(t, u, x, z, p) = 0 \in \mathbb{R}^{\text{n}_\text{g}}` (optional)
                   (optional)
         :type g: casadi.casadi.MX
 
@@ -237,7 +237,7 @@ See the documentation for a list of valid definitions.
 
             y & = & \phi(t, u, x, p) \\
 
-            \dot{x}  & = & f(t, u, x, p, \epsilon_{e}, \epsilon_{u}).
+            \dot{x}  & = & f(t, u, x, p, \epsilon_\text{e}, \epsilon_\text{u}).
 
 
         **Fully implicit DAE system** *(not yet supported)*:
@@ -246,7 +246,7 @@ See the documentation for a list of valid definitions.
 
             y & = & \phi(t, u, x, p) \\
 
-            0 & = & f(t, u, x, \dot{x}, z, p, \epsilon_{e}, \epsilon_{u}).
+            0 & = & f(t, u, x, \dot{x}, z, p, \epsilon_\text{e}, \epsilon_\text{u}).
 
             0 = g(t, u, x, z, p)
 
