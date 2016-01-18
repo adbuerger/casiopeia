@@ -449,7 +449,7 @@ but will be in future versions.
             \begin{aligned}
                 \text{arg}\,\underset{p, x, v, \epsilon_\text{e}, \epsilon_\text{u}}{\text{min}} & & \frac{1}{2} \| R(w, v, \epsilon_\text{e}, \epsilon_\text{u}) \|_2^2 &\\
                 \text{subject to:} & & v_\text{k} + y_\text{k} - \phi(x_\text{k}, p; t_\text{k}, u_\text{k}) & = 0 \hspace{1cm} k = 1, \dots, N\\
-                & & g(p, x, v, \epsilon_\text{e}, \epsilon_\text{u}; u) & = 0 \\
+                & & g(p, x, \epsilon_\text{e}, \epsilon_\text{u}; u) & = 0 \\
                 \text{with:} & & \begin{pmatrix} {w_\text{v}}^T & {w_{\epsilon_\text{e}}}^T & {w_{\epsilon_\text{u}}}^T \end{pmatrix}^{^\mathbb{1}/_\mathbb{2}} \begin{pmatrix} {v} \\ {\epsilon_\text{e}} \\ {\epsilon_\text{u}} \end{pmatrix} & = R \\
             \end{aligned}
 
@@ -549,11 +549,11 @@ Parameter estimation finished. Check IPOPT output for status information.
         
           - the values of the estimated parameters :math:`\hat{p}`
             and their corresponding standard deviations
-            :math:`\sigma_{\hat{p}},`
+            :math:`\sigma_{\hat{\text{p}}},`
             (the values of the standard deviations are presented
             only if the covariance matrix had already been computed),
           - the values of the covariance matrix
-            :math:`\Sigma_{\hat{p}}` for the
+            :math:`\Sigma_{\hat{\text{p}}}` for the
             estimated parameters (if it had already been computed), and
           - the durations of the estimation and (if already executed)
             of the covariance matrix computation.
@@ -630,9 +630,9 @@ and compute_covariance_matrix() before all results can be displayed.
         For efficiency, only the inverse of the relevant part of the matrix
         is computed [#f2]_.
 
-        The values of the covariance matrix :math:`\Sigma_{\hat{p}}` can afterwards
+        The values of the covariance matrix :math:`\Sigma_{\hat{\text{p}}}` can afterwards
         be accessed via the class attribute ``LSq.covariance_matrix``, and the
-        contained standard deviations :math:`\sigma_{\hat{p}}` for the
+        contained standard deviations :math:`\sigma_{\hat{\text{p}}}` for the
         estimated parameters directly via 
         ``LSq.standard_deviations``.
 
