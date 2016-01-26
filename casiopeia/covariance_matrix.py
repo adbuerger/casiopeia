@@ -49,7 +49,7 @@ class CovarianceMatrix(object):
             return self.__covariance_matrix_for_optimization
 
     @property
-    def covariance_matrix_additional_contraints(self):
+    def covariance_matrix_additional_constraints(self):
 
         try:
 
@@ -64,6 +64,9 @@ class CovarianceMatrix(object):
 
     @property
     def covariance_matrix_additional_optimization_variables(self):
+
+        # import ipdb
+        # ipdb.set_trace()
 
         try:
 
@@ -234,6 +237,8 @@ class CovarianceMatrix(object):
         self.__covariance_matrix_additional_constraints = ci.veccat([ \
             constraints_E, constraints_F])
 
+        import ipdb
+        ipdb.set_trace()
 
 def setup_a_criterion(covariance_matrix):
 

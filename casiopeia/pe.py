@@ -320,6 +320,11 @@ but will be in future versions.
             ])
 
 
+    def __setup_objective(self):
+
+        self.__objective =  0.5 * ci.mul([self.__residuals.T, self.__residuals])
+
+
     def __setup_constraints(self):
 
         self.__constraints = ci.vertcat([ \
@@ -329,12 +334,7 @@ but will be in future versions.
 
             ])
 
-
-    def __setup_objective(self):
-
-        self.__objective =  0.5 * ci.mul([self.__residuals.T, self.__residuals])
-
-
+        
     def __setup_nlp(self):
 
         self.__nlp = ci.mx_function("nlp", \
@@ -478,9 +478,9 @@ but will be in future versions.
 
         self.__setup_residuals()
 
-        self.__setup_constraints()
-
         self.__setup_objective()
+
+        self.__setup_constraints()
 
         self.__setup_nlp()
 

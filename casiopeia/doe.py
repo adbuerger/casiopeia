@@ -31,7 +31,8 @@ from discretization.odemultipleshooting import ODEMultipleShooting
 from interfaces import casadi_interface as ci
 # from covariance_matrix import setup_covariance_matrix, setup_a_criterion, \
 #     setup_d_criterion
-from covariance_matrix import CovarianceMatrix
+from covariance_matrix import CovarianceMatrix, setup_a_criterion, \
+    setup_d_criterion
 from intro import intro
 from sim import Simulation
 
@@ -326,9 +327,9 @@ but will be in future versions.
             ])
 
 
-    def __setup_constraints(self):
+    def __setup_constraints_for_cov_matrix_construction(self):
 
-        self.__constraints = ci.vertcat([ \
+        self.__constraints_for_cov_matrix_construction = ci.vertcat([ \
 
                 self.__measurement_deviations,
                 self.__discretization.equality_constraints,
@@ -353,6 +354,19 @@ but will be in future versions.
 
             ])
 
+
+    def __setup_covariance_matrix(self):
+
+        self.__cm = CovarianceMatrix( \
+            self.__cov_matrix_derivative_directions, \
+            self.__weightings_vectorized, \
+            self.__constraints_for_cov_matrix_construction,\
+            self.__discretization.system.np)
+
+
+    # add addidtional constraints and variables, apply parameters, go!
+
+
     def __set_optimiality_criterion(self, optimality_criterion):
 
             if str(optimality_criterion).upper() == "A":
@@ -373,41 +387,93 @@ Possible values are "A" and "D".
 
     def __setup_objective(self):
 
-        self.__covariance_matrix_symbolic = setup_covariance_matrix( \
-                self.__cov_matrix_derivative_directions, \
-                self.__weightings_vectorized, \
-                self.__constraints, self.__discretization.system.np)
-
-        self.__objective_parameters_free = \
-            self.__optimality_criterion(self.__covariance_matrix_symbolic)
+        self.__objective = self.__optimality_criterion( \
+                self.__cm.covariance_matrix_for_optimization)
 
 
-    def __apply_parameters_to_objective(self, pdata):
+    def __apply_parameters_to_cov_matrix_additional_constraints(self, pdata):
 
         # As mentioned above, the objective does not depend on the actual
         # values of V, EPS_E and EPS_U, but on the values of P
 
-        objective_free_variables = ci.veccat([ \
+        cov_mat_add_const_free_variables = ci.veccat([ \
 
                 self.__discretization.optimization_variables["P"],
                 self.__discretization.optimization_variables["U"],
                 self.__discretization.optimization_variables["X"],
+                self.__cm.covariance_matrix_additional_optimization_variables,
 
             ])
 
-        objective_free_variables_parameters_applied = ci.veccat([ \
+        cov_mat_add_const_free_variables_parameters_applied = ci.veccat([ \
 
                 pdata,
                 self.__discretization.optimization_variables["U"],
                 self.__discretization.optimization_variables["X"],
+                self.__cm.covariance_matrix_additional_optimization_variables,
 
             ])
 
-        objective_fcn = ci.mx_function("objective_fcn", \
-            [objective_free_variables], [self.__objective_parameters_free])
+        cov_mat_add_const_fcn = ci.mx_function("cov_mat_add_const_fcn", \
+            [cov_mat_add_const_free_variables], \
+            [self.__cm.covariance_matrix_additional_constraints])
 
-        [self.__objective] = objective_fcn( \
-            [objective_free_variables_parameters_applied])
+        [self.__cov_mat_add_const_parameters_applied] = \
+            cov_mat_add_const_fcn( \
+            [cov_mat_add_const_free_variables_parameters_applied])
+
+
+    def __add_cov_matrix_additional_optimization_variables(self):
+
+        self.__optimization_variables = ci.vertcat([
+
+                self.__optimization_variables,
+                self.__cm.covariance_matrix_additional_optimization_variables,
+
+            ])
+
+
+    def __set_cov_matrix_optimization_variables_initials(self):
+
+
+        self.__optimization_variables_initials = ci.vertcat([ \
+
+                self.__optimization_variables_initials, 
+                np.zeros(self.__cm.covariance_matrix_additional_optimization_variables.shape),
+
+            ])
+
+
+    def __set_cov_matrix_optimization_variables_lower_bounds(self):
+
+        self.__optimization_variables_lower_bounds = ci.vertcat([ \
+
+                self.__optimization_variables_lower_bounds, \
+                ci.repmat(-np.inf,  \
+                    self.__cm.covariance_matrix_additional_optimization_variables.size(), 1)
+
+                ])
+
+
+    def __set_cov_matrix_optimization_variables_upper_bounds(self):
+
+        self.__optimization_variables_upper_bounds = ci.vertcat([ \
+
+                self.__optimization_variables_upper_bounds, \
+                ci.repmat(np.inf,  \
+                    self.__cm.covariance_matrix_additional_optimization_variables.size(), 1)
+
+                ])
+
+
+    def __setup_constraints(self):
+
+        self.__constraints= ci.vertcat([ \
+
+                self.__equality_constraints_parameters_applied, 
+                self.__cov_mat_add_const_parameters_applied,
+
+            ])
 
 
     def __setup_nlp(self):
@@ -415,7 +481,7 @@ Possible values are "A" and "D".
         self.__nlp = ci.mx_function("nlp", \
             ci.nlpIn(x = self.__optimization_variables), \
             ci.nlpOut(f = self.__objective, \
-                g = self.__equality_constraints_parameters_applied))
+                g = self.__constraints))
 
 
     def __init__(self, system, time_points, \
@@ -599,15 +665,27 @@ Possible values are "A" and "D".
 
         self.__set_measurement_deviations()
 
+        self.__setup_constraints_for_cov_matrix_construction()
+
         self.__set_cov_matrix_derivative_directions()
 
-        self.__setup_constraints()
+        self.__setup_covariance_matrix()
 
         self.__set_optimiality_criterion(optimality_criterion)
 
         self.__setup_objective()
 
-        self.__apply_parameters_to_objective(pdata)
+        self.__apply_parameters_to_cov_matrix_additional_constraints(pdata)
+
+        self.__add_cov_matrix_additional_optimization_variables()
+
+        self.__set_cov_matrix_optimization_variables_initials()
+
+        self.__set_cov_matrix_optimization_variables_lower_bounds()
+
+        self.__set_cov_matrix_optimization_variables_upper_bounds()
+
+        self.__setup_constraints()
 
         self.__setup_nlp()
 
