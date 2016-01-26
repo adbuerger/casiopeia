@@ -29,7 +29,7 @@ from discretization.odecollocation import ODECollocation
 from discretization.odemultipleshooting import ODEMultipleShooting
 
 from interfaces import casadi_interface as ci
-from covariance_matrix import setup_covariance_matrix, setup_beta
+from covariance_matrix import CovarianceMatrix
 from intro import intro
 
 import inputchecks
@@ -657,25 +657,17 @@ this might take some time ...''')
 
         self.__tstart_covariance_computation = time.time()
 
-        self.__covariance_matrix_symbolic = setup_covariance_matrix( \
-                self.__optimization_variables, self.__weightings_vectorized, \
-                self.__constraints, self.__discretization.system.np)
+        cm = CovarianceMatrix(self.__optimization_variables, \
+            self.__weightings_vectorized, self.__constraints, \
+            self.__discretization.system.np, self.__residuals)
 
-        self.__beta_symbolic = setup_beta(self.__residuals, \
-            self.__measurement_data_vectorized, \
-            self.__constraints, self.__optimization_variables)
+        self.__covariance_matrix_symbolic = cm.covariance_matrix_for_evaluation
 
         covariance_matrix_fcn = ci.mx_function("covariance_matrix_fcn", \
             [self.__optimization_variables], \
             [self.__covariance_matrix_symbolic])
 
-        beta_fcn = ci.mx_function("beta_fcn", \
-            [self.__optimization_variables], \
-            [self.__beta_symbolic])
-
-        self.__beta = beta_fcn([self.estimation_results["x"]])[0]
-
-        self.__covariance_matrix = self.__beta * \
+        self.__covariance_matrix = \
             covariance_matrix_fcn([self.estimation_results["x"]])[0]
 
         self.__tend_covariance_computation = time.time()
