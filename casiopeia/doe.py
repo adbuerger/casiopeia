@@ -125,7 +125,7 @@ but will be in future versions.
 
     def __apply_parameters_to_equality_constraints(self, pdata):
 
-        udata = inputchecks.check_parameter_data(pdata, \
+        pdata = inputchecks.check_parameter_data(pdata, \
             self.__discretization.system.np)
 
         optimization_variables_for_equality_constraints = ci.veccat([ \
