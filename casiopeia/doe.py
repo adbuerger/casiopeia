@@ -439,7 +439,7 @@ Possible values are "A" and "D".
         self.__optimization_variables_initials = ci.vertcat([ \
 
                 self.__optimization_variables_initials, 
-                np.zeros(self.__cm.covariance_matrix_additional_optimization_variables.shape),
+                np.ones(self.__cm.covariance_matrix_additional_optimization_variables.shape),
 
             ])
 
@@ -453,6 +453,8 @@ Possible values are "A" and "D".
                     self.__cm.covariance_matrix_additional_optimization_variables.size(), 1)
 
                 ])
+
+        self.__optimization_variables_lower_bounds[-36:] = 0.0
 
 
     def __set_cov_matrix_optimization_variables_upper_bounds(self):
@@ -468,7 +470,7 @@ Possible values are "A" and "D".
 
     def __setup_constraints(self):
 
-        self.__constraints= ci.vertcat([ \
+        self.__constraints = ci.vertcat([ \
 
                 self.__equality_constraints_parameters_applied, 
                 self.__cov_mat_add_const_parameters_applied,
