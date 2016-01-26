@@ -35,6 +35,46 @@ class CovarianceMatrix(object):
 
             return self.__covariance_matrix_for_evaluation
 
+    @property
+    def covariance_matrix_for_optimization(self):
+
+        try:
+
+            return self.__covariance_matrix_for_optimization
+
+        except AttributeError:
+
+            self.__setup_covariance_matrix_for_optimization()
+
+            return self.__covariance_matrix_for_optimization
+
+    @property
+    def covariance_matrix_additional_contraints(self):
+
+        try:
+
+            return self.__covariance_matrix_additional_constraints
+
+        except AttributeError:
+
+            self.__setup_covariance_matrix_for_optimization()
+
+            return self.__covariance_matrix_additional_constraints
+
+
+    @property
+    def covariance_matrix_additional_optimization_variables(self):
+
+        try:
+
+            return self.__covariance_matrix_additional_optimization_variables
+
+        except AttributeError:
+
+            self.__setup_covariance_matrix_for_optimization()
+
+            return self.__covariance_matrix_additional_optimization_variables
+
 
     def __setup_langrangian_hessian(self, optimization_variables, weightings):
 
@@ -75,12 +115,6 @@ class CovarianceMatrix(object):
 
     def __split_kkt_matrix(self, number_of_unknown_parameters):
 
-        # Construct the covariance matrix from the inverse of the KKT matrix;
-        # only the relevant part of the covariance matrix that contains the
-        # information about the unknown parameters (cov_mat_A) is constructed,
-        # see http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/
-        # Freising10_19_-_Kostina_-_Towards_Optimum.pdf
-
         self.cov_mat_inv_A = self.kkt_matrix[: number_of_unknown_parameters, \
             : number_of_unknown_parameters]
 
@@ -115,15 +149,34 @@ class CovarianceMatrix(object):
         equality_constraints, number_of_unknown_parameters, \
         residuals = None):
 
-        '''
-              n_a
-            -------------
-        m_a |  A  | B^T |
-            |-----|-----|
-        m_b |  B  |  C  |
-            -------------
+        r'''
+
+        This class is designed only for internal use within casiopeia!
+
+        This class is used to construct the covariance matrix from the inverse
+        of the KKT matrix; in this way only the relevant part of the covariance
+        matrix that contains the information about the unknown parameters
+        is constructed.
+
+        For further information, see
+        http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/
+        Freising10_19_-_Kostina_-_Towards_Optimum.pdf and Walter, Eric and
+        Prozanto, Luc: Identification of Parametric Models from Experimental
+        Data, Springer, 1997, pages 288/289.
 
         '''
+
+        # The naming of the matrix blocks within this class matches the
+        # following scheme:
+        #
+        #              n_a
+        #            -------------
+        #        m_a |  A  | B^T |
+        #            |-----|-----|
+        #        m_b |  B  |  C  |
+        #            -------------
+        #
+
 
         self.__setup_langrangian_hessian(optimization_variables, weightings)
 
@@ -156,6 +209,30 @@ class CovarianceMatrix(object):
             )
 
         self.__covariance_matrix_for_evaluation = cov_mat_A
+
+
+    def __setup_covariance_matrix_for_optimization(self):
+
+        # Introduce additional matrices of optimization variables E and F to
+        # move the matrix inversions into the NLP constraints for efficiency
+        # (arising from the resulting increase in structure of the
+        # optimization problem)
+
+        E = ci.mx_sym("E", \
+            self.cov_mat_inv_C.shape[0], self.cov_mat_inv_B.shape[1])
+        F = ci.mx_sym("F", \
+            *self.cov_mat_inv_A.shape)
+
+        constraints_E = ci.mul([self.cov_mat_inv_C, E]) - self.cov_mat_inv_B
+        constraints_F = ci.mul([ \
+            (self.cov_mat_inv_A - ci.mul([self.cov_mat_inv_B.T, E])), F]) - \
+            ci.mx_eye(self.cov_mat_inv_A.shape[0])
+
+        self.__covariance_matrix_for_optimization = F
+        self.__covariance_matrix_additional_optimization_variables = \
+            ci.veccat([E, F])
+        self.__covariance_matrix_additional_constraints = ci.veccat([ \
+            constraints_E, constraints_F])
 
 
 def setup_a_criterion(covariance_matrix):
