@@ -180,6 +180,8 @@ class CovarianceMatrix(object):
         #            -------------
         #
 
+        import ipdb
+        ipdb.set_trace()    
 
         self.__setup_langrangian_hessian(optimization_variables, weightings)
 
