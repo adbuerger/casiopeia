@@ -1,5 +1,4 @@
-casiopeia
-=========
+.. image:: logo/logo.png
 
 Casadi Interface for Optimum experimental design and Parameter Estimation and Identification Applications
 ---------------------------------------------------------------------------------------------------------
