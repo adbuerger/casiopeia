@@ -20,8 +20,10 @@
 .. You can adapt this file completely to your liking, but it should at least
 .. contain the root `toctree` directive.
 
-casiopeia
-=========
+
+.. image:: ../logo/logo.png
+
+|
 
 Casadi Interface for Optimum experimental design and Parameter Estimation and Identification Applications
 ---------------------------------------------------------------------------------------------------------
@@ -38,10 +40,6 @@ install and use casiopeia. If you encounter any problems using this software, pl
 to submit your errors with a description of how it occurred to adrian.buerger@hs-karlsruhe.de.
 
 **New and experimental:** `try casiopeia live in your browser <https://ec2-52-29-32-46.eu-central-1.compute.amazonaws.com:8888/8cacf81e-3d6e-488d-972a-679cb5befefb>`_ [#f1]_
-
-
-
-
 
 
 Contents
