@@ -180,8 +180,8 @@ class CovarianceMatrix(object):
         #            -------------
         #
 
-        import ipdb
-        ipdb.set_trace()    
+        # import ipdb
+        # ipdb.set_trace()    
 
         self.__setup_langrangian_hessian(optimization_variables, weightings)
 
@@ -223,24 +223,26 @@ class CovarianceMatrix(object):
         # (arising from the resulting increase in structure of the
         # optimization problem)
 
-        E = ci.mx_sym("E", \
-            self.cov_mat_inv_C.shape[0], self.cov_mat_inv_B.shape[1])
-        F = ci.mx_sym("F", \
-            *self.cov_mat_inv_A.shape)
+        # E = ci.mx_sym("E", \
+        #     self.cov_mat_inv_C.shape[0], self.cov_mat_inv_B.shape[1])
+        F = ci.mx_sym("F", *self.cov_mat_inv_A.shape)
 
-        constraints_E = ci.mul([self.cov_mat_inv_C, E]) - self.cov_mat_inv_B
+        # constraints_E = ci.mul([self.cov_mat_inv_C, E]) - self.cov_mat_inv_B
+
+        E = ci.solve(self.cov_mat_inv_C, self.cov_mat_inv_B, "csparse")
+
         constraints_F = ci.mul([ \
             (self.cov_mat_inv_A - ci.mul([self.cov_mat_inv_B.T, E])), F]) - \
             ci.mx_eye(self.cov_mat_inv_A.shape[0])
 
         self.__covariance_matrix_for_optimization = F
         self.__covariance_matrix_additional_optimization_variables = \
-            ci.veccat([E, F])
+            ci.veccat([F])
         self.__covariance_matrix_additional_constraints = ci.veccat([ \
-            constraints_E, constraints_F])
+            constraints_F])
 
-        import ipdb
-        ipdb.set_trace()
+        # import ipdb
+        # ipdb.set_trace()
 
 def setup_a_criterion(covariance_matrix):
 
