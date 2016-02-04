@@ -53,11 +53,11 @@ system = cp.system.System(x = x, u = u, p = p, f = f, phi = phi)
 data = pl.array(pl.loadtxt("data_2d_vehicle.dat", \
     delimiter = ", ", skiprows = 1))
 
-time_points = data[200:750:5, 1]
+time_points = data[0:150:5, 1]
 
-ydata = data[200:750:5, [2, 4, 6, 8]]
+ydata = data[0:150:5, [2, 4, 6, 8]]
 
-udata = data[200:750:5, [9, 10]][:-1, :]
+udata = data[0:150:5, [9, 10]][:-1, :]
 
 pinit = [0.5, 17.06, 12.0, 2.17, 0.1, 0.6]
 
@@ -82,7 +82,7 @@ yhat = sim.simulation_results[1,:].T
 psihat = sim.simulation_results[2,:].T
 vhat = sim.simulation_results[3,:].T
 
-pl.close("all")
+# pl.close("all")
 
 pl.figure()
 

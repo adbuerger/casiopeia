@@ -104,6 +104,36 @@ Run compute_covariance_matrix() to do so.
 ''')
 
 
+    @property
+    def symbolic_optimization_variables(self):
+
+        return self.__optimization_variables
+
+
+    @property
+    def optimization_variables_initials(self):
+
+        return self.__optimization_variables_initials
+
+
+    @property
+    def symbolic_residuals(self):
+
+        return self.__residuals
+
+
+    @property
+    def symbolic_constraints(self):
+
+        return self.__constraints
+
+
+    @property
+    def nlp_discretization(self):
+
+        return self.__discretization
+
+
     def __discretize_system(self, system, time_points, discretization_method, \
         **kwargs):
 
@@ -684,3 +714,140 @@ this might take some time ...''')
             self.__tstart_covariance_computation
 
         print("Covariance matrix computation finished.")
+
+
+class MultiPE(object):
+
+    def __define_set_of_pe_setups(self, pe_setups):
+
+        if len(pe_setups) <= 1:
+
+            raise NotImplementedError('''
+You must instatiate the multi experiment method passing at least two
+parameter estimation problems.''')
+
+        self.__pe_setups = pe_setups
+
+
+    def __merge_optimization_variables(self):
+
+        optimization_variables = [ \
+            pe_setup.symbolic_optimization_variables for \
+            pe_setup in self.__pe_setups]
+
+        self.__optimization_variables = ci.vertcat(optimization_variables)
+
+
+    def __merge_optimization_variables_initials(self):
+
+        optimization_variables_initials = [ \
+            pe_setup.optimization_variables_initials for \
+            pe_setup in self.__pe_setups]
+
+        self.__optimization_variables_initials = \
+            ci.vertcat(optimization_variables_initials)
+
+
+    def __merge_residuals(self):
+
+        residuals = [pe_setup.symbolic_residuals for \
+            pe_setup in self.__pe_setups]
+
+        self.__residuals = ci.vertcat(residuals)
+
+
+    def __merge_and_setup_constraints(self):
+
+        constraints = [self.__pe_setups[0].symbolic_constraints]
+
+        for k, pe_setup in enumerate(self.__pe_setups[:-1]):
+
+            # Connect estimation problems by setting p_k - p_k+1 = 0
+
+            constraints.append(pe_setup.nlp_discretization.optimization_variables["P"] - \
+                self.__pe_setups[k+1].nlp_discretization.optimization_variables["P"])
+
+            constraints.append(self.__pe_setups[k+1].symbolic_constraints)
+
+        self.__constraints = ci.vertcat(constraints)
+
+
+    def __setup_objective(self):
+
+        self.__objective =  0.5 * ci.mul([self.__residuals.T, self.__residuals])
+
+
+    def __setup_nlp(self):
+
+        self.__nlp = ci.mx_function("nlp", \
+            ci.nlpIn(x = self.__optimization_variables), \
+            ci.nlpOut(f = self.__objective, g = self.__constraints))
+
+
+    def __init__(self, pe_setups = []):
+
+        self.__define_set_of_pe_setups(pe_setups)
+
+        self.__merge_optimization_variables()
+
+        self.__merge_optimization_variables_initials()
+
+        self.__merge_residuals()
+
+        self.__merge_and_setup_constraints()
+
+        self.__setup_objective()
+
+        self.__setup_nlp()
+
+
+    def run_parameter_estimation(self, solver_options = {}):
+
+        r'''
+        :param solver_options: options to be passed to the IPOPT solver 
+                               (see the CasADi documentation for a list of all
+                               possible options)
+        :type solver_options: dict
+
+        This functions will pass the least squares parameter estimation
+        problem to the IPOPT solver. The status of IPOPT printed to the 
+        console provides information whether the
+        optimization finished successfully. The estimated parameters
+        :math:`\hat{p}` can afterwards be accessed via the class attribute
+        ``LSq.estimated_parameters``.
+
+        .. note::
+
+            IPOPT finishing successfully does not necessarily
+            mean that the estimation results for the unknown parameters are useful
+            for your purposes, it just means that IPOPT was able to solve the given
+            optimization problem.
+            You have in any case to verify your results, e. g. by simulation using
+            the casiopeia :class:`casiopeia.sim.Simulation` class!
+
+        '''  
+
+        print('\n' + '# ' +  14 * '-' + \
+            ' casiopeia least squares parameter estimation ' + 14 * '-' + ' #')
+
+        print('''
+Starting least squares parameter estimation using IPOPT, 
+this might take some time ...
+''')
+
+        self.__tstart_estimation = time.time()
+
+        nlpsolver = ci.NlpSolver("solver", "ipopt", self.__nlp, \
+            options = solver_options)
+
+        self.__estimation_results = \
+            nlpsolver(x0 = self.__optimization_variables_initials, \
+                lbg = 0, ubg = 0)
+
+        self.__tend_estimation = time.time()
+        self.__duration_estimation = self.__tend_estimation - \
+            self.__tstart_estimation
+
+        print('''
+Parameter estimation finished. Check IPOPT output for status information.
+''')
