@@ -19,5 +19,14 @@
 Parameter estimation
 ====================
 
-.. automodule:: casiopeia.pe
+Single experiment parameter estimation
+--------------------------------------
+
+.. autoclass:: casiopeia.pe.LSq
     :members:
+    :inherited-members:
+
+Parameter estimation from multiple experiments
+----------------------------------------------
+
+tbd

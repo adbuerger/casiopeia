@@ -24,6 +24,8 @@ For now, only least squares parameter estimation problems are covered.'''
 import numpy as np
 import time
 
+from abc import ABCMeta, abstractmethod
+
 from discretization.nodiscretization import NoDiscretization
 from discretization.odecollocation import ODECollocation
 from discretization.odemultipleshooting import ODEMultipleShooting
@@ -34,7 +36,230 @@ from intro import intro
 
 import inputchecks
 
-class LSq(object):
+class PEProblem(object):
+
+    __metaclass__ = ABCMeta
+
+    def _setup_objective(self):
+
+        self._objective =  0.5 * ci.mul([self._residuals.T, self._residuals])
+
+
+    def _setup_nlp(self):
+
+        self._nlp = ci.mx_function("nlp", \
+            ci.nlpIn(x = self._optimization_variables), \
+            ci.nlpOut(f = self._objective, g = self._constraints))
+
+
+    @abstractmethod
+    def __init__(self):
+
+        pass
+
+
+    def run_parameter_estimation(self, solver_options = {}):
+
+        r'''
+        :param solver_options: options to be passed to the IPOPT solver 
+                               (see the CasADi documentation for a list of all
+                               possible options)
+        :type solver_options: dict
+
+        This functions will pass the least squares parameter estimation
+        problem to the IPOPT solver. The status of IPOPT printed to the 
+        console provides information whether the
+        optimization finished successfully. The estimated parameters
+        :math:`\hat{p}` can afterwards be accessed via the class attribute
+        ``LSq.estimated_parameters``.
+
+        .. note::
+
+            IPOPT finishing successfully does not necessarily
+            mean that the estimation results for the unknown parameters are useful
+            for your purposes, it just means that IPOPT was able to solve the given
+            optimization problem.
+            You have in any case to verify your results, e. g. by simulation using
+            the casiopeia :class:`casiopeia.sim.Simulation` class!
+
+        '''  
+
+        print('\n' + '# ' +  14 * '-' + \
+            ' casiopeia least squares parameter estimation ' + 14 * '-' + ' #')
+
+        print('''
+Starting least squares parameter estimation using IPOPT, 
+this might take some time ...
+''')
+
+        self._tstart_estimation = time.time()
+
+        nlpsolver = ci.NlpSolver("solver", "ipopt", self._nlp, \
+            options = solver_options)
+
+        self._estimation_results = \
+            nlpsolver(x0 = self._optimization_variables_initials, \
+                lbg = 0, ubg = 0)
+
+        self._tend_estimation = time.time()
+        self._duration_estimation = self._tend_estimation - \
+            self._tstart_estimation
+
+        print('''
+Parameter estimation finished. Check IPOPT output for status information.
+''')
+
+
+    def print_estimation_results(self):
+
+        r'''
+        :raises: AttributeError
+
+        This function displays the results of the parameter estimation
+        computations. It can not be used before function
+        :func:`run_parameter_estimation()` has been used. The results
+        displayed by the function contain:
+        
+          - the values of the estimated parameters :math:`\hat{p}`
+            and their corresponding standard deviations
+            :math:`\sigma_{\hat{\text{p}}},`
+            (the values of the standard deviations are presented
+            only if the covariance matrix had already been computed),
+          - the values of the covariance matrix
+            :math:`\Sigma_{\hat{\text{p}}}` for the
+            estimated parameters (if it had already been computed), and
+          - the durations of the estimation and (if already executed)
+            of the covariance matrix computation.
+        '''
+
+        np.set_printoptions(linewidth = 200, \
+            formatter={'float': lambda x: format(x, ' 10.8e')})
+
+        try:
+
+            print('\n' + '# ' + 17 * '-' + \
+                ' casiopeia parameter estimation results ' + 17 * '-' + ' #')
+             
+            print("\nEstimated parameters p_i:")
+
+            for k, pk in enumerate(self.estimated_parameters):
+            
+                try:
+
+                    print("    p_{0:<3} = {1} +/- {2}".format( \
+                         k, pk[0], self.standard_deviations[k]))
+
+                except AttributeError:
+
+                    print("    p_{0:<3} = {1}".format(\
+                        k, pk[0]))
+
+            print("\nCovariance matrix for the estimated parameters:")
+
+            try:
+
+                print(np.atleast_2d(self.covariance_matrix))
+
+            except AttributeError:
+
+                print( \
+'''    Covariance matrix for the estimated parameters not yet computed.
+    Run compute_covariance_matrix() to do so.''')
+
+            
+            print("\nDuration of the estimation" + 23 * "." + \
+                ": {0:10.8e} s".format(self._duration_estimation))
+
+            try:
+
+                print("Duration of the covariance matrix computation...." + \
+                    ": {0:10.8e} s".format( \
+                        self._duration_covariance_computation))
+
+            except AttributeError:
+
+                pass
+
+        except AttributeError:
+
+            raise AttributeError('''
+You must execute at least run_parameter_estimation() to obtain results,
+and compute_covariance_matrix() before all results can be displayed.
+''')   
+
+        finally:
+
+            np.set_printoptions()
+
+
+    def compute_covariance_matrix(self):
+
+        r'''
+        This function computes the covariance matrix for the estimated
+        parameters from the inverse of the KKT matrix for the parameter
+        estimation problem, which allows for statements on the quality of
+        the values of the estimated parameters [#f1]_.
+
+        For efficiency, only the inverse of the relevant part of the matrix
+        is computed [#f2]_.
+
+        The values of the covariance matrix :math:`\Sigma_{\hat{\text{p}}}` can afterwards
+        be accessed via the class attribute ``LSq.covariance_matrix``, and the
+        contained standard deviations :math:`\sigma_{\hat{\text{p}}}` for the
+        estimated parameters directly via 
+        ``LSq.standard_deviations``.
+
+        .. rubric:: References
+
+        .. [#f1] |linkf1|_
+
+        .. _linkf1: http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/Freising10_19_-_Kostina_-_Towards_Optimum.pdf
+
+        .. |linkf1| replace:: *Kostina, Ekaterina and Kriwet, Gregor: Towards Optimum Experimental Design for Partial Differential Equations, SPP 1253 annual conference 2010, slides 12/13.*
+
+        .. [#f2] *Walter, Eric and Prozanto, Luc: Identification of Parametric Models from Experimental Data, Springer, 1997, pages 288/289.*
+
+        '''
+
+        print('\n' + '# ' + 17 * '-' + \
+            ' casiopeia covariance matrix computation ' + 16 * '-' + ' #')
+
+        print('''
+Computing the covariance matrix for the estimated parameters,
+this might take some time ...''')
+
+        self._tstart_covariance_computation = time.time()
+
+        self._covariance_matrix_symbolic = setup_covariance_matrix( \
+                self._optimization_variables, self._weightings_vectorized, \
+                self._constraints, self._discretization.system.np)
+
+        self._beta_symbolic = setup_beta(self._residuals, \
+            self._measurement_data_vectorized, \
+            self._constraints, self._optimization_variables)
+
+        covariance_matrix_fcn = ci.mx_function("covariance_matrix_fcn", \
+            [self._optimization_variables], \
+            [self._covariance_matrix_symbolic])
+
+        beta_fcn = ci.mx_function("beta_fcn", \
+            [self._optimization_variables], \
+            [self._beta_symbolic])
+
+        self._beta = beta_fcn([self.estimation_results["x"]])[0]
+
+        self._covariance_matrix = self._beta * \
+            covariance_matrix_fcn([self.estimation_results["x"]])[0]
+
+        self._tend_covariance_computation = time.time()
+        self._duration_covariance_computation = \
+            self._tend_covariance_computation - \
+            self._tstart_covariance_computation
+
+        print("Covariance matrix computation finished.")
+
+
+class LSq(PEProblem):
 
     '''The class :class:`casiopeia.pe.LSq` is used to set up least
     squares parameter estimation problems for systems defined with the
@@ -47,7 +272,7 @@ class LSq(object):
 
         try:
 
-            return self.__estimation_results
+            return self._estimation_results
 
         except AttributeError:
 
@@ -62,8 +287,8 @@ can be accessed, please run run_parameter_estimation() first.
 
         try:
 
-            return self.__estimation_results["x"][ \
-                :self.__discretization.system.np]
+            return self._estimation_results["x"][ \
+                :self._discretization.system.np]
 
         except AttributeError:
 
@@ -78,7 +303,7 @@ can be accessed, please run run_parameter_estimation() first.
 
         try:
 
-            return self.__covariance_matrix
+            return self._covariance_matrix
 
         except AttributeError:
 
@@ -104,53 +329,23 @@ Run compute_covariance_matrix() to do so.
 ''')
 
 
-    @property
-    def symbolic_optimization_variables(self):
-
-        return self.__optimization_variables
-
-
-    @property
-    def optimization_variables_initials(self):
-
-        return self.__optimization_variables_initials
-
-
-    @property
-    def symbolic_residuals(self):
-
-        return self.__residuals
-
-
-    @property
-    def symbolic_constraints(self):
-
-        return self.__constraints
-
-
-    @property
-    def nlp_discretization(self):
-
-        return self.__discretization
-
-
-    def __discretize_system(self, system, time_points, discretization_method, \
+    def _discretize_system(self, system, time_points, discretization_method, \
         **kwargs):
 
         if system.nx == 0 and system.nz == 0:
 
-            self.__discretization = NoDiscretization(system, time_points)
+            self._discretization = NoDiscretization(system, time_points)
 
         elif system.nx != 0 and system.nz == 0:
 
             if discretization_method == "collocation":
 
-                self.__discretization = ODECollocation( \
+                self._discretization = ODECollocation( \
                     system, time_points, **kwargs)
 
             elif discretization_method == "multiple_shooting":
 
-                self.__discretization = ODEMultipleShooting( \
+                self._discretization = ODEMultipleShooting( \
                     system, time_points, **kwargs)
 
             else:
@@ -168,123 +363,123 @@ but will be in future versions.
 ''')            
 
 
-    def __apply_controls_to_equality_constraints(self, udata):
+    def _apply_controls_to_equality_constraints(self, udata):
 
         udata = inputchecks.check_controls_data(udata, \
-            self.__discretization.system.nu, \
-            self.__discretization.number_of_controls)
+            self._discretization.system.nu, \
+            self._discretization.number_of_controls)
 
         optimization_variables_for_equality_constraints = ci.veccat([ \
 
-                self.__discretization.optimization_variables["U"], 
-                self.__discretization.optimization_variables["X"], 
-                self.__discretization.optimization_variables["EPS_U"], 
-                self.__discretization.optimization_variables["EPS_E"], 
-                self.__discretization.optimization_variables["P"], 
+                self._discretization.optimization_variables["U"], 
+                self._discretization.optimization_variables["X"], 
+                self._discretization.optimization_variables["EPS_U"], 
+                self._discretization.optimization_variables["EPS_E"], 
+                self._discretization.optimization_variables["P"], 
 
             ])
 
         optimization_variables_controls_applied = ci.veccat([ \
 
                 udata, 
-                self.__discretization.optimization_variables["X"], 
-                self.__discretization.optimization_variables["EPS_U"], 
-                self.__discretization.optimization_variables["EPS_E"], 
-                self.__discretization.optimization_variables["P"], 
+                self._discretization.optimization_variables["X"], 
+                self._discretization.optimization_variables["EPS_U"], 
+                self._discretization.optimization_variables["EPS_E"], 
+                self._discretization.optimization_variables["P"], 
 
             ])
 
         equality_constraints_fcn = ci.mx_function( \
             "equality_constraints_fcn", \
             [optimization_variables_for_equality_constraints], \
-            [self.__discretization.equality_constraints])
+            [self._discretization.equality_constraints])
 
-        [self.__equality_constraints_controls_applied] = \
+        [self._equality_constraints_controls_applied] = \
             equality_constraints_fcn([optimization_variables_controls_applied])
 
 
-    def __apply_controls_to_measurements(self, udata):
+    def _apply_controls_to_measurements(self, udata):
 
         udata = inputchecks.check_controls_data(udata, \
-            self.__discretization.system.nu, \
-            self.__discretization.number_of_controls)
+            self._discretization.system.nu, \
+            self._discretization.number_of_controls)
 
         optimization_variables_for_measurements = ci.veccat([ \
 
-                self.__discretization.optimization_variables["U"], 
-                self.__discretization.optimization_variables["X"], 
-                self.__discretization.optimization_variables["EPS_U"], 
-                self.__discretization.optimization_variables["P"], 
+                self._discretization.optimization_variables["U"], 
+                self._discretization.optimization_variables["X"], 
+                self._discretization.optimization_variables["EPS_U"], 
+                self._discretization.optimization_variables["P"], 
 
             ])
 
         optimization_variables_controls_applied = ci.veccat([ \
 
                 udata, 
-                self.__discretization.optimization_variables["X"], 
-                self.__discretization.optimization_variables["EPS_U"], 
-                self.__discretization.optimization_variables["P"], 
+                self._discretization.optimization_variables["X"], 
+                self._discretization.optimization_variables["EPS_U"], 
+                self._discretization.optimization_variables["P"], 
 
             ])
 
         measurements_fcn = ci.mx_function( \
             "measurements_fcn", \
             [optimization_variables_for_measurements], \
-            [self.__discretization.measurements])
+            [self._discretization.measurements])
 
-        [self.__measurements_controls_applied] = \
+        [self._measurements_controls_applied] = \
             measurements_fcn([optimization_variables_controls_applied])
 
 
-    def __apply_controls_to_discretization(self, udata):
+    def _apply_controls_to_discretization(self, udata):
 
-        self.__apply_controls_to_equality_constraints(udata)
-        self.__apply_controls_to_measurements(udata)
+        self._apply_controls_to_equality_constraints(udata)
+        self._apply_controls_to_measurements(udata)
 
 
-    def __set_optimization_variables(self):
+    def _set_optimization_variables(self):
 
-        self.__optimization_variables = ci.veccat([ \
+        self._optimization_variables = ci.veccat([ \
 
-                self.__discretization.optimization_variables["P"],
-                self.__discretization.optimization_variables["X"],
-                self.__discretization.optimization_variables["V"],
-                self.__discretization.optimization_variables["EPS_E"],
-                self.__discretization.optimization_variables["EPS_U"],
+                self._discretization.optimization_variables["P"],
+                self._discretization.optimization_variables["X"],
+                self._discretization.optimization_variables["V"],
+                self._discretization.optimization_variables["EPS_E"],
+                self._discretization.optimization_variables["EPS_U"],
 
             ])
 
 
-    def __set_optimization_variables_initials(self, pinit, xinit):
+    def _set_optimization_variables_initials(self, pinit, xinit):
 
         xinit = inputchecks.check_states_data(xinit, \
-            self.__discretization.system.nx, \
-            self.__discretization.number_of_intervals)
+            self._discretization.system.nx, \
+            self._discretization.number_of_intervals)
         repretitions_xinit = \
-            self.__discretization.optimization_variables["X"][:,:-1].shape[1] / \
-                self.__discretization.number_of_intervals
+            self._discretization.optimization_variables["X"][:,:-1].shape[1] / \
+                self._discretization.number_of_intervals
         
         Xinit = ci.repmat(xinit[:, :-1], repretitions_xinit, 1)
 
         Xinit = ci.horzcat([ \
 
-            Xinit.reshape((self.__discretization.system.nx, \
-                Xinit.size() / self.__discretization.system.nx)),
+            Xinit.reshape((self._discretization.system.nx, \
+                Xinit.size() / self._discretization.system.nx)),
             xinit[:, -1],
 
             ])
 
         pinit = inputchecks.check_parameter_data(pinit, \
-            self.__discretization.system.np)
+            self._discretization.system.np)
         Pinit = pinit
 
-        Vinit = np.zeros(self.__discretization.optimization_variables["V"].shape)
+        Vinit = np.zeros(self._discretization.optimization_variables["V"].shape)
         EPS_Einit = np.zeros( \
-            self.__discretization.optimization_variables["EPS_E"].shape)
+            self._discretization.optimization_variables["EPS_E"].shape)
         EPS_Uinit = np.zeros( \
-            self.__discretization.optimization_variables["EPS_U"].shape)
+            self._discretization.optimization_variables["EPS_U"].shape)
 
-        self.__optimization_variables_initials = ci.veccat([ \
+        self._optimization_variables_initials = ci.veccat([ \
 
                 Pinit,
                 Xinit,
@@ -295,30 +490,30 @@ but will be in future versions.
             ])
 
 
-    def __set_measurement_data(self, ydata):
+    def _set_measurement_data(self, ydata):
 
         measurement_data = inputchecks.check_measurement_data(ydata, \
-            self.__discretization.system.nphi, \
-            self.__discretization.number_of_intervals + 1)
-        self.__measurement_data_vectorized = ci.vec(measurement_data)
+            self._discretization.system.nphi, \
+            self._discretization.number_of_intervals + 1)
+        self._measurement_data_vectorized = ci.vec(measurement_data)
 
 
-    def __set_weightings(self, wv, weps_e, weps_u):
+    def _set_weightings(self, wv, weps_e, weps_u):
 
         measurement_weightings = \
             inputchecks.check_measurement_weightings(wv, \
-            self.__discretization.system.nphi, \
-            self.__discretization.number_of_intervals + 1)
+            self._discretization.system.nphi, \
+            self._discretization.number_of_intervals + 1)
 
         equation_error_weightings = \
             inputchecks.check_equation_error_weightings(weps_e, \
-            self.__discretization.system.neps_e)
+            self._discretization.system.neps_e)
 
         input_error_weightings = \
             inputchecks.check_input_error_weightings(weps_u, \
-            self.__discretization.system.neps_u)
+            self._discretization.system.neps_u)
 
-        self.__weightings_vectorized = ci.veccat([ \
+        self._weightings_vectorized = ci.veccat([ \
 
             measurement_weightings,
             equation_error_weightings,
@@ -327,49 +522,37 @@ but will be in future versions.
             ])
 
 
-    def __set_measurement_deviations(self):
+    def _set_measurement_deviations(self):
 
-        self.__measurement_deviations = ci.vertcat([ \
+        self._measurement_deviations = ci.vertcat([ \
 
-                ci.vec(self.__measurements_controls_applied) - \
-                self.__measurement_data_vectorized + \
-                ci.vec(self.__discretization.optimization_variables["V"])
+                ci.vec(self._measurements_controls_applied) - \
+                self._measurement_data_vectorized + \
+                ci.vec(self._discretization.optimization_variables["V"])
 
             ])
 
 
-    def __setup_residuals(self):
+    def _setup_residuals(self):
 
-        self.__residuals = ci.sqrt(self.__weightings_vectorized) * \
+        self._residuals = ci.sqrt(self._weightings_vectorized) * \
             ci.veccat([ \
 
-                self.__discretization.optimization_variables["V"],
-                self.__discretization.optimization_variables["EPS_E"],
-                self.__discretization.optimization_variables["EPS_U"],
+                self._discretization.optimization_variables["V"],
+                self._discretization.optimization_variables["EPS_E"],
+                self._discretization.optimization_variables["EPS_U"],
 
             ])
 
 
-    def __setup_constraints(self):
+    def _setup_constraints(self):
 
-        self.__constraints = ci.vertcat([ \
+        self._constraints = ci.vertcat([ \
 
-                self.__measurement_deviations,
-                self.__equality_constraints_controls_applied,
+                self._measurement_deviations,
+                self._equality_constraints_controls_applied,
 
             ])
-
-
-    def __setup_objective(self):
-
-        self.__objective =  0.5 * ci.mul([self.__residuals.T, self.__residuals])
-
-
-    def __setup_nlp(self):
-
-        self.__nlp = ci.mx_function("nlp", \
-            ci.nlpIn(x = self.__optimization_variables), \
-            ci.nlpOut(f = self.__objective, g = self.__constraints))
 
 
     def __init__(self, system, time_points, \
@@ -491,234 +674,33 @@ but will be in future versions.
 
         intro()
 
-        self.__discretize_system( \
+        self._discretize_system( \
             system, time_points, discretization_method, **kwargs)
 
-        self.__apply_controls_to_discretization(udata)
+        self._apply_controls_to_discretization(udata)
 
-        self.__set_optimization_variables()
+        self._set_optimization_variables()
 
-        self.__set_optimization_variables_initials(pinit, xinit)
+        self._set_optimization_variables_initials(pinit, xinit)
 
-        self.__set_measurement_data(ydata)
+        self._set_measurement_data(ydata)
 
-        self.__set_weightings(wv, weps_e, weps_u)
+        self._set_weightings(wv, weps_e, weps_u)
 
-        self.__set_measurement_deviations()
+        self._set_measurement_deviations()
 
-        self.__setup_residuals()
+        self._setup_residuals()
 
-        self.__setup_constraints()
+        self._setup_constraints()
 
-        self.__setup_objective()
+        self._setup_objective()
 
-        self.__setup_nlp()
+        self._setup_nlp()
 
 
-    def run_parameter_estimation(self, solver_options = {}):
+class MultiPE(PEProblem):
 
-        r'''
-        :param solver_options: options to be passed to the IPOPT solver 
-                               (see the CasADi documentation for a list of all
-                               possible options)
-        :type solver_options: dict
-
-        This functions will pass the least squares parameter estimation
-        problem to the IPOPT solver. The status of IPOPT printed to the 
-        console provides information whether the
-        optimization finished successfully. The estimated parameters
-        :math:`\hat{p}` can afterwards be accessed via the class attribute
-        ``LSq.estimated_parameters``.
-
-        .. note::
-
-            IPOPT finishing successfully does not necessarily
-            mean that the estimation results for the unknown parameters are useful
-            for your purposes, it just means that IPOPT was able to solve the given
-            optimization problem.
-            You have in any case to verify your results, e. g. by simulation using
-            the casiopeia :class:`casiopeia.sim.Simulation` class!
-
-        '''  
-
-        print('\n' + '# ' +  14 * '-' + \
-            ' casiopeia least squares parameter estimation ' + 14 * '-' + ' #')
-
-        print('''
-Starting least squares parameter estimation using IPOPT, 
-this might take some time ...
-''')
-
-        self.__tstart_estimation = time.time()
-
-        nlpsolver = ci.NlpSolver("solver", "ipopt", self.__nlp, \
-            options = solver_options)
-
-        self.__estimation_results = \
-            nlpsolver(x0 = self.__optimization_variables_initials, \
-                lbg = 0, ubg = 0)
-
-        self.__tend_estimation = time.time()
-        self.__duration_estimation = self.__tend_estimation - \
-            self.__tstart_estimation
-
-        print('''
-Parameter estimation finished. Check IPOPT output for status information.
-''')
-
-
-    def print_estimation_results(self):
-
-        r'''
-        :raises: AttributeError
-
-        This function displays the results of the parameter estimation
-        computations. It can not be used before function
-        :func:`run_parameter_estimation()` has been used. The results
-        displayed by the function contain:
-        
-          - the values of the estimated parameters :math:`\hat{p}`
-            and their corresponding standard deviations
-            :math:`\sigma_{\hat{\text{p}}},`
-            (the values of the standard deviations are presented
-            only if the covariance matrix had already been computed),
-          - the values of the covariance matrix
-            :math:`\Sigma_{\hat{\text{p}}}` for the
-            estimated parameters (if it had already been computed), and
-          - the durations of the estimation and (if already executed)
-            of the covariance matrix computation.
-        '''
-
-        np.set_printoptions(linewidth = 200, \
-            formatter={'float': lambda x: format(x, ' 10.8e')})
-
-        try:
-
-            print('\n' + '# ' + 17 * '-' + \
-                ' casiopeia parameter estimation results ' + 17 * '-' + ' #')
-             
-            print("\nEstimated parameters p_i:")
-
-            for k, pk in enumerate(self.estimated_parameters):
-            
-                try:
-
-                    print("    p_{0:<3} = {1} +/- {2}".format( \
-                         k, pk[0], self.standard_deviations[k]))
-
-                except AttributeError:
-
-                    print("    p_{0:<3} = {1}".format(\
-                        k, pk[0]))
-
-            print("\nCovariance matrix for the estimated parameters:")
-
-            try:
-
-                print(np.atleast_2d(self.covariance_matrix))
-
-            except AttributeError:
-
-                print( \
-'''    Covariance matrix for the estimated parameters not yet computed.
-    Run compute_covariance_matrix() to do so.''')
-
-            
-            print("\nDuration of the estimation" + 23 * "." + \
-                ": {0:10.8e} s".format(self.__duration_estimation))
-
-            try:
-
-                print("Duration of the covariance matrix computation...." + \
-                    ": {0:10.8e} s".format( \
-                        self.__duration_covariance_computation))
-
-            except AttributeError:
-
-                pass
-
-        except AttributeError:
-
-            raise AttributeError('''
-You must execute at least run_parameter_estimation() to obtain results,
-and compute_covariance_matrix() before all results can be displayed.
-''')   
-
-        finally:
-
-            np.set_printoptions()
-
-
-    def compute_covariance_matrix(self):
-
-        r'''
-        This function computes the covariance matrix for the estimated
-        parameters from the inverse of the KKT matrix for the parameter
-        estimation problem, which allows for statements on the quality of
-        the values of the estimated parameters [#f1]_.
-
-        For efficiency, only the inverse of the relevant part of the matrix
-        is computed [#f2]_.
-
-        The values of the covariance matrix :math:`\Sigma_{\hat{\text{p}}}` can afterwards
-        be accessed via the class attribute ``LSq.covariance_matrix``, and the
-        contained standard deviations :math:`\sigma_{\hat{\text{p}}}` for the
-        estimated parameters directly via 
-        ``LSq.standard_deviations``.
-
-        .. rubric:: References
-
-        .. [#f1] |linkf1|_
-
-        .. _linkf1: http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/Freising10_19_-_Kostina_-_Towards_Optimum.pdf
-
-        .. |linkf1| replace:: *Kostina, Ekaterina and Kriwet, Gregor: Towards Optimum Experimental Design for Partial Differential Equations, SPP 1253 annual conference 2010, slides 12/13.*
-
-        .. [#f2] *Walter, Eric and Prozanto, Luc: Identification of Parametric Models from Experimental Data, Springer, 1997, pages 288/289.*
-
-        '''
-
-        print('\n' + '# ' + 17 * '-' + \
-            ' casiopeia covariance matrix computation ' + 16 * '-' + ' #')
-
-        print('''
-Computing the covariance matrix for the estimated parameters,
-this might take some time ...''')
-
-        self.__tstart_covariance_computation = time.time()
-
-        self.__covariance_matrix_symbolic = setup_covariance_matrix( \
-                self.__optimization_variables, self.__weightings_vectorized, \
-                self.__constraints, self.__discretization.system.np)
-
-        self.__beta_symbolic = setup_beta(self.__residuals, \
-            self.__measurement_data_vectorized, \
-            self.__constraints, self.__optimization_variables)
-
-        covariance_matrix_fcn = ci.mx_function("covariance_matrix_fcn", \
-            [self.__optimization_variables], \
-            [self.__covariance_matrix_symbolic])
-
-        beta_fcn = ci.mx_function("beta_fcn", \
-            [self.__optimization_variables], \
-            [self.__beta_symbolic])
-
-        self.__beta = beta_fcn([self.estimation_results["x"]])[0]
-
-        self.__covariance_matrix = self.__beta * \
-            covariance_matrix_fcn([self.estimation_results["x"]])[0]
-
-        self.__tend_covariance_computation = time.time()
-        self.__duration_covariance_computation = \
-            self.__tend_covariance_computation - \
-            self.__tstart_covariance_computation
-
-        print("Covariance matrix computation finished.")
-
-
-class MultiPE(object):
-
-    def __define_set_of_pe_setups(self, pe_setups):
+    def _define_set_of_pe_setups(self, pe_setups):
 
         if len(pe_setups) <= 1:
 
@@ -726,128 +708,64 @@ class MultiPE(object):
 You must instatiate the multi experiment method passing at least two
 parameter estimation problems.''')
 
-        self.__pe_setups = pe_setups
+        self._pe_setups = pe_setups
 
 
-    def __merge_optimization_variables(self):
+    def _merge_optimization_variables(self):
 
         optimization_variables = [ \
-            pe_setup.symbolic_optimization_variables for \
-            pe_setup in self.__pe_setups]
+            pe_setup._optimization_variables for \
+            pe_setup in self._pe_setups]
 
-        self.__optimization_variables = ci.vertcat(optimization_variables)
+        self._optimization_variables = ci.vertcat(optimization_variables)
 
 
-    def __merge_optimization_variables_initials(self):
+    def _merge_optimization_variables_initials(self):
 
         optimization_variables_initials = [ \
-            pe_setup.optimization_variables_initials for \
-            pe_setup in self.__pe_setups]
+            pe_setup._optimization_variables_initials for \
+            pe_setup in self._pe_setups]
 
-        self.__optimization_variables_initials = \
+        self._optimization_variables_initials = \
             ci.vertcat(optimization_variables_initials)
 
 
-    def __merge_residuals(self):
+    def _merge_residuals(self):
 
-        residuals = [pe_setup.symbolic_residuals for \
-            pe_setup in self.__pe_setups]
+        residuals = [pe_setup._residuals for \
+            pe_setup in self._pe_setups]
 
-        self.__residuals = ci.vertcat(residuals)
+        self._residuals = ci.vertcat(residuals)
 
 
-    def __merge_and_setup_constraints(self):
+    def _merge_and_setup_constraints(self):
 
-        constraints = [self.__pe_setups[0].symbolic_constraints]
+        constraints = [self._pe_setups[0]._constraints]
 
-        for k, pe_setup in enumerate(self.__pe_setups[:-1]):
+        for k, pe_setup in enumerate(self._pe_setups[:-1]):
 
             # Connect estimation problems by setting p_k - p_k+1 = 0
 
-            constraints.append(pe_setup.nlp_discretization.optimization_variables["P"] - \
-                self.__pe_setups[k+1].nlp_discretization.optimization_variables["P"])
+            constraints.append(pe_setup._discretization.optimization_variables["P"] - \
+                self._pe_setups[k+1]._discretization.optimization_variables["P"])
 
-            constraints.append(self.__pe_setups[k+1].symbolic_constraints)
+            constraints.append(self._pe_setups[k+1]._constraints)
 
-        self.__constraints = ci.vertcat(constraints)
-
-
-    def __setup_objective(self):
-
-        self.__objective =  0.5 * ci.mul([self.__residuals.T, self.__residuals])
-
-
-    def __setup_nlp(self):
-
-        self.__nlp = ci.mx_function("nlp", \
-            ci.nlpIn(x = self.__optimization_variables), \
-            ci.nlpOut(f = self.__objective, g = self.__constraints))
+        self._constraints = ci.vertcat(constraints)
 
 
     def __init__(self, pe_setups = []):
 
-        self.__define_set_of_pe_setups(pe_setups)
+        self._define_set_of_pe_setups(pe_setups)
 
-        self.__merge_optimization_variables()
+        self._merge_optimization_variables()
 
-        self.__merge_optimization_variables_initials()
+        self._merge_optimization_variables_initials()
 
-        self.__merge_residuals()
+        self._merge_residuals()
 
-        self.__merge_and_setup_constraints()
+        self._merge_and_setup_constraints()
 
-        self.__setup_objective()
+        self._setup_objective()
 
-        self.__setup_nlp()
-
-
-    def run_parameter_estimation(self, solver_options = {}):
-
-        r'''
-        :param solver_options: options to be passed to the IPOPT solver 
-                               (see the CasADi documentation for a list of all
-                               possible options)
-        :type solver_options: dict
-
-        This functions will pass the least squares parameter estimation
-        problem to the IPOPT solver. The status of IPOPT printed to the 
-        console provides information whether the
-        optimization finished successfully. The estimated parameters
-        :math:`\hat{p}` can afterwards be accessed via the class attribute
-        ``LSq.estimated_parameters``.
-
-        .. note::
-
-            IPOPT finishing successfully does not necessarily
-            mean that the estimation results for the unknown parameters are useful
-            for your purposes, it just means that IPOPT was able to solve the given
-            optimization problem.
-            You have in any case to verify your results, e. g. by simulation using
-            the casiopeia :class:`casiopeia.sim.Simulation` class!
-
-        '''  
-
-        print('\n' + '# ' +  14 * '-' + \
-            ' casiopeia least squares parameter estimation ' + 14 * '-' + ' #')
-
-        print('''
-Starting least squares parameter estimation using IPOPT, 
-this might take some time ...
-''')
-
-        self.__tstart_estimation = time.time()
-
-        nlpsolver = ci.NlpSolver("solver", "ipopt", self.__nlp, \
-            options = solver_options)
-
-        self.__estimation_results = \
-            nlpsolver(x0 = self.__optimization_variables_initials, \
-                lbg = 0, ubg = 0)
-
-        self.__tend_estimation = time.time()
-        self.__duration_estimation = self.__tend_estimation - \
-            self.__tstart_estimation
-
-        print('''
-Parameter estimation finished. Check IPOPT output for status information.
-''')
+        self._setup_nlp()
