@@ -40,6 +40,68 @@ class PEProblem(object):
 
     __metaclass__ = ABCMeta
 
+    @property
+    def estimation_results(self):
+
+        try:
+
+            return self._estimation_results
+
+        except AttributeError:
+
+            raise AttributeError('''
+A parameter estimation has to be executed before the estimation results
+can be accessed, please run run_parameter_estimation() first.
+''')
+
+
+    @property
+    def estimated_parameters(self):
+
+        try:
+
+            return self._estimation_results["x"][ \
+                :self._discretization.system.np]
+
+        except AttributeError:
+
+            raise AttributeError('''
+A parameter estimation has to be executed before the estimated parameters
+can be accessed, please run run_parameter_estimation() first.
+''')
+
+
+    @property
+    def covariance_matrix(self):
+
+        try:
+
+            return self._covariance_matrix
+
+        except AttributeError:
+
+            raise AttributeError('''
+Covariance matrix for the estimated parameters not yet computed.
+Run compute_covariance_matrix() to do so.
+''')
+
+
+    @property
+    def standard_deviations(self):
+
+        try:
+
+            return ci.sqrt([abs(var) for var \
+                in ci.diag(self.covariance_matrix)])
+
+        except AttributeError:
+
+            raise AttributeError('''
+Standard deviations for the estimated parameters not yet computed.
+Run compute_covariance_matrix() to do so.
+''')
+            
+
     def _setup_objective(self):
 
         self._objective =  0.5 * ci.mul([self._residuals.T, self._residuals])
@@ -267,68 +329,6 @@ class LSq(PEProblem):
     class, using a given set of user-provided control 
     data, measurement data and different kinds of weightings.'''
 
-    @property
-    def estimation_results(self):
-
-        try:
-
-            return self._estimation_results
-
-        except AttributeError:
-
-            raise AttributeError('''
-A parameter estimation has to be executed before the estimation results
-can be accessed, please run run_parameter_estimation() first.
-''')
-
-
-    @property
-    def estimated_parameters(self):
-
-        try:
-
-            return self._estimation_results["x"][ \
-                :self._discretization.system.np]
-
-        except AttributeError:
-
-            raise AttributeError('''
-A parameter estimation has to be executed before the estimated parameters
-can be accessed, please run run_parameter_estimation() first.
-''')
-
-
-    @property
-    def covariance_matrix(self):
-
-        try:
-
-            return self._covariance_matrix
-
-        except AttributeError:
-
-            raise AttributeError('''
-Covariance matrix for the estimated parameters not yet computed.
-Run compute_covariance_matrix() to do so.
-''')
-
-
-    @property
-    def standard_deviations(self):
-
-        try:
-
-            return ci.sqrt([abs(var) for var \
-                in ci.diag(self.covariance_matrix)])
-
-        except AttributeError:
-
-            raise AttributeError('''
-Standard deviations for the estimated parameters not yet computed.
-Run compute_covariance_matrix() to do so.
-''')
-
-
     def _discretize_system(self, system, time_points, discretization_method, \
         **kwargs):
 
@@ -489,6 +489,14 @@ but will be in future versions.
 
             ])
 
+    # def _setup_initial_value_constraint(self, x0):
+
+    #     x0 = inputchecks.check_states_data(x0, \
+    #         self._discretization.system.nx, 0)
+
+    #     self._initial_value_constraint = \
+    #         self._discretization.optimization_variables["X"][:,0] - x0
+
 
     def _set_measurement_data(self, ydata):
 
@@ -551,11 +559,13 @@ but will be in future versions.
 
                 self._measurement_deviations,
                 self._equality_constraints_controls_applied,
+                # self._initial_value_constraint,
 
             ])
 
 
     def __init__(self, system, time_points, \
+        x0 = None, 
         udata = None, ydata = None, \
         pinit = None, xinit = None, \
         wv = None, weps_e = None, weps_u = None, \
@@ -683,6 +693,8 @@ but will be in future versions.
 
         self._set_optimization_variables_initials(pinit, xinit)
 
+        # self._setup_initial_value_constraint(x0)
+
         self._set_measurement_data(ydata)
 
         self._set_weightings(wv, weps_e, weps_u)
@@ -702,13 +714,18 @@ class MultiPE(PEProblem):
 
     def _define_set_of_pe_setups(self, pe_setups):
 
-        if len(pe_setups) <= 1:
+#         if len(pe_setups) <= 1:
 
-            raise NotImplementedError('''
-You must instatiate the multi experiment method passing at least two
-parameter estimation problems.''')
+#             raise NotImplementedError('''
+# You must instatiate the multi experiment method passing at least two
+# parameter estimation problems.''')
 
         self._pe_setups = pe_setups
+
+
+    def _get_discretization_from_pe_setups(self):
+
+        self._discretization = self._pe_setups[0]._discretization
 
 
     def _merge_optimization_variables(self):
@@ -728,6 +745,22 @@ parameter estimation problems.''')
 
         self._optimization_variables_initials = \
             ci.vertcat(optimization_variables_initials)
+
+
+    def _merge_measurement_data(self):
+
+        measurement_data = [pe_setup._measurement_data_vectorized for \
+            pe_setup in self._pe_setups]
+
+        self._measurement_data_vectorized = ci.vertcat(measurement_data)
+
+
+    def _merge_weightings(self):
+
+        weightings = [pe_setup._weightings_vectorized for \
+            pe_setup in self._pe_setups]
+
+        self._weightings_vectorized = ci.vertcat(weightings)
 
 
     def _merge_residuals(self):
@@ -758,9 +791,15 @@ parameter estimation problems.''')
 
         self._define_set_of_pe_setups(pe_setups)
 
+        self._get_discretization_from_pe_setups()
+
         self._merge_optimization_variables()
 
         self._merge_optimization_variables_initials()
+
+        self._merge_measurement_data()
+
+        self._merge_weightings()
 
         self._merge_residuals()
 

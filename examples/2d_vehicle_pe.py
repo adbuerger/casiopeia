@@ -53,19 +53,22 @@ system = cp.system.System(x = x, u = u, p = p, f = f, phi = phi)
 data = pl.array(pl.loadtxt("data_2d_vehicle.dat", \
     delimiter = ", ", skiprows = 1))
 
-time_points = data[0:150:5, 1]
+time_points = data[100:200, 1]
 
-ydata = data[0:150:5, [2, 4, 6, 8]]
+ydata = data[100:200, [2, 4, 6, 8]]
 
-udata = data[0:150:5, [9, 10]][:-1, :]
+udata = data[100:200, [9, 10]][:-1, :]
 
 pinit = [0.5, 17.06, 12.0, 2.17, 0.1, 0.6]
 
 pe = cp.pe.LSq(system = system, \
-    time_points = time_points, udata = udata, \
+    time_points = time_points, \
+    x0 = ydata[0,:], \
+    udata = udata, \
     pinit = pinit, \
     ydata = ydata, \
-    xinit = ydata)
+    xinit = ydata, \
+    discretization_method = "collocation")
 
 pe.run_parameter_estimation()
 pe.print_estimation_results()

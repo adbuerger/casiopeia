@@ -58,49 +58,78 @@ pinit = [0.5, 17.06, 12.0, 2.17, 0.1, 0.6]
 
 # Problem 1
 
-pe_setups = []
+# pe_setups = []
 
-for k in range(5,14):
+# for k in range(5,14):
 
-    time_points = data[k*100-50:k*100+150:5, 1]
+#     time_points = data[k*100-50:k*100+150:5, 1]
 
-    ydata = data[k*100-50:k*100+150:5, [2, 4, 6, 8]]
+#     ydata = data[k*100-50:k*100+150:5, [2, 4, 6, 8]]
 
-    udata = data[k*100-50:k*100+150:5, [9, 10]][:-1, :]
+#     udata = data[k*100-50:k*100+150:5, [9, 10]][:-1, :]
 
-    pe_setups.append(cp.pe.LSq(system = system, \
-        time_points = time_points, udata = udata, \
-        pinit = pinit, \
-        ydata = ydata, \
-        xinit = ydata))
+#     pe_setups.append(cp.pe.LSq(system = system, \
+#         time_points = time_points, udata = udata, \
+#         pinit = pinit, \
+#         ydata = ydata, \
+#         xinit = ydata))
 
-# time_points_1 = data[100:600:5, 1]
+time_points_1 = data[100:200, 1]
 
-# ydata_1 = data[100:600:5, [2, 4, 6, 8]]
+ydata_1 = data[100:200, [2, 4, 6, 8]]
 
-# udata_1 = data[100:600:5, [9, 10]][:-1, :]
+udata_1 = data[100:200, [9, 10]][:-1, :]
 
-# pe_1 = cp.pe.LSq(system = system, \
-#     time_points = time_points_1, udata = udata_1, \
-#     pinit = pinit, \
-#     ydata = ydata_1, \
-#     xinit = ydata_1)
+pe_1 = cp.pe.LSq(system = system, \
+    time_points = time_points_1, udata = udata_1, \
+    x0 = ydata_1[0,:],
+    pinit = pinit, \
+    ydata = ydata_1, \
+    xinit = ydata_1)
 
 
-# # Problem 2
+# Problem 2
 
-# time_points_2 = data[400:600:5, 1]
+time_points_2 = data[100:200, 1]
 
-# ydata_2 = data[400:600:5, [2, 4, 6, 8]]
+ydata_2 = data[100:200, [2, 4, 6, 8]]
 
-# udata_2 = data[400:600:5, [9, 10]][:-1, :]
+udata_2 = data[100:200, [9, 10]][:-1, :]
 
-# pe_2 = cp.pe.LSq(system = system, \
+pe_2 = cp.pe.LSq(system = system, \
+    x0 = ydata_2[0,:],
+    time_points = time_points_2, udata = udata_2, \
+    pinit = pinit, \
+    ydata = ydata_2, \
+    xinit = ydata_2)
+
+# pe_3 = cp.pe.LSq(system = system, \
+#     x0 = ydata_2[0,:],
 #     time_points = time_points_2, udata = udata_2, \
 #     pinit = pinit, \
 #     ydata = ydata_2, \
 #     xinit = ydata_2)
 
+# pe_4 = cp.pe.LSq(system = system, \
+#     x0 = ydata_2[0,:],
+#     time_points = time_points_2, udata = udata_2, \
+#     pinit = pinit, \
+#     ydata = ydata_2, \
+#     xinit = ydata_2)
+
+# pe_5 = cp.pe.LSq(system = system, \
+#     x0 = ydata_2[0,:],
+#     time_points = time_points_2, udata = udata_2, \
+#     pinit = pinit, \
+#     ydata = ydata_2, \
+#     xinit = ydata_2)
+
+# pe_6 = cp.pe.LSq(system = system, \
+#     x0 = ydata_2[0,:],
+#     time_points = time_points_2, udata = udata_2, \
+#     pinit = pinit, \
+#     ydata = ydata_2, \
+#     xinit = ydata_2)
 
 # # Problem 3
 
@@ -117,9 +146,11 @@ for k in range(5,14):
 #     xinit = ydata_1)
 
 
-mpe = cp.pe.MultiPE(pe_setups) #, pe_3])
+mpe = cp.pe.MultiPE([pe_1, pe_2]) #, pe_3])
 
 mpe.run_parameter_estimation()
+mpe.compute_covariance_matrix()
+mpe.print_estimation_results()
 
 # pe.run_parameter_estimation()
 # pe.print_estimation_results()

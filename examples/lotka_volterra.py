@@ -60,8 +60,8 @@ wv = pl.zeros((2, yN.shape[1]))
 wv[0,:] = (1.0 / sigma_x1**2)
 wv[1,:] = (1.0 / sigma_x2**2)
 
-pe = cp.pe.LSq(system = system, time_points = T, xinit = yN, ydata = yN, \
-    wv = wv, discretization_method = "multiple_shooting")
+pe = cp.pe.LSq(system = system, time_points = T, x0 = yN[:,0], xinit = yN, \
+    ydata = yN, wv = wv, discretization_method = "collocation")
 
 pe.run_parameter_estimation()
 pe.print_estimation_results()

@@ -192,6 +192,9 @@ class ODECollocation(Discretization):
             (self.system.nx * (self.collocation_polynomial_degree + 1), \
             self.number_of_intervals))
 
+        # import ipdb
+        # ipdb.set_trace()
+
         EPS_E = self.optimization_variables["EPS_E"][:].reshape( \
             (self.system.neps_e * self.collocation_polynomial_degree, \
             self.number_of_intervals))

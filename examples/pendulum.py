@@ -82,12 +82,14 @@ wv = pl.array([wnu, ww])
 
 pe = cp.pe.LSq( \
     system = system, time_points = time_points, \
+    x0 = ydata[:,0], \
     udata = udata, \
     pinit = 1, \
     xinit = ydata, 
-    ydata = ydata, wv = wv)
+    ydata = ydata, wv = wv, \
+    discretization_method = "collocation")
 
-pe.run_parameter_estimation()
+pe.run_parameter_estimation({"linear_solver": "ma27"})
 pe.print_estimation_results()
 
 pe.compute_covariance_matrix()
