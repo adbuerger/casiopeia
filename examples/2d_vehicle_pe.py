@@ -63,7 +63,6 @@ pinit = [0.5, 17.06, 12.0, 2.17, 0.1, 0.6]
 
 pe = cp.pe.LSq(system = system, \
     time_points = time_points, \
-    x0 = ydata[0,:], \
     udata = udata, \
     pinit = pinit, \
     ydata = ydata, \

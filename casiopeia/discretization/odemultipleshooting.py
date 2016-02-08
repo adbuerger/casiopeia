@@ -41,12 +41,7 @@ class ODEMultipleShooting(Discretization):
     def __set_optimization_variables(self):
 
         self.optimization_variables = {key: ci.dmatrix(0, self.number_of_intervals) \
-            for key in ["P", "V", "X", "EPS_E", "EPS_U", "U"]}
-
-        self.optimization_variables["P"] = ci.mx_sym("P", self.system.np)
-
-        self.optimization_variables["V"] = ci.mx_sym("V", self.system.nphi, \
-            self.number_of_intervals + 1)
+            for key in ["P", "V", "X", "EPS_E", "EPS_U", "U", "Q"]}
 
         if self.system.nu != 0:
 
@@ -61,14 +56,23 @@ class ODEMultipleShooting(Discretization):
         if self.system.neps_e != 0:
 
             self.optimization_variables["EPS_E"] = \
-                ci.mx_sym("EPS_E", self.system.neps_e, \
-                self.number_of_intervals)
+                ci.mx_sym("EPS_E", self.system.neps_e, self.number_of_intervals)
 
         if self.system.neps_u != 0:
                 
             self.optimization_variables["EPS_U"] = \
-                ci.mx_sym("EPS_U", self.system.neps_u, \
-                self.number_of_intervals)
+                ci.mx_sym("EPS_U", self.system.neps_u, self.number_of_intervals)
+
+
+        self.optimization_variables["P"] = ci.mx_sym("P", self.system.np)
+
+        self.optimization_variables["V"] = ci.mx_sym("V", self.system.nphi, \
+            self.number_of_intervals + 1)
+
+        if self.system.nq != 0:
+            self.optimization_variables["Q"] = ci.mx_sym("Q", self.system.nq)
+        else:
+            self.optimization_variables["Q"] = ci.dmatrix(0, 1)
 
 
     # def __initialize_ode_right_hand_side(self):
@@ -84,7 +88,8 @@ class ODEMultipleShooting(Discretization):
 
         self.__ode_scaled = ci.mx_function("ode_scaled", \
                 ci.daeIn(x = self.system.x, \
-                    p = ci.vertcat([t_scale, self.system.t, self.system.u,
+                    p = ci.vertcat([t_scale, self.system.t, \
+                        self.system.u, self.system.q, \
                         self.system.p, self.system.eps_e, self.system.eps_u])), 
                 ci.daeOut(ode = t_scale * self.system.f))
         self.__ode_scaled = self.__ode_scaled.expand()
@@ -97,6 +102,7 @@ class ODEMultipleShooting(Discretization):
         params = ci.vertcat([np.atleast_2d(self.time_points[1:] - self.time_points[:-1]), \
             np.atleast_2d(self.time_points[:-1]), \
             self.optimization_variables["U"], \
+            ci.repmat(self.optimization_variables["Q"], 1, self.number_of_intervals), \
             ci.repmat(self.optimization_variables["P"], 1, self.number_of_intervals), \
             self.optimization_variables["EPS_E"], \
             self.optimization_variables["EPS_U"]])
@@ -129,19 +135,20 @@ class ODEMultipleShooting(Discretization):
     def __evaluate_measurement_function(self):
 
         phifcn = ci.mx_function("phifcn", \
-            [self.system.t, self.system.u, self.system.x, \
+            [self.system.t, self.system.u, self.system.q, self.system.x, \
                 self.system.eps_u, self.system.p], \
             [self.system.phi])
         phifcn = phifcn.expand()
 
         # The last control value is silently reused. This should be changed
-        # or at least the user should be noticed about that!
+        # or at least the user should be noticed about that!)
 
         measurement_function_input = [ \
             ci.horzcat(self.time_points.tolist()),
 
             ci.horzcat([self.optimization_variables["U"], \
-                self.optimization_variables["U"][:, -1]]), 
+                self.optimization_variables["U"][:, -1]]),
+            self.optimization_variables["Q"],
             
             self.optimization_variables["X"],
             self.optimization_variables["EPS_U"],

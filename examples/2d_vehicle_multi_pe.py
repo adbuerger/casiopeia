@@ -82,7 +82,6 @@ udata_1 = data[100:200, [9, 10]][:-1, :]
 
 pe_1 = cp.pe.LSq(system = system, \
     time_points = time_points_1, udata = udata_1, \
-    x0 = ydata_1[0,:],
     pinit = pinit, \
     ydata = ydata_1, \
     xinit = ydata_1)
@@ -97,7 +96,6 @@ ydata_2 = data[100:200, [2, 4, 6, 8]]
 udata_2 = data[100:200, [9, 10]][:-1, :]
 
 pe_2 = cp.pe.LSq(system = system, \
-    x0 = ydata_2[0,:],
     time_points = time_points_2, udata = udata_2, \
     pinit = pinit, \
     ydata = ydata_2, \

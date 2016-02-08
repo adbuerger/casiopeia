@@ -33,6 +33,12 @@ class System:
 
 
     @property
+    def nq(self):
+
+        return self.q.size()
+
+
+    @property
     def np(self):
 
         return self.p.size()
@@ -94,13 +100,14 @@ casiopeia, but will be in future versions.''')
 The system is a non-dynamic systems with the general input-output
 structure and equality constraints:
 
-y = phi(t, u, p),
-g(t, u, p) = 0.
+y = phi(t, u, q, p),
+g(t, u, q, p) = 0.
 
 Particularly, the system has:
-{0} inputs u
-{1} parameters p
-{2} outputs phi'''.format(self.nu,self.nz, self.nphi))
+{0} time-varying controls u
+{1} time-constant controls q
+{2} parameters p
+{3} outputs phi'''.format(self.nu, self.nq, self.np, self.nphi))
         
         print("\nwhere phi is defined by ")
         for i, yi in enumerate(self.phi):         
@@ -118,14 +125,15 @@ The system is a dynamic system defined by a set of explicit ODEs xdot
 which establish the system state x and by an output function phi which
 sets the system measurements:
 
-xdot = f(t, u, x, p, eps_e, eps_u),
-y = phi(t, x, p).
+xdot = f(t, u, q, x, p, eps_e, eps_u),
+y = phi(t, u, q, x, p).
 
 Particularly, the system has:
-{0} inputs u
-{1} parameters p
-{2} states x
-{3} outputs phi'''.format(self.nu,self.np, self.nx, self.nphi))
+{0} time-varying controls u
+{1} time-constant controls q
+{2} parameters p
+{3} states x
+{4} outputs phi'''.format(self.nu, self.nq, self.np, self.nx, self.nphi))
 
         
         print("\nwhere xdot is defined by ")
@@ -173,13 +181,14 @@ See the documentation for a list of valid definitions.
     def __init__(self, \
              t = ci.mx_sym("t", 1),
              u = ci.mx_sym("u", 0), \
+             q = ci.mx_sym("q", 0), \
              p = None, \
-             x = ci.mx_sym("u", 0), \
-             z = ci.mx_sym("u", 0),
+             x = ci.mx_sym("x", 0), \
+             z = ci.mx_sym("z", 0),
              eps_e = ci.mx_sym("eps_e", 0), \
              eps_u = ci.mx_sym("eps_u", 0), \
              phi = None, \
-             f = ci.mx_sym("u", 0), \
+             f = ci.mx_sym("f", 0), \
              g = ci.mx_sym("g", 0)):
 
 
@@ -189,8 +198,11 @@ See the documentation for a list of valid definitions.
         :param t: time :math:`t \in \mathbb{R}` *(not yet supported)*
         :type t: casadi.casadi.MX
 
-        :param u: controls :math:`u \in \mathbb{R}^{\text{n}_\text{u}}` (optional)
+        :param u: time-varying controls :math:`u \in \mathbb{R}^{\text{n}_\text{u}}` that are applied piece-wise-constant for each control intervals, and therefor can change from on interval to another, e. g. motor dutycycles, temperatures, massflows (optional)
         :type u: casadi.casadi.MX
+
+        :param q: time-constant controls :math:`q \in \mathbb{R}^{\text{n}_\text{q}}` that are constant over time, e. g. initial mass concentrations of reactants, elevation angles (optional)
+        :type q: casadi.casadi.MX
 
         :param p: unknown parameters :math:`p \in \mathbb{R}^{\text{n}_\text{p}}`
         :type p: casadi.casadi.MX
@@ -207,13 +219,13 @@ See the documentation for a list of valid definitions.
         :param eps_u: input errors :math:`\epsilon_{u} \in \mathbb{R}^{\text{n}_{\epsilon_\text{u}}}` (optional)
         :type eps_u: casadi.casadi.MX
 
-        :param phi: output function :math:`\phi(t, u, x, p) = y \in \mathbb{R}^{\text{n}_\text{y}}`
+        :param phi: output function :math:`\phi(t, u, q, x, p) = y \in \mathbb{R}^{\text{n}_\text{y}}`
         :type phi: casadi.casadi.MX
 
-        :param f: explicit system of ODEs :math:`f(t, u, x, z, p, \epsilon_\text{e}, \epsilon_\text{u}) = \dot{x} \in \mathbb{R}^{\text{n}_\text{x}}` (optional)
+        :param f: explicit system of ODEs :math:`f(t, u, q, x, z, p, \epsilon_\text{e}, \epsilon_\text{u}) = \dot{x} \in \mathbb{R}^{\text{n}_\text{x}}` (optional)
         :type f: casadi.casadi.MX
 
-        :param g: equality constraints :math:`g(t, u, x, z, p) = 0 \in \mathbb{R}^{\text{n}_\text{g}}` (optional)
+        :param g: equality constraints :math:`g(t, u, q, x, z, p) = 0 \in \mathbb{R}^{\text{n}_\text{g}}` (optional)
                   (optional)
         :type g: casadi.casadi.MX
 
@@ -226,29 +238,29 @@ See the documentation for a list of valid definitions.
 
         .. math::
 
-            y = \phi(t, u, p)
+            y = \phi(t, u, q, p)
 
-            0 = g(t, u, p).
+            0 = g(t, u, q, p).
 
 
         **Explicit ODE system** (x != None, z = None):
 
         .. math::
 
-            y & = & \phi(t, u, x, p) \\
+            y & = & \phi(t, u, q, x, p) \\
 
-            \dot{x}  & = & f(t, u, x, p, \epsilon_\text{e}, \epsilon_\text{u}).
+            \dot{x}  & = & f(t, u, q, x, p, \epsilon_\text{e}, \epsilon_\text{u}).
 
 
         **Fully implicit DAE system** *(not yet supported)*:
 
         .. math::
 
-            y & = & \phi(t, u, x, p) \\
+            y & = & \phi(t, u, q, x, p) \\
 
-            0 & = & f(t, u, x, \dot{x}, z, p, \epsilon_\text{e}, \epsilon_\text{u}).
+            0 & = & f(t, u, q, x, \dot{x}, z, p, \epsilon_\text{e}, \epsilon_\text{u}).
 
-            0 = g(t, u, x, z, p)
+            0 = g(t, u, q, x, z, p)
 
         '''
 
@@ -261,6 +273,7 @@ See the documentation for a list of valid definitions.
 
         self.t = t
         self.u = u
+        self.q = q
         self.p = p
 
         self.x = x

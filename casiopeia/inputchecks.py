@@ -59,13 +59,37 @@ def check_controls_data(udata, nu, number_of_controls):
         if not udata.shape == (nu, number_of_controls):
 
             raise ValueError( \
-                "Control values provided by user have wrong dimension.")
+                "Time-varying control values provided by user have wrong dimension.")
 
         return udata
 
     else:
 
         return ci.dmatrix(0, number_of_controls)
+
+
+def check_constant_controls_data(qdata, nq):
+
+    if not nq == 0:
+
+        if qdata is None:
+            qdata = np.zeros((nq, 1))
+
+        qdata = np.atleast_2d(qdata)
+
+        if qdata.shape == (1, nq):
+            qdata = qdata.T
+
+        if not qdata.shape == (nq, 1):
+
+            raise ValueError( \
+                "Time-constant control values provided by user have wrong dimension.")
+
+        return qdata
+
+    else:
+
+        return ci.dmatrix(0, 1)
 
 
 def check_states_data(xdata, nx, number_of_intervals):

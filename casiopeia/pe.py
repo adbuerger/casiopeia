@@ -260,10 +260,10 @@ and compute_covariance_matrix() before all results can be displayed.
         This function computes the covariance matrix for the estimated
         parameters from the inverse of the KKT matrix for the parameter
         estimation problem, which allows for statements on the quality of
-        the values of the estimated parameters [#f1]_.
+        the values of the estimated parameters [#f1]_ [#f2]_.
 
         For efficiency, only the inverse of the relevant part of the matrix
-        is computed [#f2]_.
+        is computed [#f3]_.
 
         The values of the covariance matrix :math:`\Sigma_{\hat{\text{p}}}` can afterwards
         be accessed via the class attribute ``LSq.covariance_matrix``, and the
@@ -277,9 +277,15 @@ and compute_covariance_matrix() before all results can be displayed.
 
         .. _linkf1: http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/Freising10_19_-_Kostina_-_Towards_Optimum.pdf
 
-        .. |linkf1| replace:: *Kostina, Ekaterina and Kriwet, Gregor: Towards Optimum Experimental Design for Partial Differential Equations, SPP 1253 annual conference 2010, slides 12/13.*
+        .. |linkf1| replace:: *Kostina, Ekaterina and Kostyukova, Olga: Computing Covariance Matrices for Constrained Nonlinear Large Scale Parameter Estimation Problems Using Krylov Subspace Methods, 2012.*
 
-        .. [#f2] *Walter, Eric and Prozanto, Luc: Identification of Parametric Models from Experimental Data, Springer, 1997, pages 288/289.*
+        .. [#f2] |linkf2|_
+
+        .. _linkf2: https://www.researchgate.net/publication/228407918_Computing_Covariance_Matrices_for_Constrained_Nonlinear_Large_Scale_Parameter_Estimation_Problems_Using_Krylov_Subspace_Methods
+
+        .. |linkf2| replace:: *Kostina, Ekaterina and Kriwet, Gregor: Towards Optimum Experimental Design for Partial Differential Equations, SPP 1253 annual conference 2010, slides 12/13.*
+
+        .. [#f3] *Walter, Eric and Prozanto, Luc: Identification of Parametric Models from Experimental Data, Springer, 1997, pages 288/289.*
 
         '''
 
@@ -363,15 +369,18 @@ but will be in future versions.
 ''')            
 
 
-    def _apply_controls_to_equality_constraints(self, udata):
+    def _apply_controls_to_equality_constraints(self, udata, qdata):
 
         udata = inputchecks.check_controls_data(udata, \
             self._discretization.system.nu, \
             self._discretization.number_of_controls)
+        qdata = inputchecks.check_constant_controls_data(qdata, \
+            self._discretization.system.nq)
 
         optimization_variables_for_equality_constraints = ci.veccat([ \
 
-                self._discretization.optimization_variables["U"], 
+                self._discretization.optimization_variables["U"],
+                self._discretization.optimization_variables["Q"],
                 self._discretization.optimization_variables["X"], 
                 self._discretization.optimization_variables["EPS_U"], 
                 self._discretization.optimization_variables["EPS_E"], 
@@ -381,7 +390,8 @@ but will be in future versions.
 
         optimization_variables_controls_applied = ci.veccat([ \
 
-                udata, 
+                udata,
+                qdata,
                 self._discretization.optimization_variables["X"], 
                 self._discretization.optimization_variables["EPS_U"], 
                 self._discretization.optimization_variables["EPS_E"], 
@@ -398,15 +408,18 @@ but will be in future versions.
             equality_constraints_fcn([optimization_variables_controls_applied])
 
 
-    def _apply_controls_to_measurements(self, udata):
+    def _apply_controls_to_measurements(self, udata, qdata):
 
         udata = inputchecks.check_controls_data(udata, \
             self._discretization.system.nu, \
             self._discretization.number_of_controls)
+        qdata = inputchecks.check_constant_controls_data(qdata, \
+            self._discretization.system.nq)
 
         optimization_variables_for_measurements = ci.veccat([ \
 
                 self._discretization.optimization_variables["U"], 
+                self._discretization.optimization_variables["Q"], 
                 self._discretization.optimization_variables["X"], 
                 self._discretization.optimization_variables["EPS_U"], 
                 self._discretization.optimization_variables["P"], 
@@ -416,6 +429,7 @@ but will be in future versions.
         optimization_variables_controls_applied = ci.veccat([ \
 
                 udata, 
+                qdata, 
                 self._discretization.optimization_variables["X"], 
                 self._discretization.optimization_variables["EPS_U"], 
                 self._discretization.optimization_variables["P"], 
@@ -431,10 +445,10 @@ but will be in future versions.
             measurements_fcn([optimization_variables_controls_applied])
 
 
-    def _apply_controls_to_discretization(self, udata):
+    def _apply_controls_to_discretization(self, udata, qdata):
 
-        self._apply_controls_to_equality_constraints(udata)
-        self._apply_controls_to_measurements(udata)
+        self._apply_controls_to_equality_constraints(udata, qdata)
+        self._apply_controls_to_measurements(udata, qdata)
 
 
     def _set_optimization_variables(self):
@@ -565,8 +579,8 @@ but will be in future versions.
 
 
     def __init__(self, system, time_points, \
-        x0 = None, 
-        udata = None, ydata = None, \
+        udata = None, qdata = None,\
+        ydata = None, \
         pinit = None, xinit = None, \
         wv = None, weps_e = None, weps_u = None, \
         discretization_method = "collocation", **kwargs):
@@ -584,13 +598,19 @@ but will be in future versions.
                    while measurements take place at all :math:`N` time points.
         :type time_points: numpy.ndarray, casadi.DMatrix, list
 
-        :param udata: optional, values for the controls at the switching time
-                   points :math:`u_\text{N} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N}-1}`;
-                   if not values are given, 0 will be used; note that the
+        :param udata: optional, values for the time-varying controls 
+                   :math:`u_\text{N} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N}-1}`
+                   that can change at the switching time points;
+                   if no values are given, 0 will be used; note that the
                    the second dimension of :math:`u_\text{N}` is :math:`N-1` and not
                    :math:`N`, since there is no control value applied at the
                    last time point
         :type udata: numpy.ndarray, casadi.DMatrix
+
+        :param qdata: optional, values for the time-constant controls
+                   :math:`q_\text{N} \in \mathbb{R}^{\text{n}_\text{q}}`;
+                   if not values are given, 0 will be used
+        :type qdata: numpy.ndarray, casadi.DMatrix
 
         :param ydata: values for the measurements at the switching time points
                    :math:`y_\text{N} \in \mathbb{R}^{\text{n}_\text{y} \times \text{N}}`
@@ -671,8 +691,8 @@ but will be in future versions.
 
             \begin{aligned}
                 \text{arg}\,\underset{p, x, v, \epsilon_\text{e}, \epsilon_\text{u}}{\text{min}} & & \frac{1}{2} \| R(w, v, \epsilon_\text{e}, \epsilon_\text{u}) \|_2^2 &\\
-                \text{subject to:} & & v_\text{k} + y_\text{k} - \phi(x_\text{k}, p; t_\text{k}, u_\text{k}) & = 0 \hspace{1cm} k = 1, \dots, N\\
-                & & g(p, x, \epsilon_\text{e}, \epsilon_\text{u}; u) & = 0 \\
+                \text{subject to:} & & v_\text{k} + y_\text{k} - \phi(x_\text{k}, p; t_\text{k}, u_\text{k}, q) & = 0 \hspace{1cm} k = 1, \dots, N\\
+                & & g(p, x, \epsilon_\text{e}, \epsilon_\text{u}; u, q) & = 0 \\
                 \text{with:} & & \begin{pmatrix} {w_\text{v}}^T & {w_{\epsilon_\text{e}}}^T & {w_{\epsilon_\text{u}}}^T \end{pmatrix}^{^\mathbb{1}/_\mathbb{2}} \begin{pmatrix} {v} \\ {\epsilon_\text{e}} \\ {\epsilon_\text{u}} \end{pmatrix} & = R \\
             \end{aligned}
 
@@ -687,7 +707,7 @@ but will be in future versions.
         self._discretize_system( \
             system, time_points, discretization_method, **kwargs)
 
-        self._apply_controls_to_discretization(udata)
+        self._apply_controls_to_discretization(udata, qdata)
 
         self._set_optimization_variables()
 
@@ -710,15 +730,26 @@ but will be in future versions.
         self._setup_nlp()
 
 
-class MultiPE(PEProblem):
+class MultiLSq(PEProblem):
+
+    '''The class :class:`casiopeia.pe.MultiLSq` is used to construct a single
+    least squares parameter estimation problems from multiple least squares
+    parameter estimation problems defined via two or more objects of type
+    :class:`casiopeia.pe.LSq`.
+
+    By doing this, the results of multiple independent experimental setups
+    can be used for parameter estimation. It is assumend though, that the
+    system description used for setting up the several parameter estimation
+    problems is the same.
+    '''
 
     def _define_set_of_pe_setups(self, pe_setups):
 
-#         if len(pe_setups) <= 1:
+        if len(pe_setups) <= 1:
 
-#             raise NotImplementedError('''
-# You must instatiate the multi experiment method passing at least two
-# parameter estimation problems.''')
+            raise NotImplementedError('''
+You must instatiate the multi experiment method passing at least two
+parameter estimation problems.''')
 
         self._pe_setups = pe_setups
 
@@ -789,6 +820,14 @@ class MultiPE(PEProblem):
 
     def __init__(self, pe_setups = []):
 
+        r'''
+        :raises: NotImplementedError
+
+        :param pe_setups: list of objects  of type :class:`casiopeia.pe.LSq`
+        :type pe_setups: list
+
+        '''
+
         self._define_set_of_pe_setups(pe_setups)
 
         self._get_discretization_from_pe_setups()
@@ -808,3 +847,10 @@ class MultiPE(PEProblem):
         self._setup_objective()
 
         self._setup_nlp()
+
+
+    def compute_covariance_matrix(self):
+
+        raise NotImplementedError('''
+Covariance matrix computation for multiple experiments is not yet supported.
+''')

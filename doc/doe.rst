@@ -20,4 +20,14 @@ Optimum experimental design
 ===========================
 
 .. automodule:: casiopeia.doe
+
+Optimum experimental design of single experiments
+-------------------------------------------------
+
+.. autoclass:: casiopeia.doe.DoE
     :members:
+
+Optimum experimental design of multiple experiments
+---------------------------------------------------
+
+to be announced

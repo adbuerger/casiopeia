@@ -71,6 +71,6 @@ doe = cp.doe.DoE(system = system, time_points = time_points, \
     umin = umin, umax = umax, \
     xmin = xmin, xmax = xmax)
 
-doe.run_experimental_design(solver_options = {"max_iter" : 50})
+doe.run_experimental_design(solver_options = {"linear_solver": "ma57"})
 
-pl.savetxt("results_2d_vehicle_doe_coll.txt", doe.design_results["x"])
+# pl.savetxt("results_2d_vehicle_doe_coll.txt", doe.design_results["x"])

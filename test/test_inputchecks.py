@@ -127,6 +127,7 @@ class CheckControlsData(unittest.TestCase):
             nu, self.number_of_controls)
         assert_array_equal(udata, udata_ref)
 
+
     def test_zero_controls(self):
 
         # In this case, the input value is not used by the function, and
@@ -139,6 +140,7 @@ class CheckControlsData(unittest.TestCase):
             nu, self.number_of_controls)
         assert_array_equal(udata, udata_ref)
 
+
     def test_input_invalid(self):
 
         nu = 3
@@ -147,6 +149,70 @@ class CheckControlsData(unittest.TestCase):
         self.assertRaises(ValueError, \
             inputchecks.check_controls_data, udata_ref, \
             nu, self.number_of_controls)
+
+
+class CheckConstantControlsData(unittest.TestCase):
+
+    def setUp(self):
+
+        pass
+
+
+    def test_input_rows(self):
+
+        nq = 3
+        qdata_ref =  np.atleast_2d(np.random.rand(nq, 1))
+
+        qdata = inputchecks.check_constant_controls_data(qdata_ref, nq)
+        assert_array_equal(qdata, qdata_ref)
+
+
+    def test_input_columns(self):
+
+        nq = 3
+        qdata_ref =  np.atleast_2d(np.random.rand(nq, 1))
+
+        qdata = inputchecks.check_constant_controls_data(qdata_ref.T, nq)
+        assert_array_equal(qdata, qdata_ref)
+
+
+    def test_zero_controls(self):
+
+        # In this case, the input value is not used by the function, and
+        # therefor irrelevant at this point
+
+        nq = 0
+        qdata_ref = ci.dmatrix(0, 1)
+
+        qdata = inputchecks.check_constant_controls_data(None, nq)
+        assert_array_equal(qdata, qdata_ref)
+
+
+    def test_input_none(self):
+
+        nq = 3
+        qdata_ref = np.atleast_2d(np.zeros((nq, 1)))
+
+        qdata = inputchecks.check_constant_controls_data(None, nq)
+        assert_array_equal(qdata, qdata_ref)
+
+
+    def test_input_invalid_onedim(self):
+
+        nq = 3
+        qdata_ref = np.atleast_2d(np.linspace(0, nq - 2, nq - 1))
+
+        self.assertRaises(ValueError, \
+            inputchecks.check_constant_controls_data, qdata_ref, nq)
+
+
+    def test_input_invalid_twodim(self):
+
+        nq = 3
+        qdata_ref = np.random.rand(nq, 2)
+
+        self.assertRaises(ValueError, \
+            inputchecks.check_constant_controls_data, qdata_ref, nq)
 
 
 class CheckStatesData(unittest.TestCase):

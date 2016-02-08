@@ -49,19 +49,20 @@ can be accessed, please run run_system_simulation() first.
 ''')
 
 
-    def __generate_simulation_ode(self, pdata):
+    def __generate_simulation_ode(self, pdata, qdata):
 
         p = inputchecks.check_parameter_data(pdata, self.__system.np)
+        q = inputchecks.check_constant_controls_data(qdata, self.__system.nq)
 
         ode_fcn = ci.mx_function("ode_fcn", \
-            [self.__system.t, self.__system.u, self.__system.x, \
+            [self.__system.t, self.__system.u, self.__system.q, self.__system.x, \
             self.__system.eps_e, self.__system.eps_u, self.__system.p], \
             [self.__system.f])
 
         # Needs to be changes for allowance of explicit time dependecy!
 
         self.__ode_parameters_applied = ode_fcn([ \
-            np.zeros(1), self.__system.u, self.__system.x, \
+            np.zeros(1), self.__system.u, q, self.__system.x, \
             np.zeros(self.__system.neps_e), \
             np.zeros(self.__system.neps_u), p])[0]
 
@@ -82,7 +83,7 @@ can be accessed, please run run_system_simulation() first.
         self.__dae_scaled = dae_scaled.expand()
 
 
-    def __init__(self, system, pdata):
+    def __init__(self, system, pdata, qdata = None):
 
         r'''
         :param system: system considered for simulation, specified
@@ -93,13 +94,18 @@ can be accessed, please run run_system_simulation() first.
                       :math:`p \in \mathbb{R}^{\text{n}_\text{p}}`
         :type pdata: numpy.ndarray, casadi.DMatrix
 
+        :param qdata: optional, values of the time-constant controls
+                      :math:`q \in \mathbb{R}^{\text{n}_\text{q}}`; if no
+                      values are given, 0 will be used
+        :type qdata: numpy.ndarray, casadi.DMatrix
+
         '''
 
         intro()
 
         self.__system = inputchecks.set_system(system)
 
-        self.__generate_simulation_ode(pdata)
+        self.__generate_simulation_ode(pdata, qdata)
         self.__generate_scaled_dae()
 
 
@@ -138,8 +144,8 @@ can be accessed, please run run_system_simulation() first.
                             :math:`t_\text{N} \in \mathbb{R}^\text{N}`
         :type time_points: numpy.ndarray, casadi.DMatrix, list
 
-        :param udata: optional, values for the controls at the first :math:`N-1`
-                      switching time points 
+        :param udata: optional, values for the time-varying controls at the
+                      first :math:`N-1` switching time points 
                       :math:`u_\text{N} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N}-1}`; if no values
                       are given, 0 will be used
         :type udata: numpy.ndarray, casadi.DMatrix

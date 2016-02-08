@@ -18,8 +18,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with casiopeia. If not, see <http://www.gnu.org/licenses/>.
 
-'''The module ``casiopeia.doe`` contains the class used for optimum experimental
-design.'''
+'''The module ``casiopeia.doe`` contains the classes used for optimum
+experimental design.'''
 
 import numpy as np
 import time
@@ -129,7 +129,8 @@ but will be in future versions.
 
         optimization_variables_for_equality_constraints = ci.veccat([ \
 
-                self.__discretization.optimization_variables["U"], 
+                self.__discretization.optimization_variables["U"],
+                self.__discretization.optimization_variables["Q"],
                 self.__discretization.optimization_variables["X"], 
                 self.__discretization.optimization_variables["EPS_U"], 
                 self.__discretization.optimization_variables["EPS_E"], 
@@ -140,6 +141,7 @@ but will be in future versions.
         optimization_variables_parameters_applied = ci.veccat([ \
 
                 self.__discretization.optimization_variables["U"], 
+                self.__discretization.optimization_variables["Q"], 
                 self.__discretization.optimization_variables["X"], 
                 self.__discretization.optimization_variables["EPS_U"], 
                 self.__discretization.optimization_variables["EPS_E"], 
@@ -166,14 +168,15 @@ but will be in future versions.
         self.__optimization_variables = ci.veccat([ \
 
                 self.__discretization.optimization_variables["U"],
+                self.__discretization.optimization_variables["Q"],
                 self.__discretization.optimization_variables["X"],
 
             ])
 
 
-    def __set_optimization_variables_initials(self, pdata, x0, uinit):
+    def __set_optimization_variables_initials(self, pdata, qinit, x0, uinit):
 
-        self.simulation = Simulation(self.__discretization.system, pdata)
+        self.simulation = Simulation(self.__discretization.system, pdata, qinit)
         self.simulation.run_system_simulation(x0, \
             self.__discretization.time_points, uinit)
         xinit = self.simulation.simulation_results
@@ -197,15 +200,20 @@ but will be in future versions.
             self.__discretization.number_of_intervals)
         Uinit = uinit
 
+        qinit = inputchecks.check_constant_controls_data(qinit, \
+            self.__discretization.system.nq)
+        Qinit = qinit
+
         self.__optimization_variables_initials = ci.veccat([ \
 
                 Uinit,
+                Qinit,
                 Xinit,
 
             ])
 
 
-    def __set_optimization_variables_lower_bounds(self, umin, xmin, x0):
+    def __set_optimization_variables_lower_bounds(self, umin, qmin, xmin, x0):
 
         umin_user_provided = umin
 
@@ -218,6 +226,18 @@ but will be in future versions.
 
         Umin = ci.repmat(umin, 1, \
             self.__discretization.optimization_variables["U"].shape[1])
+
+
+        qmin_user_provided = qmin
+
+        qmin = inputchecks.check_constant_controls_data(qmin, \
+            self.__discretization.system.nq)
+
+        if qmin_user_provided is None:
+
+            qmin = -np.inf * np.ones(qmin.shape)
+
+        Qmin = qmin
 
 
         xmin_user_provided = xmin
@@ -238,12 +258,13 @@ but will be in future versions.
         self.__optimization_variables_lower_bounds = ci.veccat([ \
 
                 Umin,
+                Qmin,
                 Xmin,
 
             ])
 
 
-    def __set_optimization_variables_upper_bounds(self, umax, xmax, x0):
+    def __set_optimization_variables_upper_bounds(self, umax, qmax, xmax, x0):
 
         umax_user_provided = umax
 
@@ -256,6 +277,18 @@ but will be in future versions.
 
         Umax = ci.repmat(umax, 1, \
             self.__discretization.optimization_variables["U"].shape[1])
+
+
+        qmax_user_provided = qmax
+
+        qmax = inputchecks.check_constant_controls_data(qmax, \
+            self.__discretization.system.nq)
+
+        if qmax_user_provided is None:
+
+            qmax = -np.inf * np.ones(qmax.shape)
+
+        Qmax = qmax
 
 
         xmax_user_provided = xmax
@@ -390,6 +423,7 @@ Possible values are "A" and "D".
 
                 self.__discretization.optimization_variables["P"],
                 self.__discretization.optimization_variables["U"],
+                self.__discretization.optimization_variables["Q"],
                 self.__discretization.optimization_variables["X"],
 
             ])
@@ -398,6 +432,7 @@ Possible values are "A" and "D".
 
                 pdata,
                 self.__discretization.optimization_variables["U"],
+                self.__discretization.optimization_variables["Q"],
                 self.__discretization.optimization_variables["X"],
 
             ])
@@ -438,10 +473,20 @@ Possible values are "A" and "D".
                    while measurements take place at all :math:`N` time points.
         :type time_points: numpy.ndarray, casadi.DMatrix, list
 
-        :param uinit: optional, initial guess for the optimal values of the
-                   controls at the switching time
-                   points :math:`u_\text{init} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N}-1}`;
-                   if not values are given, 0 will be used; note that a poorly
+        :param umin: optional, lower bounds of the time-varying controls
+                   :math:`u_\text{min} \in \mathbb{R}^{\text{n}_\text{u}}`;
+                   if not values are given, :math:`-\infty` will be used
+        :type umin: numpy.ndarray, casadi.DMatrix
+
+        :param umax: optional, upper bounds of the time-vaying controls 
+                   :math:`u_\text{max} \in \mathbb{R}^{\text{n}_\text{u}}`;
+                   if not values are given, :math:`\infty` will be used
+        :type umax: numpy.ndarray, casadi.DMatrix
+
+        :param uinit: optional, initial guess for the values of the time-varying controls
+                   :math:`u_\text{N} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N}-1}`
+                   that (might) change at the switching time points;
+                   if no values are given, 0 will be used; note that a poorly
                    or wrongly chosen initial guess can cause the optimization
                    to fail, and note that the
                    the second dimension of :math:`u_N` is :math:`N-1` and not
@@ -449,15 +494,23 @@ Possible values are "A" and "D".
                    last time point
         :type uinit: numpy.ndarray, casadi.DMatrix
 
-        :param umin: optional, lower bounds of the
-                   controls :math:`u_\text{min} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N-1}}`;
+        :param qmin: optional, lower bounds of the time-constant controls
+                   :math:`q_\text{min} \in \mathbb{R}^{\text{n}_\text{q}}`;
                    if not values are given, :math:`-\infty` will be used
-        :type umin: numpy.ndarray, casadi.DMatrix
+        :type qmin: numpy.ndarray, casadi.DMatrix
 
-        :param umax: optional, upper bounds of the
-                   controls :math:`u_\text{max} \in \mathbb{R}^{\text{n}_\text{u} \times \text{N}-1}`;
+        :param qmax: optional, upper bounds of the time-constant controls
+                   :math:`q_\text{max} \in \mathbb{R}^{\text{n}_\text{q}}`;
                    if not values are given, :math:`\infty` will be used
-        :type umax: numpy.ndarray, casadi.DMatrix
+        :type qmax: numpy.ndarray, casadi.DMatrix
+
+        :param qinit: optional, initial guess for the optimal values of the
+                   time-constant controls
+                   :math:`q_\text{init} \in \mathbb{R}^{\text{n}_\text{q}}`;
+                   if not values are given, 0 will be used; note that a poorly
+                   or wrongly chosen initial guess can cause the optimization
+                   to fail
+        :type qinit: numpy.ndarray, casadi.DMatrix
 
         :param pdata: values of the time-constant parameters 
                       :math:`p \in \mathbb{R}^{\text{n}_\text{p}}`
@@ -468,12 +521,12 @@ Possible values are "A" and "D".
         :type x0: numpy.ndarray, casadi.DMatrix, list
 
         :param xmin: optional, lower bounds of the states
-                      :math:`x_\text{min} \in \mathbb{R}^{\text{n}_\text{x} \times \text{N}}`;
+                      :math:`x_\text{min} \in \mathbb{R}^{\text{n}_\text{x}}`;
                       if no value is given, :math:`-\infty` will be used
         :type xmin: numpy.ndarray, casadi.DMatrix
 
         :param xmax: optional, lower bounds of the states
-                      :math:`x_\text{max} \in \mathbb{R}^{\text{n}_\text{x} \times \text{N}}`;
+                      :math:`x_\text{max} \in \mathbb{R}^{\text{n}_\text{x}}`;
                       if no value is given, :math:`\infty` will be used
         :type xmax: numpy.ndarray, casadi.DMatrix 
 
@@ -555,8 +608,8 @@ Possible values are "A" and "D".
         .. math::
 
             \begin{aligned}
-                \text{arg}\,\underset{u, x}{\text{min}} & & I(\Sigma_{\text{p}}(x, u; p)) &\\
-                \text{subject to:} & & g(x, u; p) & = 0\\
+                \text{arg}\,\underset{u, q, x}{\text{min}} & & I(\Sigma_{\text{p}}(x, u, q; p)) &\\
+                \text{subject to:} & & g(x, u, q; p) & = 0\\
                 & & u_\text{min} \leq u_\text{k} & \leq u_\text{max} \hspace{1cm} k = 1, \dots, N-1\\
                 & & x_\text{min} \leq x_\text{k}  & \leq x_\text{max} \hspace{1cm} k = 1, \dots, N\\
                 & & x_1 \leq x(t_1) & \leq x_1
@@ -586,11 +639,11 @@ Possible values are "A" and "D".
 
         self.__set_optimization_variables()
 
-        self.__set_optimization_variables_initials(pdata, x0, uinit)
+        self.__set_optimization_variables_initials(pdata, qinit, x0, uinit)
 
-        self.__set_optimization_variables_lower_bounds(umin, xmin, x0)
+        self.__set_optimization_variables_lower_bounds(umin, qmin, xmin, x0)
 
-        self.__set_optimization_variables_upper_bounds(umax, xmax, x0)
+        self.__set_optimization_variables_upper_bounds(umax, qmax, xmax, x0)
 
         self.__set_measurement_data()
 

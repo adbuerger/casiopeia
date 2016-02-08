@@ -29,6 +29,7 @@ class System(unittest.TestCase):
 
         self.t = ci.mx_sym("t", 1)
         self.u = ci.mx_sym("u", 2)
+        self.q = ci.mx_sym("q", 11)
         self.p = ci.mx_sym("p", 3)
         self.x = ci.mx_sym("x", 4)
         self.z = ci.mx_sym("z", 5)
@@ -52,8 +53,8 @@ class System(unittest.TestCase):
 
     def test_all_ode_inputs(self):
 
-        sys = casiopeia.system.System(t = self.t, u = self.u, p = self.p, \
-            x = self.x, eps_e = self.eps_e, eps_u = self.eps_u, \
+        sys = casiopeia.system.System(t = self.t, u = self.u, q = self.q, \
+            p = self.p, x = self.x, eps_e = self.eps_e, eps_u = self.eps_u, \
             phi = self.phi, f = self.f)
         sys.print_system_information()
 
@@ -96,11 +97,12 @@ class System(unittest.TestCase):
 
     def test_sizes_attributes(self):
 
-        sys = casiopeia.system.System(t = self.t, u = self.u, p = self.p, \
-            x = self.x, eps_e = self.eps_e, eps_u = self.eps_u, \
+        sys = casiopeia.system.System(t = self.t, u = self.u, q = self.q, \
+            p = self.p, x = self.x, eps_e = self.eps_e, eps_u = self.eps_u, \
             phi = self.phi, f = self.f, g = self.g)
         
         self.assertEqual(sys.nu, self.u.size())
+        self.assertEqual(sys.nq, self.q.size())
         self.assertEqual(sys.np, self.p.size())
         self.assertEqual(sys.nx, self.x.size())
         self.assertEqual(sys.nz, 0)
