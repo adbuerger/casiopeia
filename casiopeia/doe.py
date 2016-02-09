@@ -454,6 +454,7 @@ Possible values are "A" and "D".
 
     def __init__(self, system, time_points, \
         uinit = None, umin = None, umax = None, \
+        qinit = None, qmin = None, qmax = None, \
         pdata = None, x0 = None, \
         xmin = None, xmax = None, \
         wv = None, weps_e = None, weps_u = None, \
