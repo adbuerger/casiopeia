@@ -316,10 +316,14 @@ but will be in future versions.
 
     def __set_measurement_data(self):
 
-        measurement_data = inputchecks.check_measurement_data( \
-            self.simulation.simulation_results, \
-            self.__discretization.system.nphi, \
-            self.__discretization.number_of_intervals + 1)
+        # The DOE problem does not depend on actual emasurement values,
+        # the measurement deviations are only needed to set up the objective;
+        # therefore, dummy-values for the measurements can be used
+        # (see issue #7 for further information)
+
+        measurement_data = np.zeros((self.__discretization.system.nphi, \
+            self.__discretization.number_of_intervals + 1))
+
         self.__measurement_data_vectorized = ci.vec(measurement_data)
 
 
