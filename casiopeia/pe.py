@@ -733,11 +733,11 @@ but will be in future versions.
 class MultiLSq(PEProblem):
 
     '''The class :class:`casiopeia.pe.MultiLSq` is used to construct a single
-    least squares parameter estimation problems from multiple least squares
+    least squares parameter estimation problem from multiple least squares
     parameter estimation problems defined via two or more objects of type
     :class:`casiopeia.pe.LSq`.
 
-    By doing this, the results of multiple independent experimental setups
+    In this way, the results of multiple independent experimental setups
     can be used for parameter estimation. It is assumend though, that the
     system description used for setting up the several parameter estimation
     problems is the same.
@@ -823,7 +823,7 @@ parameter estimation problems.''')
         r'''
         :raises: NotImplementedError
 
-        :param pe_setups: list of objects  of type :class:`casiopeia.pe.LSq`
+        :param pe_setups: list of two or more objects of type :class:`casiopeia.pe.LSq`
         :type pe_setups: list
 
         '''
