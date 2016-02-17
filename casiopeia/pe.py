@@ -31,7 +31,7 @@ from discretization.odecollocation import ODECollocation
 from discretization.odemultipleshooting import ODEMultipleShooting
 
 from interfaces import casadi_interface as ci
-from covariance_matrix import setup_covariance_matrix, setup_beta
+from covariance_matrix import CovarianceMatrix # setup_covariance_matrix, setup_beta
 from intro import intro
 
 import inputchecks
@@ -156,11 +156,11 @@ this might take some time ...
 
         self._tstart_estimation = time.time()
 
-        nlpsolver = ci.NlpSolver("solver", "ipopt", self._nlp, \
+        self.nlpsolver = ci.NlpSolver("solver", "ipopt", self._nlp, \
             options = solver_options)
 
         self._estimation_results = \
-            nlpsolver(x0 = self._optimization_variables_initials, \
+            self.nlpsolver(x0 = self._optimization_variables_initials, \
                 lbg = 0, ubg = 0)
 
         self._tend_estimation = time.time()
@@ -298,25 +298,33 @@ this might take some time ...''')
 
         self._tstart_covariance_computation = time.time()
 
-        self._covariance_matrix_symbolic = setup_covariance_matrix( \
-                self._optimization_variables, self._weightings_vectorized, \
-                self._constraints, self._discretization.system.np)
+        # self._covariance_matrix_symbolic = setup_covariance_matrix( \
+        #         self._optimization_variables, self._weightings_vectorized, \
+        #         self._constraints, self._discretization.system.np)
 
-        self._beta_symbolic = setup_beta(self._residuals, \
-            self._measurement_data_vectorized, \
-            self._constraints, self._optimization_variables)
+        # self._beta_symbolic = setup_beta(self._residuals, \
+        #     self._measurement_data_vectorized, \
+        #     self._constraints, self._optimization_variables)
+
+        # covariance_matrix_fcn = ci.mx_function("covariance_matrix_fcn", \
+        #     [self._optimization_variables], \
+        #     [self._covariance_matrix_symbolic])
+
+        # beta_fcn = ci.mx_function("beta_fcn", \
+        #     [self._optimization_variables], \
+        #     [self._beta_symbolic])
+
+        cm = CovarianceMatrix(self._optimization_variables, \
+            self.nlpsolver, self._constraints, \
+            self._discretization.system.np, self._residuals)
+
+        self._covariance_matrix_symbolic = cm.covariance_matrix_for_evaluation
 
         covariance_matrix_fcn = ci.mx_function("covariance_matrix_fcn", \
             [self._optimization_variables], \
             [self._covariance_matrix_symbolic])
 
-        beta_fcn = ci.mx_function("beta_fcn", \
-            [self._optimization_variables], \
-            [self._beta_symbolic])
-
-        self._beta = beta_fcn([self.estimation_results["x"]])[0]
-
-        self._covariance_matrix = self._beta * \
+        self._covariance_matrix = \
             covariance_matrix_fcn([self.estimation_results["x"]])[0]
 
         self._tend_covariance_computation = time.time()

@@ -29,7 +29,7 @@ from discretization.odecollocation import ODECollocation
 from discretization.odemultipleshooting import ODEMultipleShooting
 
 from interfaces import casadi_interface as ci
-from covariance_matrix import setup_covariance_matrix, setup_a_criterion, \
+from covariance_matrix import CovarianceMatrix, setup_a_criterion, \
     setup_d_criterion
 from intro import intro
 from sim import Simulation

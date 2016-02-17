@@ -20,89 +20,228 @@
 
 from interfaces import casadi_interface as ci
 
-def setup_covariance_matrix(optimization_variables, weightings, \
-    equality_constraints, number_of_unknown_parameters):
+class CovarianceMatrix(object):
 
-    '''
-          n_a
-        -------------
-    m_a |  A  | B^T |
-        |-----|-----|
-    m_b |  B  |  C  |
-        -------------
+    @property
+    def covariance_matrix_for_evaluation(self):
 
-    '''
+        try:
 
-    # Construct the Hessian matrix of the Lagrangian of the least squares
-    # parameter estimation problem
+            return self.__covariance_matrix_for_evaluation
 
-    hess_lag_m_a = optimization_variables.shape[0] - weightings.shape[0]
-    hess_lag_n_a = hess_lag_m_a
-    hess_lag_A = ci.mx(hess_lag_m_a, hess_lag_n_a)
+        except AttributeError:
 
-    hess_lag_m_b = weightings.shape[0]
-    hess_lag_B = ci.mx(hess_lag_m_b, hess_lag_n_a)
+            self.__setup_covariance_matrix_for_evaluation()
 
-    hess_lag_C = ci.diag(weightings)
+            return self.__covariance_matrix_for_evaluation
 
-    hess_lag = ci.blockcat( \
-        hess_lag_A, hess_lag_B.T, \
-        hess_lag_B, hess_lag_C)
+    @property
+    def covariance_matrix_for_optimization(self):
 
-    # Construct the KKT matrix from the Hessian of the Langrangian and the
-    # Jacobian of the equality constraints
+        try:
 
-    kkt_matrix_A = hess_lag
+            return self.__covariance_matrix_for_optimization
 
-    kkt_matrix_B = ci.jacobian(equality_constraints, optimization_variables)
+        except AttributeError:
 
-    kkt_matrix_C = ci.mx(equality_constraints.shape[0], \
-        equality_constraints.shape[0])
+            self.__setup_covariance_matrix_for_optimization()
 
-    kkt_matrix = ci.blockcat( \
-        kkt_matrix_A, kkt_matrix_B.T, \
-        kkt_matrix_B, kkt_matrix_C)
+            return self.__covariance_matrix_for_optimization
 
-    # Construct the covariance matrix from the inverse of the KKT matrix;
-    # only the relevant part of the covariance matrix that contains the
-    # information about the unknown parameters (cov_mat_A) is constructed,
-    # see http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/
-    # Freising10_19_-_Kostina_-_Towards_Optimum.pdf
+    @property
+    def covariance_matrix_additional_constraints(self):
 
-    cov_mat_inv_A = kkt_matrix[: number_of_unknown_parameters, \
-        : number_of_unknown_parameters]
+        try:
 
-    cov_mat_inv_B = kkt_matrix[number_of_unknown_parameters :, \
-        : number_of_unknown_parameters]
+            return self.__covariance_matrix_additional_constraints
 
-    cov_mat_inv_C = kkt_matrix[number_of_unknown_parameters :, \
-        number_of_unknown_parameters :]
+        except AttributeError:
 
-    cov_mat_A = ci.solve( \
+            self.__setup_covariance_matrix_for_optimization()
 
-            cov_mat_inv_A - ci.mul([ \
-
-                cov_mat_inv_B.T, \
-                ci.solve(cov_mat_inv_C, cov_mat_inv_B, "csparse")]), \
-
-            ci.mx_eye(number_of_unknown_parameters), \
-
-            "csparse"
-
-        )
-
-    return cov_mat_A
+            return self.__covariance_matrix_additional_constraints
 
 
-def setup_beta(residuals, measurements, equality_constraints, \
-    optimization_variables):
+    @property
+    def covariance_matrix_additional_optimization_variables(self):
 
-    beta = \
-        ci.mul([residuals.T, residuals]) / (measurements.size() + \
-        equality_constraints.size1() - optimization_variables.size())
+        # import ipdb
+        # ipdb.set_trace()
 
-    return beta
+        try:
 
+            return self.__covariance_matrix_additional_optimization_variables
+
+        except AttributeError:
+
+            self.__setup_covariance_matrix_for_optimization()
+
+            return self.__covariance_matrix_additional_optimization_variables
+
+
+    def __setup_langrangian_hessian(self, optimization_variables, nlpsolver): #, weightings):
+
+        # Construct the Hessian matrix of the Lagrangian of the least squares
+        # parameter estimation problem (WITH NLPSOLVER!)
+
+        # hess_lag_m_a = optimization_variables.shape[0] - weightings.shape[0]
+        # hess_lag_n_a = hess_lag_m_a
+        # hess_lag_A = ci.mx(hess_lag_m_a, hess_lag_n_a)
+
+        # hess_lag_m_b = weightings.shape[0]
+        # hess_lag_B = ci.mx(hess_lag_m_b, hess_lag_n_a)
+
+        # hess_lag_C = ci.diag(weightings)
+
+        # self.hess_lag = ci.blockcat( \
+        #     hess_lag_A, hess_lag_B.T, \
+        #     hess_lag_B, hess_lag_C)
+
+        self.hess_lag = nlpsolver.hessLag()([optimization_variables, 1, 1, 1])[0]
+
+
+    def __setup_kkt_matrix(self, optimization_variables, equality_constraints):
+
+        # Construct the KKT matrix from the Hessian of the Langrangian and the
+        # Jacobian of the equality constraints
+
+        kkt_matrix_A = self.hess_lag
+
+        kkt_matrix_B = ci.jacobian(equality_constraints, \
+            optimization_variables)
+
+        kkt_matrix_C = ci.mx(equality_constraints.shape[0], \
+            equality_constraints.shape[0])
+
+        self.kkt_matrix = ci.blockcat( \
+            kkt_matrix_A, kkt_matrix_B.T, \
+            kkt_matrix_B, kkt_matrix_C)
+
+
+    def __split_kkt_matrix(self, number_of_unknown_parameters):
+
+        self.cov_mat_inv_A = self.kkt_matrix[: number_of_unknown_parameters, \
+            : number_of_unknown_parameters]
+
+        self.cov_mat_inv_B = self.kkt_matrix[number_of_unknown_parameters :, \
+            : number_of_unknown_parameters]
+
+        self.cov_mat_inv_C = self.kkt_matrix[number_of_unknown_parameters :, \
+            number_of_unknown_parameters :]
+
+
+    def __setup_covariance_matrix_scaling(self, optimization_variables, \
+        equality_constraints, residuals):
+
+        # Calculate a scaling factor beta to multiply with the covariance
+        # matrix so that the output for the (co-)variaces and standard
+        # deviations matches the problem correctly; this is only necessary
+        # when evaluating the covariance matrix for a given parameter
+        # estimation problem (i. e. if residuals already exist);
+        # for DOE, scaling is irrelevant
+
+        self.__beta = 1.0
+
+        if residuals is not None:
+
+            self.__beta = \
+                ci.mul([residuals.T, residuals]) / (residuals.size() + \
+                equality_constraints.size1() - optimization_variables.size())
+
+
+
+    # def __init__(self, optimization_variables, weightings, \
+    def __init__(self, optimization_variables, nlpsolver, \
+        equality_constraints, number_of_unknown_parameters, \
+        residuals = None):
+
+        r'''
+
+        This class is designed only for internal use within casiopeia!
+
+        This class is used to construct the covariance matrix from the inverse
+        of the KKT matrix; in this way only the relevant part of the covariance
+        matrix that contains the information about the unknown parameters
+        is constructed.
+
+        For further information, see
+        http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/
+        Freising10_19_-_Kostina_-_Towards_Optimum.pdf and Walter, Eric and
+        Prozanto, Luc: Identification of Parametric Models from Experimental
+        Data, Springer, 1997, pages 288/289.
+
+        '''
+
+        # The naming of the matrix blocks within this class matches the
+        # following scheme:
+        #
+        #              n_a
+        #            -------------
+        #        m_a |  A  | B^T |
+        #            |-----|-----|
+        #        m_b |  B  |  C  |
+        #            -------------
+        #
+
+
+        self.__setup_langrangian_hessian(optimization_variables, nlpsolver) #, weightings)
+
+        self.__setup_kkt_matrix(optimization_variables, equality_constraints)
+
+        self.__split_kkt_matrix(number_of_unknown_parameters)
+
+        self.__setup_covariance_matrix_scaling(optimization_variables, \
+            equality_constraints, residuals)
+
+
+    def __setup_covariance_matrix_for_evaluation(self):
+
+        cov_mat_A = self.__beta * ci.solve( \
+
+                self.cov_mat_inv_A - ci.mul([ \
+
+                    self. cov_mat_inv_B.T, \
+
+                    ci.solve(self.cov_mat_inv_C, \
+                        
+                        self.cov_mat_inv_B, \
+                        
+                        "csparse")]), \
+
+                ci.mx_eye(self.cov_mat_inv_A.shape[0]), \
+
+                "csparse"
+
+            )
+
+        self.__covariance_matrix_for_evaluation = cov_mat_A
+
+
+    def __setup_covariance_matrix_for_optimization(self):
+
+        # Introduce additional matrices of optimization variables E and F to
+        # move the matrix inversions into the NLP constraints for efficiency
+        # (arising from the resulting increase in structure of the
+        # optimization problem)
+
+        E = ci.mx_sym("E", \
+            self.cov_mat_inv_C.shape[0], self.cov_mat_inv_B.shape[1])
+        F = ci.mx_sym("F", \
+            *self.cov_mat_inv_A.shape)
+
+        constraints_E = ci.mul([self.cov_mat_inv_C, E]) - self.cov_mat_inv_B
+        constraints_F = ci.mul([ \
+            (self.cov_mat_inv_A - ci.mul([self.cov_mat_inv_B.T, E])), F]) - \
+            ci.mx_eye(self.cov_mat_inv_A.shape[0])
+
+        self.__covariance_matrix_for_optimization = F
+        self.__covariance_matrix_additional_optimization_variables = \
+            ci.veccat([E, F])
+        self.__covariance_matrix_additional_constraints = ci.veccat([ \
+            constraints_E, constraints_F])
+
+        import ipdb
+        ipdb.set_trace()
 
 def setup_a_criterion(covariance_matrix):
 

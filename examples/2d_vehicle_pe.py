@@ -53,11 +53,11 @@ system = cp.system.System(x = x, u = u, p = p, f = f, phi = phi)
 data = pl.array(pl.loadtxt("data_2d_vehicle.dat", \
     delimiter = ", ", skiprows = 1))
 
-time_points = data[100:200, 1]
+time_points = data[100:1000:5, 1]
 
-ydata = data[100:200, [2, 4, 6, 8]]
+ydata = data[100:1000:5, [2, 4, 6, 8]]
 
-udata = data[100:200, [9, 10]][:-1, :]
+udata = data[100:1000:5, [9, 10]][:-1, :]
 
 pinit = [0.5, 17.06, 12.0, 2.17, 0.1, 0.6]
 
