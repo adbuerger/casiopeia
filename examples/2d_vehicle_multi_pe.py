@@ -29,22 +29,23 @@ import casiopeia as cp
 # System setup
 
 x = ca.MX.sym("x", 4)
-p = ca.MX.sym("p", 6)
+# p = ca.MX.sym("p", 6)
+p = ca.MX.sym("p", 4)
 u = ca.MX.sym("u", 2)
 
 f = ca.vertcat( \
 
-    [x[3] * pl.cos(x[2] + p[0] * u[0]),
+    [x[3] * pl.cos(x[2] + 0.5 * u[0]),
 
-    x[3] * pl.sin(x[2] + p[0] * u[0]),
+    x[3] * pl.sin(x[2] + 0.5 * u[0]),
 
-    x[3] * u[0] * p[1],
+    x[3] * u[0] * 17.06,
 
-    p[2] * u[1] \
-        - p[3] * u[1] * x[3] \
-        - p[4] * x[3]**2 \
-        - p[5] \
-        - (x[3] * u[0])**2 * p[1]* p[0]])
+    p[0] * u[1] \
+        - p[1] * u[1] * x[3] \
+        - p[2] * x[3]**2 \
+        - p[3] \
+        - (x[3] * u[0])**2 * 17.06 * 0.5])
 
 phi = x
 
@@ -53,53 +54,68 @@ system = cp.system.System(x = x, u = u, p = p, f = f, phi = phi)
 data = pl.array(pl.loadtxt("data_2d_vehicle.dat", \
     delimiter = ", ", skiprows = 1))
 
-pinit = [0.5, 17.06, 12.0, 2.17, 0.1, 0.6]
+pinit = [12.0, 2.17, 0.1, 0.6]
+# pinit = [0.5, 17.06, 12.0, 2.17, 0.1, 0.6]
 
 
 # Problem 1
 
-# pe_setups = []
+pe_setups = []
 
-# for k in range(5,14):
+for k in range(2,12):
 
-#     time_points = data[k*100-50:k*100+150:5, 1]
+    time_points = data[k*100-50:k*100+250, 1]
 
-#     ydata = data[k*100-50:k*100+150:5, [2, 4, 6, 8]]
+    ydata = data[k*100-50:k*100+250, [2, 4, 6, 8]]
 
-#     udata = data[k*100-50:k*100+150:5, [9, 10]][:-1, :]
+    udata = data[k*100-50:k*100+250, [9, 10]][:-1, :]
 
-#     pe_setups.append(cp.pe.LSq(system = system, \
-#         time_points = time_points, udata = udata, \
-#         pinit = pinit, \
-#         ydata = ydata, \
-#         xinit = ydata))
+    pe_setups.append(cp.pe.LSq(system = system, \
+        time_points = time_points, udata = udata, \
+        pinit = pinit, \
+        ydata = ydata, \
+        xinit = ydata))
 
-time_points_1 = data[100:200, 1]
+# time_points_1 = data[100:500, 1]
 
-ydata_1 = data[100:200, [2, 4, 6, 8]]
+# ydata_1 = data[100:500, [2, 4, 6, 8]]
 
-udata_1 = data[100:200, [9, 10]][:-1, :]
+# udata_1 = data[100:500, [9, 10]][:-1, :]
 
-pe_1 = cp.pe.LSq(system = system, \
-    time_points = time_points_1, udata = udata_1, \
-    pinit = pinit, \
-    ydata = ydata_1, \
-    xinit = ydata_1)
+# pe_1 = cp.pe.LSq(system = system, \
+#     time_points = time_points_1, udata = udata_1, \
+#     pinit = pinit, \
+#     ydata = ydata_1, \
+#     xinit = ydata_1)
 
 
-# Problem 2
+# # Problem 2
 
-time_points_2 = data[100:200, 1]
+# time_points_2 = data[300:600, 1]
 
-ydata_2 = data[100:200, [2, 4, 6, 8]]
+# ydata_2 = data[300:600, [2, 4, 6, 8]]
 
-udata_2 = data[100:200, [9, 10]][:-1, :]
+# udata_2 = data[300:600, [9, 10]][:-1, :]
 
-pe_2 = cp.pe.LSq(system = system, \
-    time_points = time_points_2, udata = udata_2, \
-    pinit = pinit, \
-    ydata = ydata_2, \
-    xinit = ydata_2)
+# pe_2 = cp.pe.LSq(system = system, \
+#     time_points = time_points_2, udata = udata_2, \
+#     pinit = pinit, \
+#     ydata = ydata_2, \
+#     xinit = ydata_2)
+
+
+# time_points_3 = data[600:1000, 1]
+
+# ydata_3 = data[600:1000, [2, 4, 6, 8]]
+
+# udata_3 = data[600:1000, [9, 10]][:-1, :]
+
+# pe_3 = cp.pe.LSq(system = system, \
+#     time_points = time_points_3, udata = udata_3, \
+#     pinit = pinit, \
+#     ydata = ydata_3, \
+#     xinit = ydata_3)
+
 
 # pe_3 = cp.pe.LSq(system = system, \
 #     x0 = ydata_2[0,:],
@@ -144,7 +160,7 @@ pe_2 = cp.pe.LSq(system = system, \
 #     xinit = ydata_1)
 
 
-mpe = cp.pe.MultiPE([pe_1, pe_2]) #, pe_3])
+mpe = cp.pe.MultiLSq(pe_setups) #, pe_3])
 
 mpe.run_parameter_estimation()
 mpe.compute_covariance_matrix()

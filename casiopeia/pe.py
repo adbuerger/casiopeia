@@ -24,14 +24,14 @@ For now, only least squares parameter estimation problems are covered.'''
 import numpy as np
 import time
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 from discretization.nodiscretization import NoDiscretization
 from discretization.odecollocation import ODECollocation
 from discretization.odemultipleshooting import ODEMultipleShooting
 
 from interfaces import casadi_interface as ci
-from covariance_matrix import CovarianceMatrix # setup_covariance_matrix, setup_beta
+from covariance_matrix import CovarianceMatrix
 from intro import intro
 
 import inputchecks
@@ -39,6 +39,12 @@ import inputchecks
 class PEProblem(object):
 
     __metaclass__ = ABCMeta
+
+    @abstractproperty
+    def gauss_newton_lagrangian_hessian(self):
+
+        pass
+
 
     @property
     def estimation_results(self):
@@ -100,7 +106,7 @@ Run compute_covariance_matrix() to do so.
 Standard deviations for the estimated parameters not yet computed.
 Run compute_covariance_matrix() to do so.
 ''')
-            
+
 
     def _setup_objective(self):
 
@@ -298,25 +304,7 @@ this might take some time ...''')
 
         self._tstart_covariance_computation = time.time()
 
-        # self._covariance_matrix_symbolic = setup_covariance_matrix( \
-        #         self._optimization_variables, self._weightings_vectorized, \
-        #         self._constraints, self._discretization.system.np)
-
-        # self._beta_symbolic = setup_beta(self._residuals, \
-        #     self._measurement_data_vectorized, \
-        #     self._constraints, self._optimization_variables)
-
-        # covariance_matrix_fcn = ci.mx_function("covariance_matrix_fcn", \
-        #     [self._optimization_variables], \
-        #     [self._covariance_matrix_symbolic])
-
-        # beta_fcn = ci.mx_function("beta_fcn", \
-        #     [self._optimization_variables], \
-        #     [self._beta_symbolic])
-
-        cm = CovarianceMatrix(self._optimization_variables, \
-            self._weightings_vectorized, self._constraints, \
-            self._discretization.system.np, self._residuals)
+        cm = CovarianceMatrix(self)
 
         self._covariance_matrix_symbolic = cm.covariance_matrix_for_evaluation
 
@@ -342,6 +330,20 @@ class LSq(PEProblem):
     :class:`casiopeia.system.System`
     class, using a given set of user-provided control 
     data, measurement data and different kinds of weightings.'''
+
+    @property
+    def gauss_newton_lagrangian_hessian(self):
+
+        gauss_newton_lagrangian_hessian_diag = ci.vertcat([ \
+            ci.mx(self._optimization_variables.shape[0] - \
+                self._weightings_vectorized.shape[0], 1), \
+            self._weightings_vectorized])
+
+        gauss_newton_lagrangian_hessian = ci.diag( \
+            gauss_newton_lagrangian_hessian_diag)
+
+        return gauss_newton_lagrangian_hessian
+
 
     def _discretize_system(self, system, time_points, discretization_method, \
         **kwargs):
@@ -511,14 +513,6 @@ but will be in future versions.
 
             ])
 
-    # def _setup_initial_value_constraint(self, x0):
-
-    #     x0 = inputchecks.check_states_data(x0, \
-    #         self._discretization.system.nx, 0)
-
-    #     self._initial_value_constraint = \
-    #         self._discretization.optimization_variables["X"][:,0] - x0
-
 
     def _set_measurement_data(self, ydata):
 
@@ -581,7 +575,6 @@ but will be in future versions.
 
                 self._measurement_deviations,
                 self._equality_constraints_controls_applied,
-                # self._initial_value_constraint,
 
             ])
 
@@ -721,8 +714,6 @@ but will be in future versions.
 
         self._set_optimization_variables_initials(pinit, xinit)
 
-        # self._setup_initial_value_constraint(x0)
-
         self._set_measurement_data(ydata)
 
         self._set_weightings(wv, weps_e, weps_u)
@@ -750,6 +741,19 @@ class MultiLSq(PEProblem):
     system description used for setting up the several parameter estimation
     problems is the same.
     '''
+
+    @property
+    def gauss_newton_lagrangian_hessian(self):
+
+        gauss_newton_lagrangian_hessians = \
+            [pe_setup.gauss_newton_lagrangian_hessian \
+                for pe_setup in self._pe_setups]
+
+        gauss_newton_lagrangian_hessian = \
+            ci.diagcat(gauss_newton_lagrangian_hessians)
+
+        return gauss_newton_lagrangian_hessian
+
 
     def _define_set_of_pe_setups(self, pe_setups):
 
@@ -826,25 +830,23 @@ parameter estimation problems.''')
         self._constraints = ci.vertcat(constraints)
 
 
-    def _merge_weightings_for_cov_setup(self):
+    # def _merge_weightings_for_cov_setup(self):
 
-        weightings_for_cov_mat = []
+    #     weightings_for_cov_mat = []
 
-        for pe_setup in self._pe_setups:
+    #     for pe_setup in self._pe_setups:
 
-            weightings_for_cov_mat.append(ci.mx(pe_setup._optimization_variables.shape[0] - pe_setup._weightings_vectorized.shape[0], 1))
-            weightings_for_cov_mat.append(pe_setup._weightings_vectorized)
+    #         weightings_for_cov_mat.append(ci.mx(pe_setup._optimization_variables.shape[0] - pe_setup._weightings_vectorized.shape[0], 1))
+    #         weightings_for_cov_mat.append(pe_setup._weightings_vectorized)
 
-        weightings_for_cov_mat = ci.vertcat(weightings_for_cov_mat)
+    #     weightings_for_cov_mat = ci.vertcat(weightings_for_cov_mat)
 
-        import ipdb
-        ipdb.set_trace()
+    #     import ipdb
+    #     ipdb.set_trace()
 
     def __init__(self, pe_setups = []):
 
         r'''
-        :raises: NotImplementedError
-
         :param pe_setups: list of two or more objects of type :class:`casiopeia.pe.LSq`
         :type pe_setups: list
 
@@ -870,4 +872,4 @@ parameter estimation problems.''')
 
         self._setup_nlp()
 
-        self._merge_weightings_for_cov_setup()
+        # self._merge_weightings_for_cov_setup()

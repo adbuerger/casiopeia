@@ -65,9 +65,6 @@ class CovarianceMatrix(object):
     @property
     def covariance_matrix_additional_optimization_variables(self):
 
-        # import ipdb
-        # ipdb.set_trace()
-
         try:
 
             return self.__covariance_matrix_additional_optimization_variables
@@ -79,46 +76,35 @@ class CovarianceMatrix(object):
             return self.__covariance_matrix_additional_optimization_variables
 
 
-    def __setup_langrangian_hessian(self, optimization_variables, weightings):
+    def __setup_langrangian_hessian(self, pe_setup):
 
-        # Construct the Hessian matrix of the Lagrangian of the Gauss Newton (!)
+        # Get the Hessian matrix of the Lagrangian of the Gauss Newton (!)
         # least squares parameter estimation problem
 
-        hess_lag_m_a = optimization_variables.shape[0] - weightings.shape[0]
-        hess_lag_n_a = hess_lag_m_a
-        hess_lag_A = ci.mx(hess_lag_m_a, hess_lag_n_a)
-
-        hess_lag_m_b = weightings.shape[0]
-        hess_lag_B = ci.mx(hess_lag_m_b, hess_lag_n_a)
-
-        hess_lag_C = ci.diag(weightings)
-
-        self.hess_lag = ci.blockcat( \
-            hess_lag_A, hess_lag_B.T, \
-            hess_lag_B, hess_lag_C)
-
-        # self.hess_lag = nlpsolver.hessLag()([optimization_variables, 1, 1, 1])[0]
+        self.hess_lag = pe_setup.gauss_newton_lagrangian_hessian
 
 
-    def __setup_kkt_matrix(self, optimization_variables, equality_constraints):
+    def __setup_kkt_matrix(self, pe_setup):
 
         # Construct the KKT matrix from the Hessian of the Langrangian and the
         # Jacobian of the equality constraints
 
         kkt_matrix_A = self.hess_lag
 
-        kkt_matrix_B = ci.jacobian(equality_constraints, \
-            optimization_variables)
+        kkt_matrix_B = ci.jacobian(pe_setup._constraints, \
+            pe_setup._optimization_variables)
 
-        kkt_matrix_C = ci.mx(equality_constraints.shape[0], \
-            equality_constraints.shape[0])
+        kkt_matrix_C = ci.mx(pe_setup._constraints.shape[0], \
+            pe_setup._constraints.shape[0])
 
         self.kkt_matrix = ci.blockcat( \
             kkt_matrix_A, kkt_matrix_B.T, \
             kkt_matrix_B, kkt_matrix_C)
 
 
-    def __split_kkt_matrix(self, number_of_unknown_parameters):
+    def __split_kkt_matrix(self, pe_setup):
+
+        number_of_unknown_parameters = pe_setup._discretization.system.np
 
         self.cov_mat_inv_A = self.kkt_matrix[: number_of_unknown_parameters, \
             : number_of_unknown_parameters]
@@ -130,29 +116,28 @@ class CovarianceMatrix(object):
             number_of_unknown_parameters :]
 
 
-    def __setup_covariance_matrix_scaling(self, optimization_variables, \
-        equality_constraints, residuals):
+    def __setup_covariance_matrix_scaling(self, pe_setup):
 
         # Calculate a scaling factor beta to multiply with the covariance
         # matrix so that the output for the (co-)variaces and standard
         # deviations matches the problem correctly; this is only necessary
         # when evaluating the covariance matrix for a given parameter
         # estimation problem (i. e. if residuals already exist);
-        # for DOE, scaling is irrelevant
+        # for DOE, this scaling is irrelevant
 
-        self.__beta = 1.0
+        # self.__beta = 1.0
 
-        if residuals is not None:
+        # if residuals is not None:
 
-            self.__beta = \
-                ci.mul([residuals.T, residuals]) / (residuals.size() + \
-                equality_constraints.size1() - optimization_variables.size())
+        self.__beta = \
+            ci.mul([pe_setup._residuals.T, pe_setup._residuals]) / \
+                (pe_setup._residuals.size() + \
+            pe_setup._constraints.size1() - \
+            pe_setup._optimization_variables.size())
 
 
 
-    def __init__(self, optimization_variables, weightings, \
-        equality_constraints, number_of_unknown_parameters, \
-        residuals = None):
+    def __init__(self, pe_setup):
 
         r'''
 
@@ -183,14 +168,13 @@ class CovarianceMatrix(object):
         #
 
 
-        self.__setup_langrangian_hessian(optimization_variables, weightings)
+        self.__setup_langrangian_hessian(pe_setup)
 
-        self.__setup_kkt_matrix(optimization_variables, equality_constraints)
+        self.__setup_kkt_matrix(pe_setup)
 
-        self.__split_kkt_matrix(number_of_unknown_parameters)
+        self.__split_kkt_matrix(pe_setup)
 
-        self.__setup_covariance_matrix_scaling(optimization_variables, \
-            equality_constraints, residuals)
+        self.__setup_covariance_matrix_scaling(pe_setup)
 
 
     def __setup_covariance_matrix_for_evaluation(self):
@@ -241,6 +225,7 @@ class CovarianceMatrix(object):
 
         import ipdb
         ipdb.set_trace()
+        
 
 def setup_a_criterion(covariance_matrix):
 

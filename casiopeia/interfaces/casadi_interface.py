@@ -170,3 +170,8 @@ def trace(inputobj):
 def det(inputobj):
 
     return ca.det(inputobj)
+
+
+def diagcat(inputobj):
+
+    return ca.diagcat(inputobj)
