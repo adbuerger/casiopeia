@@ -61,7 +61,7 @@ class DoE(object):
 
         try:
 
-            return self.__design_results
+            return self._design_results
 
         except AttributeError:
 
@@ -76,9 +76,9 @@ can be accessed, please run run_experimental_design() first.
 
         try:
 
-            return self.__design_results["x"][ \
-                :(self.__discretization.number_of_intervals * \
-                    self.__discretization.system.nu)]
+            return self._design_results["x"][ \
+                :(self._discretization.number_of_intervals * \
+                    self._discretization.system.nu)]
 
         except AttributeError:
 
@@ -88,23 +88,23 @@ can be accessed, please run run_experimental_design() first.
 ''')
 
 
-    def __discretize_system(self, system, time_points, discretization_method, \
+    def _discretize_system(self, system, time_points, discretization_method, \
         **kwargs):
 
         if system.nx == 0 and system.nz == 0:
 
-            self.__discretization = NoDiscretization(system, time_points)
+            self._discretization = NoDiscretization(system, time_points)
 
         elif system.nx != 0 and system.nz == 0:
 
             if discretization_method == "collocation":
 
-                self.__discretization = ODECollocation( \
+                self._discretization = ODECollocation( \
                     system, time_points, **kwargs)
 
             elif discretization_method == "multiple_shooting":
 
-                self.__discretization = ODEMultipleShooting( \
+                self._discretization = ODEMultipleShooting( \
                     system, time_points, **kwargs)
 
             else:
@@ -122,29 +122,29 @@ but will be in future versions.
 ''')            
 
 
-    def __apply_parameters_to_equality_constraints(self, pdata):
+    def _apply_parameters_to_equality_constraints(self, pdata):
 
         udata = inputchecks.check_parameter_data(pdata, \
-            self.__discretization.system.np)
+            self._discretization.system.np)
 
         optimization_variables_for_equality_constraints = ci.veccat([ \
 
-                self.__discretization.optimization_variables["U"],
-                self.__discretization.optimization_variables["Q"],
-                self.__discretization.optimization_variables["X"], 
-                self.__discretization.optimization_variables["EPS_U"], 
-                self.__discretization.optimization_variables["EPS_E"], 
-                self.__discretization.optimization_variables["P"], 
+                self._discretization.optimization_variables["U"],
+                self._discretization.optimization_variables["Q"],
+                self._discretization.optimization_variables["X"], 
+                self._discretization.optimization_variables["EPS_U"], 
+                self._discretization.optimization_variables["EPS_E"], 
+                self._discretization.optimization_variables["P"], 
 
             ])
 
         optimization_variables_parameters_applied = ci.veccat([ \
 
-                self.__discretization.optimization_variables["U"], 
-                self.__discretization.optimization_variables["Q"], 
-                self.__discretization.optimization_variables["X"], 
-                self.__discretization.optimization_variables["EPS_U"], 
-                self.__discretization.optimization_variables["EPS_E"], 
+                self._discretization.optimization_variables["U"], 
+                self._discretization.optimization_variables["Q"], 
+                self._discretization.optimization_variables["X"], 
+                self._discretization.optimization_variables["EPS_U"], 
+                self._discretization.optimization_variables["EPS_E"], 
                 pdata, 
 
             ])
@@ -152,59 +152,59 @@ but will be in future versions.
         equality_constraints_fcn = ci.mx_function( \
             "equality_constraints_fcn", \
             [optimization_variables_for_equality_constraints], \
-            [self.__discretization.equality_constraints])
+            [self._discretization.equality_constraints])
 
-        [self.__equality_constraints_parameters_applied] = \
+        [self._equality_constraints_parameters_applied] = \
             equality_constraints_fcn([optimization_variables_parameters_applied])
 
 
-    def __apply_parameters_to_discretization(self, pdata):
+    def _apply_parameters_to_discretization(self, pdata):
 
-        self.__apply_parameters_to_equality_constraints(pdata)
+        self._apply_parameters_to_equality_constraints(pdata)
 
 
-    def __set_optimization_variables(self):
+    def _set_optimization_variables(self):
 
-        self.__optimization_variables = ci.veccat([ \
+        self._optimization_variables = ci.veccat([ \
 
-                self.__discretization.optimization_variables["U"],
-                self.__discretization.optimization_variables["Q"],
-                self.__discretization.optimization_variables["X"],
+                self._discretization.optimization_variables["U"],
+                self._discretization.optimization_variables["Q"],
+                self._discretization.optimization_variables["X"],
 
             ])
 
 
-    def __set_optimization_variables_initials(self, pdata, qinit, x0, uinit):
+    def _set_optimization_variables_initials(self, pdata, qinit, x0, uinit):
 
-        self.simulation = Simulation(self.__discretization.system, pdata, qinit)
+        self.simulation = Simulation(self._discretization.system, pdata, qinit)
         self.simulation.run_system_simulation(x0, \
-            self.__discretization.time_points, uinit)
+            self._discretization.time_points, uinit)
         xinit = self.simulation.simulation_results
 
         repretitions_xinit = \
-            self.__discretization.optimization_variables["X"][:,:-1].shape[1] / \
-                self.__discretization.number_of_intervals
+            self._discretization.optimization_variables["X"][:,:-1].shape[1] / \
+                self._discretization.number_of_intervals
         
         Xinit = ci.repmat(xinit[:, :-1], repretitions_xinit, 1)
 
         Xinit = ci.horzcat([ \
 
-            Xinit.reshape((self.__discretization.system.nx, \
-                Xinit.size() / self.__discretization.system.nx)),
+            Xinit.reshape((self._discretization.system.nx, \
+                Xinit.size() / self._discretization.system.nx)),
             xinit[:, -1],
 
             ])
 
         uinit = inputchecks.check_controls_data(uinit, \
-            self.__discretization.system.nu, \
-            self.__discretization.number_of_intervals)
+            self._discretization.system.nu, \
+            self._discretization.number_of_intervals)
         Uinit = uinit
 
         qinit = inputchecks.check_constant_controls_data(qinit, \
-            self.__discretization.system.nq)
+            self._discretization.system.nq)
         Qinit = qinit
 
-        self.__optimization_variables_initials = ci.veccat([ \
+        self._optimization_variables_initials = ci.veccat([ \
 
                 Uinit,
                 Qinit,
@@ -213,25 +213,25 @@ but will be in future versions.
             ])
 
 
-    def __set_optimization_variables_lower_bounds(self, umin, qmin, xmin, x0):
+    def _set_optimization_variables_lower_bounds(self, umin, qmin, xmin, x0):
 
         umin_user_provided = umin
 
         umin = inputchecks.check_controls_data(umin, \
-            self.__discretization.system.nu, 1)
+            self._discretization.system.nu, 1)
 
         if umin_user_provided is None:
 
             umin = -np.inf * np.ones(umin.shape)
 
         Umin = ci.repmat(umin, 1, \
-            self.__discretization.optimization_variables["U"].shape[1])
+            self._discretization.optimization_variables["U"].shape[1])
 
 
         qmin_user_provided = qmin
 
         qmin = inputchecks.check_constant_controls_data(qmin, \
-            self.__discretization.system.nq)
+            self._discretization.system.nq)
 
         if qmin_user_provided is None:
 
@@ -243,19 +243,19 @@ but will be in future versions.
         xmin_user_provided = xmin
 
         xmin = inputchecks.check_states_data(xmin, \
-            self.__discretization.system.nx, 0)
+            self._discretization.system.nx, 0)
 
         if xmin_user_provided is None:
 
             xmin = -np.inf * np.ones(xmin.shape)
 
         Xmin = ci.repmat(xmin, 1, \
-            self.__discretization.optimization_variables["X"].shape[1])
+            self._discretization.optimization_variables["X"].shape[1])
 
         Xmin[:,0] = x0
 
 
-        self.__optimization_variables_lower_bounds = ci.veccat([ \
+        self._optimization_variables_lower_bounds = ci.veccat([ \
 
                 Umin,
                 Qmin,
@@ -264,25 +264,25 @@ but will be in future versions.
             ])
 
 
-    def __set_optimization_variables_upper_bounds(self, umax, qmax, xmax, x0):
+    def _set_optimization_variables_upper_bounds(self, umax, qmax, xmax, x0):
 
         umax_user_provided = umax
 
         umax = inputchecks.check_controls_data(umax, \
-            self.__discretization.system.nu, 1)
+            self._discretization.system.nu, 1)
 
         if umax_user_provided is None:
 
             umax = np.inf * np.ones(umax.shape)
 
         Umax = ci.repmat(umax, 1, \
-            self.__discretization.optimization_variables["U"].shape[1])
+            self._discretization.optimization_variables["U"].shape[1])
 
 
         qmax_user_provided = qmax
 
         qmax = inputchecks.check_constant_controls_data(qmax, \
-            self.__discretization.system.nq)
+            self._discretization.system.nq)
 
         if qmax_user_provided is None:
 
@@ -294,19 +294,19 @@ but will be in future versions.
         xmax_user_provided = xmax
 
         xmax = inputchecks.check_states_data(xmax, \
-            self.__discretization.system.nx, 0)
+            self._discretization.system.nx, 0)
 
         if xmax_user_provided is None:
 
             xmax = np.inf * np.ones(xmax.shape)
 
         Xmax = ci.repmat(xmax, 1, \
-            self.__discretization.optimization_variables["X"].shape[1])
+            self._discretization.optimization_variables["X"].shape[1])
 
         Xmax[:,0] = x0
 
 
-        self.__optimization_variables_upper_bounds = ci.veccat([ \
+        self._optimization_variables_upper_bounds = ci.veccat([ \
 
                 Umax,
                 Xmax,
@@ -314,35 +314,35 @@ but will be in future versions.
             ])
 
 
-    def __set_measurement_data(self):
+    def _set_measurement_data(self):
 
         # The DOE problem does not depend on actual emasurement values,
         # the measurement deviations are only needed to set up the objective;
         # therefore, dummy-values for the measurements can be used
         # (see issue #7 for further information)
 
-        measurement_data = np.zeros((self.__discretization.system.nphi, \
-            self.__discretization.number_of_intervals + 1))
+        measurement_data = np.zeros((self._discretization.system.nphi, \
+            self._discretization.number_of_intervals + 1))
 
-        self.__measurement_data_vectorized = ci.vec(measurement_data)
+        self._measurement_data_vectorized = ci.vec(measurement_data)
 
 
-    def __set_weightings(self, wv, weps_e, weps_u):
+    def _set_weightings(self, wv, weps_e, weps_u):
 
         measurement_weightings = \
             inputchecks.check_measurement_weightings(wv, \
-            self.__discretization.system.nphi, \
-            self.__discretization.number_of_intervals + 1)
+            self._discretization.system.nphi, \
+            self._discretization.number_of_intervals + 1)
 
         equation_error_weightings = \
             inputchecks.check_equation_error_weightings(weps_e, \
-            self.__discretization.system.neps_e)
+            self._discretization.system.neps_e)
 
         input_error_weightings = \
             inputchecks.check_input_error_weightings(weps_u, \
-            self.__discretization.system.neps_u)
+            self._discretization.system.neps_u)
 
-        self.__weightings_vectorized = ci.veccat([ \
+        self._weightings_vectorized = ci.veccat([ \
 
             measurement_weightings,
             equation_error_weightings,
@@ -351,53 +351,53 @@ but will be in future versions.
             ])
 
 
-    def __set_measurement_deviations(self):
+    def _set_measurement_deviations(self):
 
-        self.__measurement_deviations = ci.vertcat([ \
+        self._measurement_deviations = ci.vertcat([ \
 
-                ci.vec(self.__discretization.measurements) - \
-                self.__measurement_data_vectorized + \
-                ci.vec(self.__discretization.optimization_variables["V"])
-
-            ])
-
-
-    def __setup_constraints(self):
-
-        self.__constraints = ci.vertcat([ \
-
-                self.__measurement_deviations,
-                self.__discretization.equality_constraints,
+                ci.vec(self._discretization.measurements) - \
+                self._measurement_data_vectorized + \
+                ci.vec(self._discretization.optimization_variables["V"])
 
             ])
 
 
-    def __set_cov_matrix_derivative_directions(self):
+    def _setup_constraints(self):
+
+        self._constraints = ci.vertcat([ \
+
+                self._measurement_deviations,
+                self._discretization.equality_constraints,
+
+            ])
+
+
+    def _set_cov_matrix_derivative_directions(self):
 
         # These correspond to the optimization variables of the parameter
         # estimation problem; the evaluation of the covariance matrix, though,
         # does not depend on the actual values of V, EPS_E and EPS_U, and with
         # this, the DoE problem does not
 
-        self.__cov_matrix_derivative_directions = ci.veccat([ \
+        self._cov_matrix_derivative_directions = ci.veccat([ \
 
-                self.__discretization.optimization_variables["P"],
-                self.__discretization.optimization_variables["X"],
-                self.__discretization.optimization_variables["V"],
-                self.__discretization.optimization_variables["EPS_E"],
-                self.__discretization.optimization_variables["EPS_U"],
+                self._discretization.optimization_variables["P"],
+                self._discretization.optimization_variables["X"],
+                self._discretization.optimization_variables["V"],
+                self._discretization.optimization_variables["EPS_E"],
+                self._discretization.optimization_variables["EPS_U"],
 
             ])
 
-    def __set_optimiality_criterion(self, optimality_criterion):
+    def _set_optimiality_criterion(self, optimality_criterion):
 
             if str(optimality_criterion).upper() == "A":
 
-                self.__optimality_criterion = setup_a_criterion
+                self._optimality_criterion = setup_a_criterion
 
             elif str(optimality_criterion).upper() == "D":
 
-                self.__optimality_criterion = setup_d_criterion
+                self._optimality_criterion = setup_d_criterion
 
             else:
 
@@ -407,53 +407,53 @@ Possible values are "A" and "D".
 '''.format(str(discretization_method)))
 
 
-    def __setup_objective(self):
+    def _setup_objective(self):
 
-        self.__covariance_matrix_symbolic = setup_covariance_matrix( \
-                self.__cov_matrix_derivative_directions, \
-                self.__weightings_vectorized, \
-                self.__constraints, self.__discretization.system.np)
+        self._covariance_matrix_symbolic = setup_covariance_matrix( \
+                self._cov_matrix_derivative_directions, \
+                self._weightings_vectorized, \
+                self._constraints, self._discretization.system.np)
 
-        self.__objective_parameters_free = \
-            self.__optimality_criterion(self.__covariance_matrix_symbolic)
+        self._objective_parameters_free = \
+            self._optimality_criterion(self._covariance_matrix_symbolic)
 
 
-    def __apply_parameters_to_objective(self, pdata):
+    def _apply_parameters_to_objective(self, pdata):
 
         # As mentioned above, the objective does not depend on the actual
         # values of V, EPS_E and EPS_U, but on the values of P
 
         objective_free_variables = ci.veccat([ \
 
-                self.__discretization.optimization_variables["P"],
-                self.__discretization.optimization_variables["U"],
-                self.__discretization.optimization_variables["Q"],
-                self.__discretization.optimization_variables["X"],
+                self._discretization.optimization_variables["P"],
+                self._discretization.optimization_variables["U"],
+                self._discretization.optimization_variables["Q"],
+                self._discretization.optimization_variables["X"],
 
             ])
 
         objective_free_variables_parameters_applied = ci.veccat([ \
 
                 pdata,
-                self.__discretization.optimization_variables["U"],
-                self.__discretization.optimization_variables["Q"],
-                self.__discretization.optimization_variables["X"],
+                self._discretization.optimization_variables["U"],
+                self._discretization.optimization_variables["Q"],
+                self._discretization.optimization_variables["X"],
 
             ])
 
         objective_fcn = ci.mx_function("objective_fcn", \
-            [objective_free_variables], [self.__objective_parameters_free])
+            [objective_free_variables], [self._objective_parameters_free])
 
-        [self.__objective] = objective_fcn( \
+        [self._objective] = objective_fcn( \
             [objective_free_variables_parameters_applied])
 
 
-    def __setup_nlp(self):
+    def _setup_nlp(self):
 
-        self.__nlp = ci.mx_function("nlp", \
-            ci.nlpIn(x = self.__optimization_variables), \
-            ci.nlpOut(f = self.__objective, \
-                g = self.__equality_constraints_parameters_applied))
+        self._nlp = ci.mx_function("nlp", \
+            ci.nlpIn(x = self._optimization_variables), \
+            ci.nlpOut(f = self._objective, \
+                g = self._equality_constraints_parameters_applied))
 
 
     def __init__(self, system, time_points, \
@@ -637,36 +637,36 @@ Possible values are "A" and "D".
 
         intro()
 
-        self.__discretize_system( \
+        self._discretize_system( \
             system, time_points, discretization_method, **kwargs)
 
-        self.__apply_parameters_to_discretization(pdata)
+        self._apply_parameters_to_discretization(pdata)
 
-        self.__set_optimization_variables()
+        self._set_optimization_variables()
 
-        self.__set_optimization_variables_initials(pdata, qinit, x0, uinit)
+        self._set_optimization_variables_initials(pdata, qinit, x0, uinit)
 
-        self.__set_optimization_variables_lower_bounds(umin, qmin, xmin, x0)
+        self._set_optimization_variables_lower_bounds(umin, qmin, xmin, x0)
 
-        self.__set_optimization_variables_upper_bounds(umax, qmax, xmax, x0)
+        self._set_optimization_variables_upper_bounds(umax, qmax, xmax, x0)
 
-        self.__set_measurement_data()
+        self._set_measurement_data()
 
-        self.__set_weightings(wv, weps_e, weps_u)
+        self._set_weightings(wv, weps_e, weps_u)
 
-        self.__set_measurement_deviations()
+        self._set_measurement_deviations()
 
-        self.__set_cov_matrix_derivative_directions()
+        self._set_cov_matrix_derivative_directions()
 
-        self.__setup_constraints()
+        self._setup_constraints()
 
-        self.__set_optimiality_criterion(optimality_criterion)
+        self._set_optimiality_criterion(optimality_criterion)
 
-        self.__setup_objective()
+        self._setup_objective()
 
-        self.__apply_parameters_to_objective(pdata)
+        self._apply_parameters_to_objective(pdata)
 
-        self.__setup_nlp()
+        self._setup_nlp()
 
 
     def run_experimental_design(self, solver_options = {}):
@@ -704,22 +704,22 @@ Starting optimum experimental design using IPOPT,
 this might take some time ...
 ''')
 
-        self.__tstart_optimum_experimental_design = time.time()
+        self._tstart_optimum_experimental_design = time.time()
 
-        nlpsolver = ci.NlpSolver("solver", "ipopt", self.__nlp, \
+        nlpsolver = ci.NlpSolver("solver", "ipopt", self._nlp, \
             options = solver_options)
 
-        self.__design_results = \
-            nlpsolver(x0 = self.__optimization_variables_initials, \
+        self._design_results = \
+            nlpsolver(x0 = self._optimization_variables_initials, \
                 lbg = 0, ubg = 0, \
-                lbx = self.__optimization_variables_lower_bounds, \
-                ubx = self.__optimization_variables_upper_bounds)
+                lbx = self._optimization_variables_lower_bounds, \
+                ubx = self._optimization_variables_upper_bounds)
 
         print('''
 Optimum experimental design finished. Check IPOPT output for status information.
 ''')
 
-        self.__tend_optimum_experimental_deisng = time.time()
-        self.__duration_optimum_experimental_design = \
-            self.__tend_optimum_experimental_deisng - \
-            self.__tstart_optimum_experimental_design
+        self._tend_optimum_experimental_deisng = time.time()
+        self._duration_optimum_experimental_design = \
+            self._tend_optimum_experimental_deisng - \
+            self._tstart_optimum_experimental_design
