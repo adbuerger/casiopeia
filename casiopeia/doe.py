@@ -389,6 +389,7 @@ but will be in future versions.
 
             ])
 
+
     def _set_optimiality_criterion(self, optimality_criterion):
 
             if str(optimality_criterion).upper() == "A":
@@ -407,17 +408,28 @@ Possible values are "A" and "D".
 '''.format(str(discretization_method)))
 
 
+    def _setup_gauss_newton_lagrangian_hessian(self):
+
+        gauss_newton_lagrangian_hessian_diag = ci.vertcat([ \
+            ci.mx(self._cov_matrix_derivative_directions.shape[0] - \
+                self._weightings_vectorized.shape[0], 1), \
+            self._weightings_vectorized])
+
+        self.gauss_newton_lagrangian_hessian = ci.diag( \
+            gauss_newton_lagrangian_hessian_diag)
+
+
     def _setup_covariance_matrix(self):
 
-        cm = CovarianceMatrix(self)
+        self._cm = CovarianceMatrix(self.gauss_newton_lagrangian_hessian, \
+            self._constraints, self._cov_matrix_derivative_directions, \
+            self._discretization.system.np)
 
 
     def _setup_objective(self):
 
-        self._covariance_matrix_symbolic = setup_covariance_matrix( \
-                self._cov_matrix_derivative_directions, \
-                self._weightings_vectorized, \
-                self._constraints, self._discretization.system.np)
+        self._covariance_matrix_symbolic = \
+            self._cm.covariance_matrix_for_evaluation
 
         self._objective_parameters_free = \
             self._optimality_criterion(self._covariance_matrix_symbolic)
@@ -664,6 +676,10 @@ Possible values are "A" and "D".
         self._set_cov_matrix_derivative_directions()
 
         self._setup_constraints()
+
+        self._setup_gauss_newton_lagrangian_hessian()
+
+        self._setup_covariance_matrix()
 
         self._set_optimiality_criterion(optimality_criterion)
 
