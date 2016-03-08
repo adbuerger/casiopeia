@@ -27,39 +27,39 @@ class CovarianceMatrix(object):
 
         try:
 
-            return self.__covariance_matrix_for_evaluation
+            return self._covariance_matrix_for_evaluation
 
         except AttributeError:
 
-            self.__setup_covariance_matrix_for_evaluation()
+            self._setup_covariance_matrix_for_evaluation()
 
-            return self.__covariance_matrix_for_evaluation
+            return self._covariance_matrix_for_evaluation
 
     @property
     def covariance_matrix_for_optimization(self):
 
         try:
 
-            return self.__covariance_matrix_for_optimization
+            return self._covariance_matrix_for_optimization
 
         except AttributeError:
 
-            self.__setup_covariance_matrix_for_optimization()
+            self._setup_covariance_matrix_for_optimization()
 
-            return self.__covariance_matrix_for_optimization
+            return self._covariance_matrix_for_optimization
 
     @property
     def covariance_matrix_additional_constraints(self):
 
         try:
 
-            return self.__covariance_matrix_additional_constraints
+            return self._covariance_matrix_additional_constraints
 
         except AttributeError:
 
-            self.__setup_covariance_matrix_for_optimization()
+            self._setup_covariance_matrix_for_optimization()
 
-            return self.__covariance_matrix_additional_constraints
+            return self._covariance_matrix_additional_constraints
 
 
     @property
@@ -67,16 +67,16 @@ class CovarianceMatrix(object):
 
         try:
 
-            return self.__covariance_matrix_additional_optimization_variables
+            return self._covariance_matrix_additional_optimization_variables
 
         except AttributeError:
 
-            self.__setup_covariance_matrix_for_optimization()
+            self._setup_covariance_matrix_for_optimization()
 
-            return self.__covariance_matrix_additional_optimization_variables
+            return self._covariance_matrix_additional_optimization_variables
 
 
-    def __setup_langrangian_hessian(self, pe_setup):
+    def _setup_langrangian_hessian(self, pe_setup):
 
         # Get the Hessian matrix of the Lagrangian of the Gauss Newton (!)
         # least squares parameter estimation problem
@@ -84,7 +84,7 @@ class CovarianceMatrix(object):
         self.hess_lag = pe_setup.gauss_newton_lagrangian_hessian
 
 
-    def __setup_kkt_matrix(self, pe_setup):
+    def _setup_kkt_matrix(self, pe_setup):
 
         # Construct the KKT matrix from the Hessian of the Langrangian and the
         # Jacobian of the equality constraints
@@ -102,7 +102,7 @@ class CovarianceMatrix(object):
             kkt_matrix_B, kkt_matrix_C)
 
 
-    def __split_kkt_matrix(self, pe_setup):
+    def _split_kkt_matrix(self, pe_setup):
 
         number_of_unknown_parameters = pe_setup._discretization.system.np
 
@@ -116,7 +116,7 @@ class CovarianceMatrix(object):
             number_of_unknown_parameters :]
 
 
-    def __setup_covariance_matrix_scaling(self, pe_setup):
+    def _setup_covariance_matrix_scaling(self, pe_setup):
 
         # Calculate a scaling factor beta to multiply with the covariance
         # matrix so that the output for the (co-)variaces and standard
@@ -125,11 +125,11 @@ class CovarianceMatrix(object):
         # estimation problem (i. e. if residuals already exist);
         # for DOE, this scaling is irrelevant
 
-        # self.__beta = 1.0
+        # self._beta = 1.0
 
         # if residuals is not None:
 
-        self.__beta = \
+        self._beta = \
             ci.mul([pe_setup._residuals.T, pe_setup._residuals]) / \
                 (pe_setup._residuals.size() + \
             pe_setup._constraints.size1() - \
@@ -168,18 +168,18 @@ class CovarianceMatrix(object):
         #
 
 
-        self.__setup_langrangian_hessian(pe_setup)
+        self._setup_langrangian_hessian(pe_setup)
 
-        self.__setup_kkt_matrix(pe_setup)
+        self._setup_kkt_matrix(pe_setup)
 
-        self.__split_kkt_matrix(pe_setup)
+        self._split_kkt_matrix(pe_setup)
 
-        self.__setup_covariance_matrix_scaling(pe_setup)
+        self._setup_covariance_matrix_scaling(pe_setup)
 
 
-    def __setup_covariance_matrix_for_evaluation(self):
+    def _setup_covariance_matrix_for_evaluation(self):
 
-        cov_mat_A = self.__beta * ci.solve( \
+        cov_mat_A = self._beta * ci.solve( \
 
                 self.cov_mat_inv_A - ci.mul([ \
 
@@ -197,10 +197,10 @@ class CovarianceMatrix(object):
 
             )
 
-        self.__covariance_matrix_for_evaluation = cov_mat_A
+        self._covariance_matrix_for_evaluation = cov_mat_A
 
 
-    def __setup_covariance_matrix_for_optimization(self):
+    def _setup_covariance_matrix_for_optimization(self):
 
         # Introduce additional matrices of optimization variables E and F to
         # move the matrix inversions into the NLP constraints for efficiency
@@ -217,10 +217,10 @@ class CovarianceMatrix(object):
             (self.cov_mat_inv_A - ci.mul([self.cov_mat_inv_B.T, E])), F]) - \
             ci.mx_eye(self.cov_mat_inv_A.shape[0])
 
-        self.__covariance_matrix_for_optimization = F
-        self.__covariance_matrix_additional_optimization_variables = \
+        self._covariance_matrix_for_optimization = F
+        self._covariance_matrix_additional_optimization_variables = \
             ci.veccat([E, F])
-        self.__covariance_matrix_additional_constraints = ci.veccat([ \
+        self._covariance_matrix_additional_constraints = ci.veccat([ \
             constraints_E, constraints_F])
 
         import ipdb
