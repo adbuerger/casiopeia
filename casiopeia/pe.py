@@ -304,7 +304,9 @@ this might take some time ...''')
 
         self._tstart_covariance_computation = time.time()
 
-        cm = CovarianceMatrix(self)
+        cm = CovarianceMatrix(self.gauss_newton_lagrangian_hessian, \
+            self._constraints, self._optimization_variables, \
+            self._discretization.system.np, self._residuals)
 
         self._covariance_matrix_symbolic = cm.covariance_matrix_for_evaluation
 

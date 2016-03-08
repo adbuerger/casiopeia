@@ -407,6 +407,11 @@ Possible values are "A" and "D".
 '''.format(str(discretization_method)))
 
 
+    def _setup_covariance_matrix(self):
+
+        cm = CovarianceMatrix(self)
+
+
     def _setup_objective(self):
 
         self._covariance_matrix_symbolic = setup_covariance_matrix( \
