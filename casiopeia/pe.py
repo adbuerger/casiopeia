@@ -156,11 +156,11 @@ this might take some time ...
 
         self._tstart_estimation = time.time()
 
-        self.nlpsolver = ci.NlpSolver("solver", "ipopt", self._nlp, \
+        nlpsolver = ci.NlpSolver("solver", "ipopt", self._nlp, \
             options = solver_options)
 
         self._estimation_results = \
-            self.nlpsolver(x0 = self._optimization_variables_initials, \
+            nlpsolver(x0 = self._optimization_variables_initials, \
                 lbg = 0, ubg = 0)
 
         self._tend_estimation = time.time()
@@ -315,7 +315,7 @@ this might take some time ...''')
         #     [self._beta_symbolic])
 
         cm = CovarianceMatrix(self._optimization_variables, \
-            self.nlpsolver, self._constraints, \
+            self._weightings_vectorized, self._constraints, \
             self._discretization.system.np, self._residuals)
 
         self._covariance_matrix_symbolic = cm.covariance_matrix_for_evaluation
@@ -826,6 +826,20 @@ parameter estimation problems.''')
         self._constraints = ci.vertcat(constraints)
 
 
+    def _merge_weightings_for_cov_setup(self):
+
+        weightings_for_cov_mat = []
+
+        for pe_setup in self._pe_setups:
+
+            weightings_for_cov_mat.append(ci.mx(pe_setup._optimization_variables.shape[0] - pe_setup._weightings_vectorized.shape[0], 1))
+            weightings_for_cov_mat.append(pe_setup._weightings_vectorized)
+
+        weightings_for_cov_mat = ci.vertcat(weightings_for_cov_mat)
+
+        import ipdb
+        ipdb.set_trace()
+
     def __init__(self, pe_setups = []):
 
         r'''
@@ -856,9 +870,4 @@ parameter estimation problems.''')
 
         self._setup_nlp()
 
-
-    def compute_covariance_matrix(self):
-
-        raise NotImplementedError('''
-Covariance matrix computation for multiple experiments is not yet supported.
-''')
+        self._merge_weightings_for_cov_setup()

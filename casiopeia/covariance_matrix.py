@@ -79,25 +79,25 @@ class CovarianceMatrix(object):
             return self.__covariance_matrix_additional_optimization_variables
 
 
-    def __setup_langrangian_hessian(self, optimization_variables, nlpsolver): #, weightings):
+    def __setup_langrangian_hessian(self, optimization_variables, weightings):
 
-        # Construct the Hessian matrix of the Lagrangian of the least squares
-        # parameter estimation problem (WITH NLPSOLVER!)
+        # Construct the Hessian matrix of the Lagrangian of the Gauss Newton (!)
+        # least squares parameter estimation problem
 
-        # hess_lag_m_a = optimization_variables.shape[0] - weightings.shape[0]
-        # hess_lag_n_a = hess_lag_m_a
-        # hess_lag_A = ci.mx(hess_lag_m_a, hess_lag_n_a)
+        hess_lag_m_a = optimization_variables.shape[0] - weightings.shape[0]
+        hess_lag_n_a = hess_lag_m_a
+        hess_lag_A = ci.mx(hess_lag_m_a, hess_lag_n_a)
 
-        # hess_lag_m_b = weightings.shape[0]
-        # hess_lag_B = ci.mx(hess_lag_m_b, hess_lag_n_a)
+        hess_lag_m_b = weightings.shape[0]
+        hess_lag_B = ci.mx(hess_lag_m_b, hess_lag_n_a)
 
-        # hess_lag_C = ci.diag(weightings)
+        hess_lag_C = ci.diag(weightings)
 
-        # self.hess_lag = ci.blockcat( \
-        #     hess_lag_A, hess_lag_B.T, \
-        #     hess_lag_B, hess_lag_C)
+        self.hess_lag = ci.blockcat( \
+            hess_lag_A, hess_lag_B.T, \
+            hess_lag_B, hess_lag_C)
 
-        self.hess_lag = nlpsolver.hessLag()([optimization_variables, 1, 1, 1])[0]
+        # self.hess_lag = nlpsolver.hessLag()([optimization_variables, 1, 1, 1])[0]
 
 
     def __setup_kkt_matrix(self, optimization_variables, equality_constraints):
@@ -150,8 +150,7 @@ class CovarianceMatrix(object):
 
 
 
-    # def __init__(self, optimization_variables, weightings, \
-    def __init__(self, optimization_variables, nlpsolver, \
+    def __init__(self, optimization_variables, weightings, \
         equality_constraints, number_of_unknown_parameters, \
         residuals = None):
 
@@ -184,7 +183,7 @@ class CovarianceMatrix(object):
         #
 
 
-        self.__setup_langrangian_hessian(optimization_variables, nlpsolver) #, weightings)
+        self.__setup_langrangian_hessian(optimization_variables, weightings)
 
         self.__setup_kkt_matrix(optimization_variables, equality_constraints)
 
