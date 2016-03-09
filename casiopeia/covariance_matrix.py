@@ -197,34 +197,7 @@ class CovarianceMatrix(object):
             )
 
         self._covariance_matrix_for_evaluation = cov_mat_A
-
-
-    def _setup_covariance_matrix_for_optimization(self):
-
-        # Introduce additional matrices of optimization variables E and F to
-        # move the matrix inversions into the NLP constraints for efficiency
-        # (arising from the resulting increase in structure of the
-        # optimization problem)
-
-        E = ci.mx_sym("E", \
-            self.cov_mat_inv_C.shape[0], self.cov_mat_inv_B.shape[1])
-        F = ci.mx_sym("F", \
-            *self.cov_mat_inv_A.shape)
-
-        constraints_E = ci.mul([self.cov_mat_inv_C, E]) - self.cov_mat_inv_B
-        constraints_F = ci.mul([ \
-            (self.cov_mat_inv_A - ci.mul([self.cov_mat_inv_B.T, E])), F]) - \
-            ci.mx_eye(self.cov_mat_inv_A.shape[0])
-
-        self._covariance_matrix_for_optimization = F
-        self._covariance_matrix_additional_optimization_variables = \
-            ci.veccat([E, F])
-        self._covariance_matrix_additional_constraints = ci.veccat([ \
-            constraints_E, constraints_F])
-
-        import ipdb
-        ipdb.set_trace()
-        
+       
 
 def setup_a_criterion(covariance_matrix):
 
