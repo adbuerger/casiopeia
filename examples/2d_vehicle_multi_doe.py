@@ -52,11 +52,11 @@ system = cp.system.System(x = x, u = u, p = p, f = f, phi = phi)
 data = pl.array(pl.loadtxt("data_2d_vehicle.dat", \
     delimiter = ", ", skiprows = 1))
 
-time_points = data[200:205, 1]
+time_points = data[200:400:5, 1]
 
-ydata = data[200:205, [2, 4, 6, 8]]
+ydata = data[200:400:5, [2, 4, 6, 8]]
 
-uinit = data[200:205, [9, 10]][:-1, :]
+uinit = data[200:400:5, [9, 10]][:-1, :]
 
 pdata = [0.273408, 11.5602, 2.45652, 7.90959, -0.44353, -0.249098]
 
@@ -66,11 +66,17 @@ umax = [0.436332, 1.0]
 xmin = [-0.787, -1.531, -12.614, 0.0]
 xmax = [1.2390, 0.014, 0.013, 0.7102]
 
-doe = cp.doe.DoE(system = system, time_points = time_points, \
-    uinit = uinit, pdata = pdata, x0 = ydata[0,:], \
-    umin = umin, umax = umax, \
-    xmin = xmin, xmax = xmax)
+doe_setups = []
 
-doe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
+for k in range(2):
+
+    doe_setups.append(cp.doe.DoE(system = system, time_points = time_points, \
+        uinit = uinit, pdata = pdata, x0 = ydata[0,:], \
+        umin = umin, umax = umax, \
+        xmin = xmin, xmax = xmax))
+
+mdoe = cp.doe.MultiDoESingleKKT(doe_setups)
+
+# doe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
 
 # pl.savetxt("results_2d_vehicle_doe_coll.txt", doe.design_results["x"])

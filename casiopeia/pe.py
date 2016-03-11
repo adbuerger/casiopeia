@@ -832,20 +832,6 @@ parameter estimation problems.''')
         self._constraints = ci.vertcat(constraints)
 
 
-    # def _merge_weightings_for_cov_setup(self):
-
-    #     weightings_for_cov_mat = []
-
-    #     for pe_setup in self._pe_setups:
-
-    #         weightings_for_cov_mat.append(ci.mx(pe_setup._optimization_variables.shape[0] - pe_setup._weightings_vectorized.shape[0], 1))
-    #         weightings_for_cov_mat.append(pe_setup._weightings_vectorized)
-
-    #     weightings_for_cov_mat = ci.vertcat(weightings_for_cov_mat)
-
-    #     import ipdb
-    #     ipdb.set_trace()
-
     def __init__(self, pe_setups = []):
 
         r'''
@@ -873,5 +859,3 @@ parameter estimation problems.''')
         self._setup_objective()
 
         self._setup_nlp()
-
-        # self._merge_weightings_for_cov_setup()

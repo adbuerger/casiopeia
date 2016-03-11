@@ -24,6 +24,8 @@ experimental design.'''
 import numpy as np
 import time
 
+from abc import ABCMeta, abstractmethod
+
 from discretization.nodiscretization import NoDiscretization
 from discretization.odecollocation import ODECollocation
 from discretization.odemultipleshooting import ODEMultipleShooting
@@ -36,25 +38,10 @@ from sim import Simulation
 
 import inputchecks
 
-class DoE(object):
 
-    '''The class :class:`casiopeia.pe.DoE` is used to set up
-    Design-of-Experiments-problems for systems defined with the
-    :class:`casiopeia.system.System` class.
+class DoEProblem(object):
 
-    The aim of the experimental design optimization is to identify a set of
-    controls that can be used for the generation of measurement data which
-    allows for a better estimation of the unknown parameters of a system.
-
-    To achieve this, an information function on the covariance matrix of the
-    estimated parameters is minimized. The values of the estimated parameters,
-    though they are mostly an initial
-    guess for their values, are not changed during the optimization.
-
-    Optimum experimental design and parameter estimation methods can be used
-    interchangeably until a desired accuracy of the parameters has been
-    achieved.
-    '''
+    __metaclass__ = ABCMeta
 
     @property
     def design_results(self):
@@ -86,6 +73,130 @@ can be accessed, please run run_experimental_design() first.
 An experimental design has to be executed before the optimized controls
 can be accessed, please run run_experimental_design() first.
 ''')
+
+    def _set_optimiality_criterion(self, optimality_criterion):
+
+            if str(optimality_criterion).upper() == "A":
+
+                self._optimality_criterion = setup_a_criterion
+
+            elif str(optimality_criterion).upper() == "D":
+
+                self._optimality_criterion = setup_d_criterion
+
+            else:
+
+                raise NotImplementedError('''
+Unknown optimality criterion: {0}.
+Possible values are "A" and "D".
+'''.format(str(discretization_method)))
+
+
+    def _setup_covariance_matrix(self):
+
+        self._cm = CovarianceMatrix(self._gauss_newton_lagrangian_hessian, \
+            self._constraints, self._cov_matrix_derivative_directions, \
+            self._discretization.system.np)
+
+
+    def _setup_objective(self):
+
+        self._covariance_matrix_symbolic = \
+            self._cm.covariance_matrix_for_evaluation
+
+        self._objective_parameters_free = \
+            self._optimality_criterion(self._covariance_matrix_symbolic)
+
+
+    def _setup_nlp(self):
+
+        self._nlp = ci.mx_function("nlp", \
+            ci.nlpIn(x = self._optimization_variables), \
+            ci.nlpOut(f = self._objective, \
+                g = self._equality_constraints_parameters_applied))
+
+
+    @abstractmethod
+    def __init__(self):
+
+        pass
+
+
+    def run_experimental_design(self, solver_options = {}):
+
+        r'''
+        :param solver_options: options to be passed to the IPOPT solver 
+                               (see the CasADi documentation for a list of all
+                               possible options)
+        :type solver_options: dict
+
+        This functions will pass the experimental design problem
+        to the IPOPT solver. The status of IPOPT printed to the 
+        console provides information whether the
+        optimization finished successfully. The optimized controls
+        :math:`\hat{u}` can afterwards be accessed via the class attribute
+        ``LSq.optimized_controls``.
+
+        .. note::
+
+            IPOPT finishing successfully does not necessarily
+            mean that the optimized controls are useful
+            for your purposes, it just means that IPOPT was able to solve the
+            given optimization problem.
+            A poorly chosen "guess" for the values of the parameters to be
+            estimated can lead to very suboptimal controls, an with this,
+            to more repetitions in optimization and estimation.
+
+        '''  
+
+        print('\n' + '# ' +  18 * '-' + \
+            ' casiopeia optimum experimental design ' + 17 * '-' + ' #')
+
+        print('''
+Starting optimum experimental design using IPOPT, 
+this might take some time ...
+''')
+
+        self._tstart_optimum_experimental_design = time.time()
+
+        nlpsolver = ci.NlpSolver("solver", "ipopt", self._nlp, \
+            options = solver_options)
+
+        self._design_results = \
+            nlpsolver(x0 = self._optimization_variables_initials, \
+                lbg = 0, ubg = 0, \
+                lbx = self._optimization_variables_lower_bounds, \
+                ubx = self._optimization_variables_upper_bounds)
+
+        print('''
+Optimum experimental design finished. Check IPOPT output for status information.
+''')
+
+        self._tend_optimum_experimental_deisng = time.time()
+        self._duration_optimum_experimental_design = \
+            self._tend_optimum_experimental_deisng - \
+            self._tstart_optimum_experimental_design
+
+
+class DoE(DoEProblem):
+
+    '''The class :class:`casiopeia.pe.DoE` is used to set up
+    Design-of-Experiments-problems for systems defined with the
+    :class:`casiopeia.system.System` class.
+
+    The aim of the experimental design optimization is to identify a set of
+    controls that can be used for the generation of measurement data which
+    allows for a better estimation of the unknown parameters of a system.
+
+    To achieve this, an information function on the covariance matrix of the
+    estimated parameters is minimized. The values of the estimated parameters,
+    though they are mostly an initial
+    guess for their values, are not changed during the optimization.
+
+    Optimum experimental design and parameter estimation methods can be used
+    interchangeably until a desired accuracy of the parameters has been
+    achieved.
+    '''
 
 
     def _discretize_system(self, system, time_points, discretization_method, \
@@ -124,7 +235,7 @@ but will be in future versions.
 
     def _apply_parameters_to_equality_constraints(self, pdata):
 
-        udata = inputchecks.check_parameter_data(pdata, \
+        pdata = inputchecks.check_parameter_data(pdata, \
             self._discretization.system.np)
 
         optimization_variables_for_equality_constraints = ci.veccat([ \
@@ -390,24 +501,6 @@ but will be in future versions.
             ])
 
 
-    def _set_optimiality_criterion(self, optimality_criterion):
-
-            if str(optimality_criterion).upper() == "A":
-
-                self._optimality_criterion = setup_a_criterion
-
-            elif str(optimality_criterion).upper() == "D":
-
-                self._optimality_criterion = setup_d_criterion
-
-            else:
-
-                raise NotImplementedError('''
-Unknown optimality criterion: {0}.
-Possible values are "A" and "D".
-'''.format(str(discretization_method)))
-
-
     def _setup_gauss_newton_lagrangian_hessian(self):
 
         gauss_newton_lagrangian_hessian_diag = ci.vertcat([ \
@@ -415,24 +508,8 @@ Possible values are "A" and "D".
                 self._weightings_vectorized.shape[0], 1), \
             self._weightings_vectorized])
 
-        self.gauss_newton_lagrangian_hessian = ci.diag( \
+        self._gauss_newton_lagrangian_hessian = ci.diag( \
             gauss_newton_lagrangian_hessian_diag)
-
-
-    def _setup_covariance_matrix(self):
-
-        self._cm = CovarianceMatrix(self.gauss_newton_lagrangian_hessian, \
-            self._constraints, self._cov_matrix_derivative_directions, \
-            self._discretization.system.np)
-
-
-    def _setup_objective(self):
-
-        self._covariance_matrix_symbolic = \
-            self._cm.covariance_matrix_for_evaluation
-
-        self._objective_parameters_free = \
-            self._optimality_criterion(self._covariance_matrix_symbolic)
 
 
     def _apply_parameters_to_objective(self, pdata):
@@ -463,14 +540,6 @@ Possible values are "A" and "D".
 
         [self._objective] = objective_fcn( \
             [objective_free_variables_parameters_applied])
-
-
-    def _setup_nlp(self):
-
-        self._nlp = ci.mx_function("nlp", \
-            ci.nlpIn(x = self._optimization_variables), \
-            ci.nlpOut(f = self._objective, \
-                g = self._equality_constraints_parameters_applied))
 
 
     def __init__(self, system, time_points, \
@@ -690,57 +759,187 @@ Possible values are "A" and "D".
         self._setup_nlp()
 
 
-    def run_experimental_design(self, solver_options = {}):
+class MultiDoE(DoEProblem):
+
+    __metaclass__ = ABCMeta
+
+    def _define_set_of_doe_setups(self, doe_setups):
+
+        if len(doe_setups) <= 1:
+
+            raise NotImplementedError('''
+You must instatiate the multi design method passing at least two
+experimental design problems.''')
+
+        self._doe_setups = doe_setups
+
+
+    def _get_discretization_from_doe_setups(self):
+
+        self._discretization = self._doe_setups[0]._discretization
+
+
+    def _merge_equaltiy_constraints_parameters_applied(self):
+
+        equality_constraints_parameters_applied = [ \
+            doe_setup._equality_constraints_parameters_applied for \
+            doe_setup in self._doe_setups]
+
+        self._equality_constraints_parameters_applied = \
+            ci.veccat(equality_constraints_parameters_applied)
+
+
+    def _merge_optimization_variables(self):
+
+        optimization_variables = [ \
+            doe_setup._optimization_variables for \
+            doe_setup in self._doe_setups]
+
+        self._optimization_variables = ci.vertcat(optimization_variables)
+
+
+    def _merge_optimization_variables_initials(self):
+
+        optimization_variables_initials = [ \
+            doe_setup._optimization_variables_initials for \
+            doe_setup in self._doe_setups]
+
+        self._optimization_variables_initials = \
+            ci.vertcat(optimization_variables_initials)
+
+
+    def _merge_optimization_variables_lower_bounds(self):
+
+        optimization_variables_lower_bounds = [ \
+            doe_setup._optimization_variables_lower_bounds for \
+            doe_setup in self._doe_setups]
+
+        self._optimization_variables_lower_bounds = \
+            ci.vertcat(optimization_variables_lower_bounds)
+
+
+    def _merge_optimization_variables_upper_bounds(self):
+
+        optimization_variables_upper_bounds = [ \
+            doe_setup._optimization_variables_upper_bounds for \
+            doe_setup in self._doe_setups]
+
+        self._optimization_variables_upper_bounds = \
+            ci.vertcat(optimization_variables_upper_bounds)
+
+
+    def _merge_and_setup_constraints(self):
+
+        constraints = [self._doe_setups[0]._constraints]
+
+        for k, doe_setup in enumerate(self._doe_setups[:-1]):
+
+            # Connect estimation problems by setting p_k - p_k+1 = 0
+
+            constraints.append(doe_setup._discretization.optimization_variables["P"] - \
+                self._doe_setups[k+1]._discretization.optimization_variables["P"])
+
+            constraints.append(self._doe_setups[k+1]._constraints)
+
+        self._constraints = ci.vertcat(constraints)
+
+
+    @abstractmethod
+    def __init__(self, doe_setups, optimality_criterion):
+
+        self._define_set_of_doe_setups(doe_setups)
+
+        self._get_discretization_from_doe_setups()
+
+        self._merge_equaltiy_constraints_parameters_applied()
+
+        self._merge_optimization_variables()
+
+        self._merge_optimization_variables_initials()
+
+        self._merge_optimization_variables_lower_bounds()
+
+        self._merge_optimization_variables_upper_bounds()
+
+        self._merge_and_setup_constraints()
+
+        self._set_optimiality_criterion(optimality_criterion)
+
+
+class MultiDoESingleKKT(MultiDoE):
+
+    def _merge_cov_matrix_derivative_directions(self):
+
+        cov_matrix_derivative_directions = \
+            [doe_setup._cov_matrix_derivative_directions for
+            doe_setup in self._doe_setups]
+
+        self._cov_matrix_derivative_directions = \
+            ci.vertcat(cov_matrix_derivative_directions)
+
+
+    def _merge_gauss_newton_lagrangian_hessians(self):
+
+        gauss_newton_lagrangian_hessian = \
+            [doe_setup._gauss_newton_lagrangian_hessian for \
+                doe_setup in self._doe_setups]
+
+        self._gauss_newton_lagrangian_hessian = \
+            ci.diagcat(gauss_newton_lagrangian_hessian)
+
+
+    def _apply_parameters_to_objective(self, pdata):
+
+        pdata = inputchecks.check_parameter_data(pdata, \
+            self._discretization.system.np)
+
+        objective_free_variables = []
+        objective_free_variables_parameters_applied = []
+
+        for doe_setup in self._doe_setups:
+
+            objective_free_variables.append( \
+                doe_setup._discretization.optimization_variables["P"])
+            objective_free_variables_parameters_applied.append(pdata)
+
+            for key in ["U", "Q", "X"]:
+
+                objective_free_variables.append( \
+                    doe_setup._discretization.optimization_variables[key])
+                objective_free_variables_parameters_applied.append( \
+                    doe_setup._discretization.optimization_variables[key])
+                
+        objective_free_variables = ci.veccat(objective_free_variables)
+        objective_free_variables_parameters_applied = \
+            ci.veccat(objective_free_variables_parameters_applied)
+
+        objective_fcn = ci.mx_function("objective_fcn", \
+            [objective_free_variables], [self._objective_parameters_free])
+
+        [self._objective] = objective_fcn( \
+            [objective_free_variables_parameters_applied])
+
+
+    def __init__(self, doe_setups = [], pdata = None, \
+        optimality_criterion = "A"):
 
         r'''
-        :param solver_options: options to be passed to the IPOPT solver 
-                               (see the CasADi documentation for a list of all
-                               possible options)
-        :type solver_options: dict
+        :param doe_setups: list of two or more objects of type :class:`casiopeia.pe.DoE`
+        :type doe_setups: list
 
-        This functions will pass the experimental design problem
-        to the IPOPT solver. The status of IPOPT printed to the 
-        console provides information whether the
-        optimization finished successfully. The optimized controls
-        :math:`\hat{u}` can afterwards be accessed via the class attribute
-        ``LSq.optimized_controls``.
+        '''
 
-        .. note::
+        super(MultiDoESingleKKT, self).__init__(doe_setups, \
+            optimality_criterion)
 
-            IPOPT finishing successfully does not necessarily
-            mean that the optimized controls are useful
-            for your purposes, it just means that IPOPT was able to solve the
-            given optimization problem.
-            A poorly chosen "guess" for the values of the parameters to be
-            estimated can lead to very suboptimal controls, an with this,
-            to more repetitions in optimization and estimation.
+        self._merge_cov_matrix_derivative_directions()
 
-        '''  
+        self._merge_gauss_newton_lagrangian_hessians()
 
-        print('\n' + '# ' +  18 * '-' + \
-            ' casiopeia optimum experimental design ' + 17 * '-' + ' #')
+        self._setup_covariance_matrix()
 
-        print('''
-Starting optimum experimental design using IPOPT, 
-this might take some time ...
-''')
+        self._setup_objective()
 
-        self._tstart_optimum_experimental_design = time.time()
+        self._apply_parameters_to_objective(pdata)
 
-        nlpsolver = ci.NlpSolver("solver", "ipopt", self._nlp, \
-            options = solver_options)
-
-        self._design_results = \
-            nlpsolver(x0 = self._optimization_variables_initials, \
-                lbg = 0, ubg = 0, \
-                lbx = self._optimization_variables_lower_bounds, \
-                ubx = self._optimization_variables_upper_bounds)
-
-        print('''
-Optimum experimental design finished. Check IPOPT output for status information.
-''')
-
-        self._tend_optimum_experimental_deisng = time.time()
-        self._duration_optimum_experimental_design = \
-            self._tend_optimum_experimental_deisng - \
-            self._tstart_optimum_experimental_design
+        self._setup_nlp()
