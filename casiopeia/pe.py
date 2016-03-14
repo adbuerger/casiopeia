@@ -322,10 +322,6 @@ this might take some time ...''')
         self._beta = setup_covariance_matrix_scaling_factor_beta( \
             self._constraints, self._optimization_variables, self._residuals)
 
-        # cm = CovarianceMatrix(self.gauss_newton_lagrangian_hessian, \
-        #     self._constraints, self._optimization_variables, \
-        #     self._discretization.system.np, self._residuals)
-
         self._covariance_matrix = covariance_matrix.covariance_matrix
 
         self._covariance_matrix_scaled = self._beta * self._covariance_matrix
