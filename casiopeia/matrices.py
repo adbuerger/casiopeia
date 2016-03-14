@@ -95,15 +95,15 @@ class FisherMatrix(object):
 
     def _split_up_kkt_matrix(self, kkt_matrix, number_of_unknown_parameters):
 
-        self._fisher_matrix_A = kkt_matrix.kkt_matrix[ \
+        self._fisher_matrix_A = kkt_matrix[ \
             : number_of_unknown_parameters, \
             : number_of_unknown_parameters]
 
-        self._fisher_matrix_B = kkt_matrix.kkt_matrix[ \
+        self._fisher_matrix_B = kkt_matrix[ \
             number_of_unknown_parameters :, \
             : number_of_unknown_parameters]
 
-        self._fisher_matrix_C = kkt_matrix.kkt_matrix[ \
+        self._fisher_matrix_C = kkt_matrix[ \
         number_of_unknown_parameters :, \
             number_of_unknown_parameters :]
 
@@ -151,9 +151,9 @@ class CovarianceMatrix(object):
 
         self._covariance_matrix = ci.solve( \
             
-            fisher_matrix.fisher_matrix, \
+            fisher_matrix, \
             
-            ci.mx_eye(fisher_matrix.fisher_matrix.shape[0]), \
+            ci.mx_eye(fisher_matrix.shape[0]), \
             
             "csparse")
 
@@ -180,3 +180,13 @@ def setup_covariance_matrix_scaling_factor_beta(equality_constraints, \
         equality_constraints.size() - optimization_variables.size())
 
     return beta
+
+
+def setup_a_criterion(covariance_matrix):
+
+    return (1.0 / covariance_matrix.shape[0]) * ci.trace(covariance_matrix)
+
+
+def setup_d_criterion(covariance_matrix):
+
+    return pow(ci.det(covariance_matrix), (1.0 / covariance_matrix.shape[0]))

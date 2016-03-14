@@ -75,8 +75,8 @@ for k in range(2):
         umin = umin, umax = umax, \
         xmin = xmin, xmax = xmax))
 
-mdoe = cp.doe.MultiDoESingleKKT(doe_setups)
+mdoe = cp.doe.MultiDoEMultiKKT(doe_setups)
 
-# doe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
+mdoe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
 
 # pl.savetxt("results_2d_vehicle_doe_coll.txt", doe.design_results["x"])

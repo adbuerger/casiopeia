@@ -314,17 +314,16 @@ this might take some time ...''')
         kkt_matrix = KKTMatrix(self.gauss_newton_lagrangian_hessian, \
             self._constraints, self._optimization_variables)
 
-        fisher_matrix = FisherMatrix(kkt_matrix, \
+        fisher_matrix = FisherMatrix(kkt_matrix.kkt_matrix, \
             self._discretization.system.np)
 
-        covariance_matrix = CovarianceMatrix(fisher_matrix)
+        self._covariance_matrix = CovarianceMatrix(fisher_matrix.fisher_matrix)
 
         self._beta = setup_covariance_matrix_scaling_factor_beta( \
             self._constraints, self._optimization_variables, self._residuals)
 
-        self._covariance_matrix = covariance_matrix.covariance_matrix
-
-        self._covariance_matrix_scaled = self._beta * self._covariance_matrix
+        self._covariance_matrix_scaled = self._beta * \
+            self._covariance_matrix.covariance_matrix
 
         covariance_matrix_fcn = ci.mx_function("covariance_matrix_fcn", \
             [self._optimization_variables], \

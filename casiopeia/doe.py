@@ -31,8 +31,8 @@ from discretization.odecollocation import ODECollocation
 from discretization.odemultipleshooting import ODEMultipleShooting
 
 from interfaces import casadi_interface as ci
-from covariance_matrix import CovarianceMatrix, setup_a_criterion, \
-    setup_d_criterion
+from matrices import KKTMatrix, FisherMatrix, CovarianceMatrix, \
+    setup_a_criterion, setup_d_criterion
 from intro import intro
 from sim import Simulation
 
@@ -94,18 +94,20 @@ Possible values are "A" and "D".
 
     def _setup_covariance_matrix(self):
 
-        self._cm = CovarianceMatrix(self._gauss_newton_lagrangian_hessian, \
-            self._constraints, self._cov_matrix_derivative_directions, \
+        kkt_matrix = KKTMatrix(self._gauss_newton_lagrangian_hessian, \
+            self._constraints, self._cov_matrix_derivative_directions)
+
+        fisher_matrix = FisherMatrix(kkt_matrix.kkt_matrix, \
             self._discretization.system.np)
+
+        self._covariance_matrix = CovarianceMatrix( \
+            fisher_matrix.fisher_matrix)
 
 
     def _setup_objective(self):
 
-        self._covariance_matrix_symbolic = \
-            self._cm.covariance_matrix
-
-        self._objective_parameters_free = \
-            self._optimality_criterion(self._covariance_matrix_symbolic)
+        self._objective_parameters_free = self._optimality_criterion( \
+            self._covariance_matrix.covariance_matrix)
 
 
     def _setup_nlp(self):
@@ -119,7 +121,9 @@ Possible values are "A" and "D".
     @abstractmethod
     def __init__(self):
 
-        pass
+        r'''
+        Abstract constructor for experimental design classes.
+        '''
 
 
     def run_experimental_design(self, solver_options = {}):
@@ -844,6 +848,38 @@ experimental design problems.''')
         self._constraints = ci.vertcat(constraints)
 
 
+    def _apply_parameters_to_objective(self, pdata):
+
+        pdata = inputchecks.check_parameter_data(pdata, \
+            self._discretization.system.np)
+
+        objective_free_variables = []
+        objective_free_variables_parameters_applied = []
+
+        for doe_setup in self._doe_setups:
+
+            objective_free_variables.append( \
+                doe_setup._discretization.optimization_variables["P"])
+            objective_free_variables_parameters_applied.append(pdata)
+
+            for key in ["U", "Q", "X"]:
+
+                objective_free_variables.append( \
+                    doe_setup._discretization.optimization_variables[key])
+                objective_free_variables_parameters_applied.append( \
+                    doe_setup._discretization.optimization_variables[key])
+                
+        objective_free_variables = ci.veccat(objective_free_variables)
+        objective_free_variables_parameters_applied = \
+            ci.veccat(objective_free_variables_parameters_applied)
+
+        objective_fcn = ci.mx_function("objective_fcn", \
+            [objective_free_variables], [self._objective_parameters_free])
+
+        [self._objective] = objective_fcn( \
+            [objective_free_variables_parameters_applied])
+
+
     @abstractmethod
     def __init__(self, doe_setups, optimality_criterion):
 
@@ -888,38 +924,6 @@ class MultiDoESingleKKT(MultiDoE):
             ci.diagcat(gauss_newton_lagrangian_hessian)
 
 
-    def _apply_parameters_to_objective(self, pdata):
-
-        pdata = inputchecks.check_parameter_data(pdata, \
-            self._discretization.system.np)
-
-        objective_free_variables = []
-        objective_free_variables_parameters_applied = []
-
-        for doe_setup in self._doe_setups:
-
-            objective_free_variables.append( \
-                doe_setup._discretization.optimization_variables["P"])
-            objective_free_variables_parameters_applied.append(pdata)
-
-            for key in ["U", "Q", "X"]:
-
-                objective_free_variables.append( \
-                    doe_setup._discretization.optimization_variables[key])
-                objective_free_variables_parameters_applied.append( \
-                    doe_setup._discretization.optimization_variables[key])
-                
-        objective_free_variables = ci.veccat(objective_free_variables)
-        objective_free_variables_parameters_applied = \
-            ci.veccat(objective_free_variables_parameters_applied)
-
-        objective_fcn = ci.mx_function("objective_fcn", \
-            [objective_free_variables], [self._objective_parameters_free])
-
-        [self._objective] = objective_fcn( \
-            [objective_free_variables_parameters_applied])
-
-
     def __init__(self, doe_setups = [], pdata = None, \
         optimality_criterion = "A"):
 
@@ -956,25 +960,48 @@ class MultiDoEMultiKKT(MultiDoE):
 
         '''
 
-    def _setup_fisher_information_matrix(self):
+    def _setup_fisher_matrix(self):
 
-        # rename all covariance matrix related stuff to fisher matrix related stuff,
-        # and provide function that allows for conversion (?)
+        fisher_matrices = []
 
-        pass
-        
+        for doe_setup in self._doe_setups:
+
+            kkt_matrix = KKTMatrix( \
+                doe_setup._gauss_newton_lagrangian_hessian, \
+                doe_setup._constraints, \
+                doe_setup._cov_matrix_derivative_directions)
+
+            fisher_matrix = FisherMatrix(kkt_matrix.kkt_matrix, \
+                doe_setup._discretization.system.np)
+
+            fisher_matrices.append(fisher_matrix.fisher_matrix)
+
+        self._fisher_matrix = sum(fisher_matrices)
+
 
     def _setup_covariance_matrix(self):
 
-        # sum up fisher matrices
+        self._covariance_matrix = CovarianceMatrix(self._fisher_matrix)
 
-        # call function covariance_matrix_from__fisher_information_matrix,
-        # would be in covariance_matrix.py (?)
 
-        pass
+    def __init__(self, doe_setups = [], pdata = None, \
+        optimality_criterion = "A"):
 
-    def _setup_objective(self):
+        r'''
+        :param doe_setups: list of two or more objects of type :class:`casiopeia.pe.DoE`
+        :type doe_setups: list
 
-        # objective setup, as ever
+        '''
 
-        pass
+        super(MultiDoEMultiKKT, self).__init__(doe_setups, \
+            optimality_criterion)
+
+        self._setup_fisher_matrix()
+
+        self._setup_covariance_matrix()
+
+        self._setup_objective()
+
+        self._apply_parameters_to_objective(pdata)
+
+        self._setup_nlp()
