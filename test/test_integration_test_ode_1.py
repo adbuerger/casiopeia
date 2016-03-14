@@ -65,7 +65,6 @@ class IntegrationTestODE1(unittest.TestCase):
          [8.10761e-06, 1.44984e-05]])
 
 
-
     def test_integration_test_pe_collocation(self):
 
         odesys = casiopeia.system.System(x = self.x, p = self.p, \

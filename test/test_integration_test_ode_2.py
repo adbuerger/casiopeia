@@ -28,9 +28,9 @@ import unittest
 
 class IntegrationTestODE2(unittest.TestCase):
 
-#     # Model and data taken and adapted from Verschueren, Robin: Design and
-#     # implementation of a time-optimal controller for model race cars, 
-#     # KU Leuven, 2014
+    # Model and data taken and adapted from Verschueren, Robin: Design and
+    # implementation of a time-optimal controller for model race cars, 
+    # KU Leuven, 2014
 
     def setUp(self):
 
@@ -69,13 +69,25 @@ class IntegrationTestODE2(unittest.TestCase):
         self.phat = np.atleast_2d( \
             [0.200652, 11.6528, -26.2501, -74.1967, 16.8705, -1.80125]).T
 
-        self.covariance_matrix = np.array(\
-            [[0.00134977, -7.79365e-05, -0.0441821, -0.122162, 0.028649, -0.00367167], 
-             [-7.79365e-05, 0.00422465, 0.413793, 0.878757, -0.227387, 0.0505063], 
-             [-0.0441821, 0.413793, 314.183, 676.013, -175.064, 38.0317], 
-             [-0.122162, 0.878757, 676.013, 1455.91, -376.932, 81.7495], 
-             [0.028649, -0.227387, -175.064, -376.932, 97.6534, -21.1892], 
-             [-0.00367167, 0.0505063, 38.0317, 81.7495, -21.1892, 4.6114]])
+        self.covariance_matrix = np.loadtxt( \
+            "test/covariance_matrix_2d_vehicle_pe.txt", delimiter=",")
+
+        self.time_points_doe = data[200:205, 1]
+
+        self.ydata_doe = data[200:205, [2, 4, 6, 8]]
+        
+        self.uinit_doe = data[200:205, [9, 10]][:-1, :]
+
+        self.pdata_doe = [0.273408, 11.5602, 2.45652, 7.90959, -0.44353, -0.249098]
+
+        self.umin_doe = [-0.436332, -0.3216]
+        self.umax_doe = [0.436332, 1.0]
+
+        self.xmin_doe = [-0.787, -1.531, -12.614, 0.0]
+        self.xmax_doe = [1.2390, 0.014, 0.013, 0.7102]
+
+        self.design_results = np.atleast_2d( \
+            np.loadtxt("test/optimized_controls_2d_vehicle_doe.txt")).T
 
 
     def test_integration_test_pe_collocation(self):
@@ -134,3 +146,31 @@ class IntegrationTestODE2(unittest.TestCase):
         simdata = np.array(np.loadtxt("test/data_2d_vehicle_sim.txt")).T
         assert_array_almost_equal(sim.simulation_results, simdata, \
             decimal = 4)
+
+
+    def test_integration_test_doe_collocation(self):
+
+        odesys = casiopeia.system.System(x = self.x, p = self.p, \
+            f = self.f, phi = self.phi, u = self.u)
+
+        doe = casiopeia.doe.DoE(system = odesys, \
+            time_points = self.time_points_doe, \
+            uinit = self.uinit_doe, pdata = self.pdata_doe, \
+            x0 = self.ydata_doe[0,:], \
+            umin = self.umin_doe, umax = self.umax_doe, \
+            xmin = self.xmin_doe, xmax = self.xmax_doe)
+
+        # assertRaises only accepts callables, see e. g.:
+        # http://stackoverflow.com/questions/1274047/why-isnt-assertraises-
+        # catching-my-attribute-error-using-python-unittest
+
+        def no_doe_results_test(doe):
+
+            return doe.design_results
+
+        self.assertRaises(AttributeError, no_doe_results_test, doe)
+
+        doe.run_experimental_design()
+
+        assert_array_almost_equal(doe.optimized_controls, \
+            self.design_results, decimal = 4)

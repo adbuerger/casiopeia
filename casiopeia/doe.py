@@ -24,7 +24,7 @@ experimental design.'''
 import numpy as np
 import time
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 from discretization.nodiscretization import NoDiscretization
 from discretization.odecollocation import ODECollocation
@@ -43,6 +43,14 @@ class DoEProblem(object):
 
     __metaclass__ = ABCMeta
 
+    @abstractproperty
+    def optimized_controls(self):
+
+        r'''
+        Abstract method for returning the optimized controls.
+        '''
+
+
     @property
     def design_results(self):
 
@@ -57,22 +65,6 @@ An experimental design has to be executed before the design results
 can be accessed, please run run_experimental_design() first.
 ''')
 
-
-    @property
-    def optimized_controls(self):
-
-        try:
-
-            return self._design_results["x"][ \
-                :(self._discretization.number_of_intervals * \
-                    self._discretization.system.nu)]
-
-        except AttributeError:
-
-            raise AttributeError('''
-An experimental design has to be executed before the optimized controls
-can be accessed, please run run_experimental_design() first.
-''')
 
     def _set_optimiality_criterion(self, optimality_criterion):
 
@@ -201,6 +193,13 @@ class DoE(DoEProblem):
     interchangeably until a desired accuracy of the parameters has been
     achieved.
     '''
+
+    @property
+    def optimized_controls(self):
+
+        return self.design_results["x"][ \
+            :(self._discretization.number_of_intervals * \
+                self._discretization.system.nu)]
 
 
     def _discretize_system(self, system, time_points, discretization_method, \
@@ -766,6 +765,27 @@ but will be in future versions.
 class MultiDoE(DoEProblem):
 
     __metaclass__ = ABCMeta
+
+    @property
+    def optimized_controls(self):
+
+        starting_position_design_results = 0
+
+        optimized_controls = []
+
+        for doe_setup in self._doe_setups:
+
+            optimized_controls.append(self.design_results["x"][ \
+                starting_position_design_results : \
+                starting_position_design_results + \
+                (doe_setup._discretization.number_of_intervals * \
+                    doe_setup._discretization.system.nu)])
+
+            starting_position_design_results += \
+                doe_setup._optimization_variables.shape[0]
+
+        return optimized_controls
+
 
     def _define_set_of_doe_setups(self, doe_setups):
 
