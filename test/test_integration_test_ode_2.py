@@ -66,10 +66,16 @@ class IntegrationTestODE2(unittest.TestCase):
 
         self.xinit = self.ydata
  
-        self.phat_collocation = np.atleast_2d( \
+        self.phat = np.atleast_2d( \
             [0.200652, 11.6528, -26.2501, -74.1967, 16.8705, -1.80125]).T
-        self.phat_multiple_shooting = np.atleast_2d( \
-            [0.200652, 11.6528, -26.2502, -74.1968, 16.8705, -1.80125]).T
+
+        self.covariance_matrix = np.array(\
+            [[0.00134977, -7.79365e-05, -0.0441821, -0.122162, 0.028649, -0.00367167], 
+             [-7.79365e-05, 0.00422465, 0.413793, 0.878757, -0.227387, 0.0505063], 
+             [-0.0441821, 0.413793, 314.183, 676.013, -175.064, 38.0317], 
+             [-0.122162, 0.878757, 676.013, 1455.91, -376.932, 81.7495], 
+             [0.028649, -0.227387, -175.064, -376.932, 97.6534, -21.1892], 
+             [-0.00367167, 0.0505063, 38.0317, 81.7495, -21.1892, 4.6114]])
 
 
     def test_integration_test_pe_collocation(self):
@@ -86,7 +92,12 @@ class IntegrationTestODE2(unittest.TestCase):
         pe.print_estimation_results()
 
         assert_array_almost_equal(pe.estimated_parameters, \
-            self.phat_collocation, decimal = 4)
+            self.phat, decimal = 3)
+
+        pe.compute_covariance_matrix()
+
+        assert_array_almost_equal(pe.covariance_matrix, \
+            self.covariance_matrix, decimal = 2)
 
 
     def test_integration_test_pe_multiple_shooting(self):
@@ -103,7 +114,12 @@ class IntegrationTestODE2(unittest.TestCase):
         pe.print_estimation_results()
 
         assert_array_almost_equal(pe.estimated_parameters, \
-            self.phat_multiple_shooting, decimal = 4)
+            self.phat, decimal = 3)
+        
+        pe.compute_covariance_matrix()
+
+        assert_array_almost_equal(pe.covariance_matrix, \
+            self.covariance_matrix, decimal = 2)
 
 
     def test_integration_test_sim(self):
@@ -111,7 +127,7 @@ class IntegrationTestODE2(unittest.TestCase):
         odesys = casiopeia.system.System(x = self.x, p = self.p, \
             f = self.f, phi = self.phi, u = self.u)
 
-        sim = casiopeia.sim.Simulation(odesys, self.phat_collocation)
+        sim = casiopeia.sim.Simulation(odesys, self.phat)
         sim.run_system_simulation(time_points = self.time_points, \
             x0 = self.ydata[0,:], udata = self.udata)
 

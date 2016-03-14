@@ -23,57 +23,17 @@ from interfaces import casadi_interface as ci
 class CovarianceMatrix(object):
 
     @property
-    def covariance_matrix_for_evaluation(self):
+    def covariance_matrix(self):
 
         try:
 
-            return self._covariance_matrix_for_evaluation
+            return self._covariance_matrix
 
         except AttributeError:
 
-            self._setup_covariance_matrix_for_evaluation()
+            self._setup_covariance_matrix()
 
-            return self._covariance_matrix_for_evaluation
-
-    @property
-    def covariance_matrix_for_optimization(self):
-
-        try:
-
-            return self._covariance_matrix_for_optimization
-
-        except AttributeError:
-
-            self._setup_covariance_matrix_for_optimization()
-
-            return self._covariance_matrix_for_optimization
-
-    @property
-    def covariance_matrix_additional_constraints(self):
-
-        try:
-
-            return self._covariance_matrix_additional_constraints
-
-        except AttributeError:
-
-            self._setup_covariance_matrix_for_optimization()
-
-            return self._covariance_matrix_additional_constraints
-
-
-    @property
-    def covariance_matrix_additional_optimization_variables(self):
-
-        try:
-
-            return self._covariance_matrix_additional_optimization_variables
-
-        except AttributeError:
-
-            self._setup_covariance_matrix_for_optimization()
-
-            return self._covariance_matrix_additional_optimization_variables
+            return self._covariance_matrix
 
 
     def _setup_langrangian_hessian(self, gauss_newton_lagrangian_hessian):
@@ -176,7 +136,7 @@ class CovarianceMatrix(object):
             equality_constraints, optimization_variables)
 
 
-    def _setup_covariance_matrix_for_evaluation(self):
+    def _setup_covariance_matrix(self):
 
         cov_mat_A = self._beta * ci.solve( \
 
@@ -196,7 +156,7 @@ class CovarianceMatrix(object):
 
             )
 
-        self._covariance_matrix_for_evaluation = cov_mat_A
+        self._covariance_matrix = cov_mat_A
        
 
 def setup_a_criterion(covariance_matrix):

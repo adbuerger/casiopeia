@@ -102,7 +102,7 @@ Possible values are "A" and "D".
     def _setup_objective(self):
 
         self._covariance_matrix_symbolic = \
-            self._cm.covariance_matrix_for_evaluation
+            self._cm.covariance_matrix
 
         self._objective_parameters_free = \
             self._optimality_criterion(self._covariance_matrix_symbolic)
@@ -943,3 +943,38 @@ class MultiDoESingleKKT(MultiDoE):
         self._apply_parameters_to_objective(pdata)
 
         self._setup_nlp()
+
+
+class MultiDoEMultiKKT(MultiDoE):
+
+    def __init__(self, doe_setups = [], pdata = None, \
+        optimality_criterion = "A"):
+
+        r'''
+        :param doe_setups: list of two or more objects of type :class:`casiopeia.pe.DoE`
+        :type doe_setups: list
+
+        '''
+
+    def _setup_fisher_information_matrix(self):
+
+        # rename all covariance matrix related stuff to fisher matrix related stuff,
+        # and provide function that allows for conversion (?)
+
+        pass
+        
+
+    def _setup_covariance_matrix(self):
+
+        # sum up fisher matrices
+
+        # call function covariance_matrix_from__fisher_information_matrix,
+        # would be in covariance_matrix.py (?)
+
+        pass
+
+    def _setup_objective(self):
+
+        # objective setup, as ever
+
+        pass

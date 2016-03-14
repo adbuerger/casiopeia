@@ -308,7 +308,7 @@ this might take some time ...''')
             self._constraints, self._optimization_variables, \
             self._discretization.system.np, self._residuals)
 
-        self._covariance_matrix_symbolic = cm.covariance_matrix_for_evaluation
+        self._covariance_matrix_symbolic = cm.covariance_matrix
 
         covariance_matrix_fcn = ci.mx_function("covariance_matrix_fcn", \
             [self._optimization_variables], \

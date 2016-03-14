@@ -56,6 +56,15 @@ class IntegrationTestODE1(unittest.TestCase):
         self.phat_collocation = np.atleast_2d([0.693379029, 0.341128482]).T
         self.phat_multiple_shooting = np.atleast_2d([0.693971, 0.340921]).T
 
+        self.covariance_matrix_collocation = np.array( \
+            [[0.000628377, 8.09817e-06],
+            [8.09817e-06, 1.45677e-05]])
+
+        self.covariance_matrix_multiple_shooting = np.array( \
+        [[0.000631059, 8.10761e-06], 
+         [8.10761e-06, 1.44984e-05]])
+
+
 
     def test_integration_test_pe_collocation(self):
 
@@ -71,6 +80,11 @@ class IntegrationTestODE1(unittest.TestCase):
 
         assert_array_almost_equal(pe.estimated_parameters, \
             self.phat_collocation, decimal = 8)
+
+        pe.compute_covariance_matrix()
+
+        assert_array_almost_equal(pe.covariance_matrix, \
+            self.covariance_matrix_collocation, decimal = 8)
 
 
     def test_integration_test_pe_multiple_shooting(self):
@@ -88,6 +102,11 @@ class IntegrationTestODE1(unittest.TestCase):
 
         assert_array_almost_equal(pe.estimated_parameters, \
             self.phat_multiple_shooting, decimal = 5)
+
+        pe.compute_covariance_matrix()
+
+        assert_array_almost_equal(pe.covariance_matrix, \
+            self.covariance_matrix_multiple_shooting, decimal = 8)
 
 
     def test_integration_test_sim(self):
