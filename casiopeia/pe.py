@@ -31,7 +31,9 @@ from discretization.odecollocation import ODECollocation
 from discretization.odemultipleshooting import ODEMultipleShooting
 
 from interfaces import casadi_interface as ci
-from covariance_matrix import CovarianceMatrix
+# from covariance_matrix import CovarianceMatrix
+from matrices import KKTMatrix, FisherMatrix, CovarianceMatrix, \
+    setup_covariance_matrix_scaling_factor_beta
 from intro import intro
 
 import inputchecks
@@ -43,7 +45,10 @@ class PEProblem(object):
     @abstractproperty
     def gauss_newton_lagrangian_hessian(self):
 
-        pass
+        r'''
+        Abstract method for returning the Hessian of the Gauss Newton 
+        Langrangian.
+        '''
 
 
     @property
@@ -123,7 +128,9 @@ Run compute_covariance_matrix() to do so.
     @abstractmethod
     def __init__(self):
 
-        pass
+        r'''
+        Abstract constructor for parameter estimation classes.
+        '''
 
 
     def run_parameter_estimation(self, solver_options = {}):
@@ -304,15 +311,28 @@ this might take some time ...''')
 
         self._tstart_covariance_computation = time.time()
 
-        cm = CovarianceMatrix(self.gauss_newton_lagrangian_hessian, \
-            self._constraints, self._optimization_variables, \
-            self._discretization.system.np, self._residuals)
+        kkt_matrix = KKTMatrix(self.gauss_newton_lagrangian_hessian, \
+            self._constraints, self._optimization_variables)
 
-        self._covariance_matrix_symbolic = cm.covariance_matrix
+        fisher_matrix = FisherMatrix(kkt_matrix, \
+            self._discretization.system.np)
+
+        covariance_matrix = CovarianceMatrix(fisher_matrix)
+
+        self._beta = setup_covariance_matrix_scaling_factor_beta( \
+            self._constraints, self._optimization_variables, self._residuals)
+
+        # cm = CovarianceMatrix(self.gauss_newton_lagrangian_hessian, \
+        #     self._constraints, self._optimization_variables, \
+        #     self._discretization.system.np, self._residuals)
+
+        self._covariance_matrix = covariance_matrix.covariance_matrix
+
+        self._covariance_matrix_scaled = self._beta * self._covariance_matrix
 
         covariance_matrix_fcn = ci.mx_function("covariance_matrix_fcn", \
             [self._optimization_variables], \
-            [self._covariance_matrix_symbolic])
+            [self._covariance_matrix_scaled])
 
         self._covariance_matrix = \
             covariance_matrix_fcn([self.estimation_results["x"]])[0]
