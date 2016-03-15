@@ -25,7 +25,7 @@ install:
 # the renaming of a class used by python-coveralls that else won't be found
 
  - pip --version
- - pip install coverage==3.7.1 coveralls python-coveralls nose-cov
+ - pip install coverage coveralls python-coveralls nose-cov
  - pip --version
 
  - wget http://sourceforge.net/projects/casadi/files/CasADi/$CASADIVERSION/linux/casadi-py27-np1.9.1-v$CASADIVERSION.tar.gz/download -O casadi-py27-np1.9.1-v$CASADIVERSION.tar.gz
