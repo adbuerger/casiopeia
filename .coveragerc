@@ -10,3 +10,4 @@ omit =
     */matplotlib*/*.py
     */casadi/*.py
     */pyshared/*.py
+    */setup.py
