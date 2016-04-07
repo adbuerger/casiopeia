@@ -878,9 +878,6 @@ experimental design problems.''')
         objective_free_variables = []
         objective_free_variables_parameters_applied = []
 
-        import ipdb
-        ipdb.set_trace()
-
         for doe_setup in self._doe_setups:
 
             objective_free_variables.append( \
