@@ -794,11 +794,7 @@ class MultiDoE(DoEProblem):
 
     def _define_set_of_doe_setups(self, doe_setups):
 
-        if len(doe_setups) <= 1:
-
-            raise NotImplementedError('''
-You must instatiate the multi design method passing at least two
-experimental design problems.''')
+        inputchecks.check_multi_doe_input(doe_setups)
 
         self._doe_setups = doe_setups
 

@@ -209,3 +209,29 @@ def check_input_error_weightings(weps_u, neps_u):
     else:
 
         return ci.dmatrix(0, 0)
+
+
+def check_multi_doe_input(doe_setups):
+
+    if not type(doe_setups) is list:
+
+        raise TypeError('''
+Input for MultiDoE setup has to be a list of objects of type DoE.
+''')
+
+    if len(doe_setups) <= 1:
+
+            raise ValueError('''
+You must instatiate the multi design method passing at least two
+experimental design problems (of type DoE).''')
+
+    for doe_setup in doe_setups:
+
+        # Check for name, check for type not doable here since
+        # modules depend on each other
+
+        if not type(doe_setup).__name__ is "DoE":
+
+            raise TypeError('''
+Input for MultiDoE setup has to be a list of objects of type DoE.
+''')

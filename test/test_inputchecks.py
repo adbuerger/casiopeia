@@ -552,3 +552,39 @@ class CheckInputErrorWeightings(unittest.TestCase):
         self.assertRaises(ValueError, \
             inputchecks.check_input_error_weightings, weps_u_ref, \
             self.neps_u)
+
+
+class CheckMultiDoeInput(unittest.TestCase):
+
+    def setUp(self):
+
+        pass
+
+
+    def test_input_not_a_list(self):
+
+        self.assertRaises(TypeError, \
+            inputchecks.check_multi_doe_input, \
+            "NotAList")
+
+
+    def test_input_list_of_lenght_one(self):
+
+        self.assertRaises(ValueError, \
+            inputchecks.check_multi_doe_input, \
+            ["ListWithOnlyOneEntry"])
+
+
+    def test_input_list_entries_not_of_type_doe(self):
+
+        self.assertRaises(TypeError, \
+            inputchecks.check_multi_doe_input, \
+            ["FirstListEntry", "SecondListEntry"])
+
+
+    def test_input_list_entries_of_type_doe(self):
+
+        doe_object = mock.MagicMock()
+        type(doe_object).__name__ = "DoE"
+
+        inputchecks.check_multi_doe_input([doe_object, doe_object])
