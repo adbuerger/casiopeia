@@ -774,11 +774,7 @@ class MultiLSq(PEProblem):
 
     def _define_set_of_pe_setups(self, pe_setups):
 
-        if len(pe_setups) <= 1:
-
-            raise NotImplementedError('''
-You must instatiate the multi experiment method passing at least two
-parameter estimation problems.''')
+        inputchecks.check_multi_lsq_input(pe_setups)
 
         self._pe_setups = pe_setups
 

@@ -588,3 +588,39 @@ class CheckMultiDoeInput(unittest.TestCase):
         type(doe_object).__name__ = "DoE"
 
         inputchecks.check_multi_doe_input([doe_object, doe_object])
+
+
+class CheckMultiLsqInput(unittest.TestCase):
+
+    def setUp(self):
+
+        pass
+
+
+    def test_input_not_a_list(self):
+
+        self.assertRaises(TypeError, \
+            inputchecks.check_multi_lsq_input, \
+            "NotAList")
+
+
+    def test_input_list_of_lenght_one(self):
+
+        self.assertRaises(ValueError, \
+            inputchecks.check_multi_lsq_input, \
+            ["ListWithOnlyOneEntry"])
+
+
+    def test_input_list_entries_not_of_type_lsq(self):
+
+        self.assertRaises(TypeError, \
+            inputchecks.check_multi_lsq_input, \
+            ["FirstListEntry", "SecondListEntry"])
+
+
+    def test_input_list_entries_of_type_lsw(self):
+
+        doe_object = mock.MagicMock()
+        type(doe_object).__name__ = "LSq"
+
+        inputchecks.check_multi_lsq_input([doe_object, doe_object])

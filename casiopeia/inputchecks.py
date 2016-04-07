@@ -235,3 +235,29 @@ experimental design problems (of type DoE).''')
             raise TypeError('''
 Input for MultiDoE setup has to be a list of objects of type DoE.
 ''')
+
+
+def check_multi_lsq_input(pe_setups):
+
+    if not type(pe_setups) is list:
+
+        raise TypeError('''
+Input for MultiLSq setup has to be a list of objects of type LSq.
+''')
+
+    if len(pe_setups) <= 1:
+
+            raise ValueError('''
+You must instatiate the multi experiment method passing at least two
+parameter estimation problems (of type LSq).''')
+
+    for pe_setup in pe_setups:
+
+        # Check for name, check for type not doable here since
+        # modules depend on each other
+
+        if not type(pe_setup).__name__ is "LSq":
+
+            raise TypeError('''
+Input for MultiLSq setup has to be a list of objects of type LSq.
+''')
