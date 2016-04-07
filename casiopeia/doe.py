@@ -235,11 +235,13 @@ Support of implicit DAEs is not implemented yet,
 but will be in future versions.
 ''')            
 
+    def _set_parameter_guess(self, pdata):
 
-    def _apply_parameters_to_equality_constraints(self, pdata):
-
-        pdata = inputchecks.check_parameter_data(pdata, \
+        self._pdata = inputchecks.check_parameter_data(pdata, \
             self._discretization.system.np)
+
+
+    def _apply_parameters_to_equality_constraints(self):
 
         optimization_variables_for_equality_constraints = ci.veccat([ \
 
@@ -259,7 +261,7 @@ but will be in future versions.
                 self._discretization.optimization_variables["X"], 
                 self._discretization.optimization_variables["EPS_U"], 
                 self._discretization.optimization_variables["EPS_E"], 
-                pdata, 
+                self._pdata, 
 
             ])
 
@@ -272,9 +274,9 @@ but will be in future versions.
             equality_constraints_fcn([optimization_variables_parameters_applied])
 
 
-    def _apply_parameters_to_discretization(self, pdata):
+    def _apply_parameters_to_discretization(self):
 
-        self._apply_parameters_to_equality_constraints(pdata)
+        self._apply_parameters_to_equality_constraints()
 
 
     def _set_optimization_variables(self):
@@ -288,9 +290,10 @@ but will be in future versions.
             ])
 
 
-    def _set_optimization_variables_initials(self, pdata, qinit, x0, uinit):
+    def _set_optimization_variables_initials(self, qinit, x0, uinit):
 
-        self.simulation = Simulation(self._discretization.system, pdata, qinit)
+        self.simulation = Simulation(self._discretization.system, \
+            self._pdata, qinit)
         self.simulation.run_system_simulation(x0, \
             self._discretization.time_points, uinit)
         xinit = self.simulation.simulation_results
@@ -515,7 +518,7 @@ but will be in future versions.
             gauss_newton_lagrangian_hessian_diag)
 
 
-    def _apply_parameters_to_objective(self, pdata):
+    def _apply_parameters_to_objective(self):
 
         # As mentioned above, the objective does not depend on the actual
         # values of V, EPS_E and EPS_U, but on the values of P
@@ -531,7 +534,7 @@ but will be in future versions.
 
         objective_free_variables_parameters_applied = ci.veccat([ \
 
-                pdata,
+                self._pdata,
                 self._discretization.optimization_variables["U"],
                 self._discretization.optimization_variables["Q"],
                 self._discretization.optimization_variables["X"],
@@ -729,11 +732,13 @@ but will be in future versions.
         self._discretize_system( \
             system, time_points, discretization_method, **kwargs)
 
-        self._apply_parameters_to_discretization(pdata)
+        self._set_parameter_guess(pdata)
+
+        self._apply_parameters_to_discretization()
 
         self._set_optimization_variables()
 
-        self._set_optimization_variables_initials(pdata, qinit, x0, uinit)
+        self._set_optimization_variables_initials(qinit, x0, uinit)
 
         self._set_optimization_variables_lower_bounds(umin, qmin, xmin, x0)
 
@@ -757,7 +762,7 @@ but will be in future versions.
 
         self._setup_objective()
 
-        self._apply_parameters_to_objective(pdata)
+        self._apply_parameters_to_objective()
 
         self._setup_nlp()
 
@@ -868,19 +873,20 @@ experimental design problems.''')
         self._constraints = ci.vertcat(constraints)
 
 
-    def _apply_parameters_to_objective(self, pdata):
-
-        pdata = inputchecks.check_parameter_data(pdata, \
-            self._discretization.system.np)
+    def _apply_parameters_to_objective(self):
 
         objective_free_variables = []
         objective_free_variables_parameters_applied = []
+
+        import ipdb
+        ipdb.set_trace()
 
         for doe_setup in self._doe_setups:
 
             objective_free_variables.append( \
                 doe_setup._discretization.optimization_variables["P"])
-            objective_free_variables_parameters_applied.append(pdata)
+            objective_free_variables_parameters_applied.append( \
+                doe_setup._pdata)
 
             for key in ["U", "Q", "X"]:
 
@@ -944,8 +950,7 @@ class MultiDoESingleKKT(MultiDoE):
             ci.diagcat(gauss_newton_lagrangian_hessian)
 
 
-    def __init__(self, doe_setups = [], pdata = None, \
-        optimality_criterion = "A"):
+    def __init__(self, doe_setups = [], optimality_criterion = "A"):
 
         r'''
         :param doe_setups: list of two or more objects of type :class:`casiopeia.pe.DoE`
@@ -964,21 +969,12 @@ class MultiDoESingleKKT(MultiDoE):
 
         self._setup_objective()
 
-        self._apply_parameters_to_objective(pdata)
+        self._apply_parameters_to_objective()
 
         self._setup_nlp()
 
 
 class MultiDoEMultiKKT(MultiDoE):
-
-    def __init__(self, doe_setups = [], pdata = None, \
-        optimality_criterion = "A"):
-
-        r'''
-        :param doe_setups: list of two or more objects of type :class:`casiopeia.pe.DoE`
-        :type doe_setups: list
-
-        '''
 
     def _setup_fisher_matrix(self):
 
@@ -1004,8 +1000,7 @@ class MultiDoEMultiKKT(MultiDoE):
         self._covariance_matrix = CovarianceMatrix(self._fisher_matrix)
 
 
-    def __init__(self, doe_setups = [], pdata = None, \
-        optimality_criterion = "A"):
+    def __init__(self, doe_setups = [], optimality_criterion = "A"):
 
         r'''
         :param doe_setups: list of two or more objects of type :class:`casiopeia.pe.DoE`
@@ -1022,6 +1017,6 @@ class MultiDoEMultiKKT(MultiDoE):
 
         self._setup_objective()
 
-        self._apply_parameters_to_objective(pdata)
+        self._apply_parameters_to_objective()
 
         self._setup_nlp()
