@@ -307,7 +307,7 @@ but will be in future versions.
         Xinit = ci.horzcat([ \
 
             Xinit.reshape((self._discretization.system.nx, \
-                Xinit.size() / self._discretization.system.nx)),
+                Xinit.numel() / self._discretization.system.nx)),
             xinit[:, -1],
 
             ])

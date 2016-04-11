@@ -176,8 +176,8 @@ class CovarianceMatrix(object):
 def setup_covariance_matrix_scaling_factor_beta(equality_constraints, \
     optimization_variables, residuals):
 
-    beta = ci.mul([residuals.T, residuals]) / (residuals.size() + \
-        equality_constraints.size() - optimization_variables.size())
+    beta = ci.mul([residuals.T, residuals]) / (residuals.numel() + \
+        equality_constraints.numel() - optimization_variables.numel())
 
     return beta
 

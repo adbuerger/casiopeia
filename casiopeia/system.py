@@ -29,49 +29,49 @@ class System:
     @property
     def nu(self):
 
-        return self.u.size()
+        return self.u.numel()
 
 
     @property
     def nq(self):
 
-        return self.q.size()
+        return self.q.numel()
 
 
     @property
     def np(self):
 
-        return self.p.size()
+        return self.p.numel()
 
 
     @property
     def nx(self):
 
-        return self.x.size()
+        return self.x.numel()
 
 
     @property
     def nz(self):
 
-        return self.z.size()
+        return self.z.numel()
 
 
     @property
     def neps_e(self):
 
-        return self.eps_e.size()
+        return self.eps_e.numel()
 
 
     @property
     def neps_u(self):
 
-        return self.eps_u.size()
+        return self.eps_u.numel()
 
 
     @property
     def nphi(self):
 
-        return self.phi.size()
+        return self.phi.numel()
 
 
     def __check_all_system_parts_are_casadi_symbolics(self):
@@ -110,12 +110,12 @@ Particularly, the system has:
 {3} outputs phi'''.format(self.nu, self.nq, self.np, self.nphi))
         
         print("\nwhere phi is defined by ")
-        for i, yi in enumerate(self.phi):         
-            print("y[{0}] = {1}".format(i, yi))
+        for i in range(self.phi.numel()):              
+            print("y[{0}] = {1}".format(i, self.phi[i]))
                  
         print("\nand where g is defined by ")
-        for i, gi in enumerate(self.g):              
-            print("g[{0}] = {1}".format(i, gi))
+        for i in range(self.g.numel()):              
+            print("g[{0}] = {1}".format(i, self.g[i]))
 
 
     def __print_ode_system_information(self):
@@ -134,16 +134,14 @@ Particularly, the system has:
 {2} parameters p
 {3} states x
 {4} outputs phi'''.format(self.nu, self.nq, self.np, self.nx, self.nphi))
-
         
         print("\nwhere xdot is defined by ")
-        for i, xi in enumerate(self.f):         
-            print("xdot[{0}] = {1}".format(i, xi))
-                 
-        print("\nand where phi is defined by ")
-        for i, yi in enumerate(self.phi):              
-            print("y[{0}] = {1}".format(i, yi))
+        for i in range(self.f.numel()):         
+            print("xdot[{0}] = {1}".format(i, self.f[i]))
 
+        print("\nand where phi is defined by ")
+        for i in range(self.phi.numel()):              
+            print("y[{0}] = {1}".format(i, self.phi[i]))
 
     def print_system_information(self):
 

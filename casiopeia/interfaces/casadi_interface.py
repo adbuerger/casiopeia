@@ -27,7 +27,7 @@ def sx_sym(name, dim1 = 1, dim2 = 1):
 
 def sx_function(name, inputs, outputs):
 
-    return ca.SXFunction(name, inputs, outputs)
+    return ca.Function(name, inputs, outputs)
 
 
 def mx_sym(name, dim1 = 1, dim2 = 1):
@@ -37,37 +37,42 @@ def mx_sym(name, dim1 = 1, dim2 = 1):
 
 def mx_function(name, inputs, outputs, options = {}):
 
-    return ca.MXFunction(name, inputs, outputs, options)
+    return ca.Function(name, inputs, outputs, options)
 
 
 def dmatrix(dim1, dim2 = 1):
 
-    return ca.DMatrix(dim1, dim2)
+    return ca.DM(dim1, dim2)
 
 
 def depends_on(b, a):
 
-    return ca.dependsOn(b, a)
+    return ca.depends_on(b, a)
 
 
 def collocation_points(order, scheme):
 
-    return ca.collocationPoints(order, scheme)
+    # "collocationPoints -> collocation_points. Also the returned list is
+    # now one element less than before. To get the old behaviour, prepend
+    # the result with zero.", see
+    # https://github.com/casadi/casadi/wiki/Changes-v2.4.0-to-v3.0.0
+
+    return [0.0] + ca.collocation_points(order, scheme)
 
 
 def vertcat(inputlist):
 
-    return ca.vertcat(inputlist)
+    return ca.vertcat(*inputlist)
 
 
 def veccat(inputlist):
 
-    return ca.veccat(inputlist)
+    return ca.veccat(*inputlist)
 
 
 def horzcat(inputlist):
 
-    return ca.horzcat(inputlist)
+    return ca.horzcat(*inputlist)
 
 
 def repmat(inputobj, dim1, dim2):
@@ -85,51 +90,57 @@ def sqrt(inputobj):
     return ca.sqrt(inputobj)
 
 
-def nlpIn(x = None):
+# def nlpIn(x = None):
 
-    return ca.nlpIn(x = x)
+#     # return ca.nlpIn(x = x)
+#     return {"x": x}
 
 
-def nlpOut(f = None, g = None):
+# def nlpOut(f = None, g = None):
 
-    return ca.nlpOut(f = f, g = g)
+#     # return ca.nlpOut(f = f, g = g)
+#     return {"f": f, "g": g}
 
 
 def mul(inputobj):
 
-    return ca.mul(inputobj)
+    return ca.mtimes(inputobj)
 
 
 def NlpSolver(name, solver, nlp, options):
 
-    return ca.NlpSolver(name, solver, nlp, options)
+    return ca.nlpsol(name, solver, nlp, options)
 
 
 def daeIn(t = None, x = None, p = None):
 
     if t is None:
 
-        return ca.daeIn(x = x, p = p)
+        # return ca.daeIn(x = x, p = p)
+        return {"x": x, "p": p}
 
     else:
 
-        return ca.daeIn(t = t, x = x, p = p)
+        # return ca.daeIn(t = t, x = x, p = p)
+        return {"t": t, "x": x, "p": p}
 
 
 def daeOut(ode = None, alg = None):
 
     if alg is None:
 
-        return ca.daeOut(ode = ode)
+        # return ca.daeOut(ode = ode)
+        return {"ode": ode}
 
     else:
 
-        return ca.daeOut(ode = ode, alg = alg)
+        # return ca.daeOut(ode = ode, alg = alg)
+        return {"ode": ode, "alg": alg}
 
 
 def Integrator(name, method, dae, options = {}):
 
-    return ca.Integrator(name, method, dae, options)
+    return ca.integrator(name, method, dae, options)
 
 
 def diag(inputobj):

@@ -120,9 +120,15 @@ Run compute_covariance_matrix() to do so.
 
     def _setup_nlp(self):
 
-        self._nlp = ci.mx_function("nlp", \
-            ci.nlpIn(x = self._optimization_variables), \
-            ci.nlpOut(f = self._objective, g = self._constraints))
+        # self._nlp = ci.mx_function("nlp", \
+        #     ci.nlpIn(x = self._optimization_variables), \
+        #     ci.nlpOut(f = self._objective, g = self._constraints))
+
+        import ipdb
+        ipdb.set_trace()
+
+        self._nlp = {"x": self._optimization_variables, \
+            "f": self._objective, "g": self._constraints}
 
 
     @abstractmethod
@@ -217,17 +223,19 @@ Parameter estimation finished. Check IPOPT output for status information.
              
             print("\nEstimated parameters p_i:")
 
-            for k, pk in enumerate(self.estimated_parameters):
+            # for k, pk in enumerate(self.estimated_parameters):
+            for k in range(self.estimated_parameters.numel()):
             
                 try:
 
                     print("    p_{0:<3} = {1} +/- {2}".format( \
-                         k, pk[0], self.standard_deviations[k]))
+                        k, self.estimated_parameters[k], \
+                        self.standard_deviations[k]))
 
                 except AttributeError:
 
                     print("    p_{0:<3} = {1}".format(\
-                        k, pk[0]))
+                        k, self.estimated_parameters[k]))
 
             print("\nCovariance matrix for the estimated parameters:")
 
@@ -431,8 +439,8 @@ but will be in future versions.
             [optimization_variables_for_equality_constraints], \
             [self._discretization.equality_constraints])
 
-        [self._equality_constraints_controls_applied] = \
-            equality_constraints_fcn([optimization_variables_controls_applied])
+        self._equality_constraints_controls_applied = \
+            equality_constraints_fcn(optimization_variables_controls_applied)
 
 
     def _apply_controls_to_measurements(self, udata, qdata):
@@ -468,8 +476,8 @@ but will be in future versions.
             [optimization_variables_for_measurements], \
             [self._discretization.measurements])
 
-        [self._measurements_controls_applied] = \
-            measurements_fcn([optimization_variables_controls_applied])
+        self._measurements_controls_applied = \
+            measurements_fcn(optimization_variables_controls_applied)
 
 
     def _apply_controls_to_discretization(self, udata, qdata):
@@ -505,7 +513,7 @@ but will be in future versions.
         Xinit = ci.horzcat([ \
 
             Xinit.reshape((self._discretization.system.nx, \
-                Xinit.size() / self._discretization.system.nx)),
+                Xinit.numel() / self._discretization.system.nx)),
             xinit[:, -1],
 
             ])

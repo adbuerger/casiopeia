@@ -39,8 +39,8 @@ class IntegrationTestODE1(unittest.TestCase):
         self.p = ca.MX.sym("p", 2)
 
         self.f = ca.vertcat( \
-            [-1.0 * self.x[0] + self.p[0] * self.x[0] * self.x[1], 
-            1.0 * self.x[1] - self.p[1] * self.x[0] * self.x[1]])
+            -1.0 * self.x[0] + self.p[0] * self.x[0] * self.x[1], 
+            1.0 * self.x[1] - self.p[1] * self.x[0] * self.x[1])
 
         self.phi = self.x
 

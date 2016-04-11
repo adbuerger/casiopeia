@@ -136,8 +136,8 @@ class ODECollocation(Discretization):
           
             # Evaluate the polynomial at the final time to get the
             # coefficients of the continuity equation
-            
-            [self.__D[j]] = lfcn([1])
+
+            self.__D[j] = lfcn([1])
 
             # Evaluate the time derivative of the polynomial at all 
             # collocation points to get the coefficients of the
@@ -176,7 +176,7 @@ class ODECollocation(Discretization):
 
         collocation_node = ci.vertcat([ \
 
-            h * self.__ffcn([ \
+            h * self.__ffcn(*[ \
 
                 t[j-1], u, q, p, \
 
