@@ -86,13 +86,11 @@ class ODEMultipleShooting(Discretization):
 
         t_scale = ci.mx_sym("t_scale", 1)
 
-        self.__ode_scaled = ci.mx_function("ode_scaled", \
-                ci.daeIn(x = self.system.x, \
-                    p = ci.vertcat([t_scale, self.system.t, \
-                        self.system.u, self.system.q, \
-                        self.system.p, self.system.eps_e, self.system.eps_u])), 
-                ci.daeOut(ode = t_scale * self.system.f))
-        self.__ode_scaled = self.__ode_scaled.expand()
+        self.__ode_scaled = {"x": self.system.x, \
+            "p": ci.vertcat([t_scale, self.system.t, \
+                self.system.u, self.system.q, \
+                self.system.p, self.system.eps_e, self.system.eps_u]), \
+            "ode": t_scale * self.system.f}
 
 
     def __compute_continuity_constraints(self):
@@ -107,7 +105,7 @@ class ODEMultipleShooting(Discretization):
             self.optimization_variables["EPS_E"], \
             self.optimization_variables["EPS_U"]])
 
-        shooting = integrator.map("shooting", self.number_of_intervals)
+        shooting = integrator.map("shooting", "knampf", self.number_of_intervals)
         X_next = shooting(x0 = self.optimization_variables["X"][:,:-1], \
             p = params)["xf"]
 

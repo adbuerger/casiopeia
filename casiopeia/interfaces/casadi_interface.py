@@ -185,4 +185,4 @@ def det(inputobj):
 
 def diagcat(inputobj):
 
-    return ca.diagcat(inputobj)
+    return ca.diagcat(*inputobj)

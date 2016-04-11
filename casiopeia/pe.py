@@ -120,13 +120,6 @@ Run compute_covariance_matrix() to do so.
 
     def _setup_nlp(self):
 
-        # self._nlp = ci.mx_function("nlp", \
-        #     ci.nlpIn(x = self._optimization_variables), \
-        #     ci.nlpOut(f = self._objective, g = self._constraints))
-
-        import ipdb
-        ipdb.set_trace()
-
         self._nlp = {"x": self._optimization_variables, \
             "f": self._objective, "g": self._constraints}
 
@@ -338,7 +331,7 @@ this might take some time ...''')
             [self._covariance_matrix_scaled])
 
         self._covariance_matrix = \
-            covariance_matrix_fcn([self.estimation_results["x"]])[0]
+            covariance_matrix_fcn(self.estimation_results["x"])
 
         self._tend_covariance_computation = time.time()
         self._duration_covariance_computation = \

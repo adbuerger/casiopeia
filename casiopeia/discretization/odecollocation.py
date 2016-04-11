@@ -176,7 +176,7 @@ class ODECollocation(Discretization):
 
         collocation_node = ci.vertcat([ \
 
-            h * self.__ffcn(*[ \
+            h * self.__ffcn.call([ \
 
                 t[j-1], u, q, p, \
 
@@ -198,9 +198,6 @@ class ODECollocation(Discretization):
         X = self.optimization_variables["X"][:, :-1].reshape( \
             (self.system.nx * (self.collocation_polynomial_degree + 1), \
             self.number_of_intervals))
-
-        # import ipdb
-        # ipdb.set_trace()
 
         EPS_E = self.optimization_variables["EPS_E"][:].reshape( \
             (self.system.neps_e * self.collocation_polynomial_degree, \

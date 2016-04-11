@@ -104,10 +104,10 @@ Possible values are "A" and "D".
 
     def _setup_nlp(self):
 
-        self._nlp = ci.mx_function("nlp", \
-            ci.nlpIn(x = self._optimization_variables), \
-            ci.nlpOut(f = self._objective, \
-                g = self._equality_constraints_parameters_applied))
+        self._nlp = {"x": self._optimization_variables, \
+            "f": self._objective, \
+            "g": self._equality_constraints_parameters_applied}
+
 
 
     @abstractmethod
@@ -270,8 +270,8 @@ but will be in future versions.
             [optimization_variables_for_equality_constraints], \
             [self._discretization.equality_constraints])
 
-        [self._equality_constraints_parameters_applied] = \
-            equality_constraints_fcn([optimization_variables_parameters_applied])
+        self._equality_constraints_parameters_applied = \
+            equality_constraints_fcn(optimization_variables_parameters_applied)
 
 
     def _apply_parameters_to_discretization(self):
@@ -544,8 +544,8 @@ but will be in future versions.
         objective_fcn = ci.mx_function("objective_fcn", \
             [objective_free_variables], [self._objective_parameters_free])
 
-        [self._objective] = objective_fcn( \
-            [objective_free_variables_parameters_applied])
+        self._objective = objective_fcn( \
+            objective_free_variables_parameters_applied)
 
 
     def __init__(self, system, time_points, \
@@ -895,8 +895,8 @@ class MultiDoE(DoEProblem):
         objective_fcn = ci.mx_function("objective_fcn", \
             [objective_free_variables], [self._objective_parameters_free])
 
-        [self._objective] = objective_fcn( \
-            [objective_free_variables_parameters_applied])
+        self._objective = objective_fcn( \
+            objective_free_variables_parameters_applied)
 
 
     @abstractmethod
