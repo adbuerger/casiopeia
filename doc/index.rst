@@ -39,7 +39,7 @@ In the following sections, you will receive the information necessary to obtain,
 install and use casiopeia. If you encounter any problems using this software, please feel free
 to submit your errors with a description of how it occurred to adrian.buerger@hs-karlsruhe.de.
 
-**New and experimental:** `try casiopeia live in your browser <https://ec2-52-29-32-46.eu-central-1.compute.amazonaws.com:8888/8cacf81e-3d6e-488d-972a-679cb5befefb>`_ [#f1]_
+**New and experimental:** `try casiopeia live in your browser <https://ec2-52-29-32-46.eu-central-1.compute.amazonaws.com:8888/41b11aa6-ece3-480d-91a5-d885f95a2680>`_ [#f1]_
 
 
 Contents
