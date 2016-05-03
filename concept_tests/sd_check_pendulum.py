@@ -150,7 +150,7 @@ report.write("\n**Test results:**\n\n.. code-block:: python")
 report.write("\n\n    repetitions    = " + str(repetitions))
 report.write("\n    sigma          = " + str(sigma))
 
-report.write("\n\n    p_orig         = " + str(ca.DMatrix(ptrue)))
+report.write("\n\n    p_true         = " + str(ca.DMatrix(ptrue)))
 report.write("\n\n    p_mean         = " + str(ca.DMatrix(p_mean)))
 report.write("\n    phat_last_exp  = " + \
     str(ca.DMatrix(pe_test.estimated_parameters)))
