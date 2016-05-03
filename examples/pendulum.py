@@ -82,7 +82,6 @@ wv = pl.array([wnu, ww])
 
 pe = cp.pe.LSq( \
     system = system, time_points = time_points, \
-    x0 = ydata[:,0], \
     udata = udata, \
     pinit = 1, \
     xinit = ydata, 
