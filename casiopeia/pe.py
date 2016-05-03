@@ -83,6 +83,21 @@ can be accessed, please run run_parameter_estimation() first.
 
 
     @property
+    def beta(self):
+
+        try:
+
+            return self._beta
+
+        except AttributeError:
+
+            raise AttributeError('''
+Beta-factor for the parameter estimation not yet computed.
+Run compute_covariance_matrix() to do so.
+''')
+
+
+    @property
     def covariance_matrix(self):
 
         try:
@@ -319,8 +334,13 @@ this might take some time ...''')
 
         self._covariance_matrix = CovarianceMatrix(fisher_matrix.fisher_matrix)
 
-        self._beta = setup_covariance_matrix_scaling_factor_beta( \
+        beta = setup_covariance_matrix_scaling_factor_beta( \
             self._constraints, self._optimization_variables, self._residuals)
+
+        beta_fcn = ci.mx_function("beta_fcn", \
+            [self._optimization_variables], [beta])
+
+        self._beta = beta_fcn([self.estimation_results["x"]])[0]
 
         self._covariance_matrix_scaled = self._beta * \
             self._covariance_matrix.covariance_matrix
