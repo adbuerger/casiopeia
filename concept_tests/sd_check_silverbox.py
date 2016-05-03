@@ -151,18 +151,21 @@ report.write("\n**Test results:**\n\n.. code-block:: python")
 report.write("\n\n    repetitions    = " + str(repetitions))
 report.write("\n    sigma          = " + str(sigma))
 
-report.write("\n\n    p_orig         = " + str(ca.DMatrix(p_true/scale)))
+report.write("\n\n    p_true         = " + str(ca.DMatrix(p_true)))
 report.write("\n\n    p_mean         = " + str(ca.DMatrix(p_mean)))
-report.write("\n    phat_last_exp  = " + str(ca.DMatrix(lsqpe_test.phat)))
+report.write("\n    phat_last_exp  = " + \
+    str(ca.DMatrix(pe_test.estimated_parameters)))
 
 report.write("\n\n    p_sd           = " + str(ca.DMatrix(p_std)))
-report.write("\n    sd_from_covmat = " + str(ca.diag(ca.sqrt(lsqpe_test.Covp))))
-report.write("\n    beta           = " + str(lsqpe_test.beta))
+report.write("\n    sd_from_covmat = " \
+    + str(ca.diag(ca.sqrt(pe_test.covariance_matrix))))
+report.write("\n    beta           = " + str(pe_test.beta))
 
 report.write("\n\n    delta_abs_sd   = " + str(ca.fabs(ca.DMatrix(p_std) - \
-    ca.diag(ca.sqrt(lsqpe_test.Covp)))))
+    ca.diag(ca.sqrt(pe_test.covariance_matrix)))))
 report.write("\n    delta_rel_sd   = " + str(ca.fabs(ca.DMatrix(p_std) - \
-    ca.diag(ca.sqrt(lsqpe_test.Covp))) / ca.DMatrix(p_std)) + "\n")
+    ca.diag(ca.sqrt(pe_test.covariance_matrix))) / ca.DMatrix(p_std)) \
+    + "\n")
 
 report.close()
 
