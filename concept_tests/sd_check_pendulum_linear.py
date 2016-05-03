@@ -109,8 +109,8 @@ store estimated parameter, repeat.
 
 .. code-block:: python
 
-    y_randn = lsqpe_sim.Xsim + sigma * \
-(np.random.randn(*lsqpe_sim.Xsim.shape))
+    y_randn = sim_true.simulation_results + sigma * \
+(np.random.randn(*sim_true.estimated_parameters.shape))
 
 Afterwards, compute standard deviation of estimated parameters, 
 and compare to single covariance matrix computation done in PECas.
@@ -124,7 +124,7 @@ report.write("\n" + "-" * len(prob) + "\n\n.. code-block:: python")
 report.write( \
 '''.. code-block:: python
 
-    ------------------------ PECas system information ------------------------
+    ---------------------- casiopeia system definition -----------------------
 
     The system is a dynamic system defined by a set of
     explicit ODEs xdot which establish the system state x:

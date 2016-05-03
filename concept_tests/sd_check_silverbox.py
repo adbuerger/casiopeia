@@ -4,59 +4,53 @@ import casiopeia as cp
 
 import os
 
-# (Model and data taken from: Diehl, Moritz: Course on System Identification, 
-# exercise 7, SYSCOP, IMTEK, University of Freiburg, 2014/2015)
+N = 1000
+fs = 610.1
 
-# Defining constant problem parameters: 
-#
-#     - m: representing the ball of the mass in kg
-#     - L: the length of the pendulum bar in meters
-#     - g: the gravity constant in m/s^2
-#     - psi: the actuation angle of the manuver in radians, which stays
-#            constant for this problem
-
-m = 1.0
-L = 3.0
-g = 9.81
-psi = pl.pi / 2.0
-
-# System
+p_true = ca.DMatrix([5.625e-6,2.3e-4,1,4.69])
+p_guess = ca.DMatrix([5,3,1,5])
+scale = ca.vertcat([1e-6,1e-4,1,1])
 
 x = ca.MX.sym("x", 2)
 u = ca.MX.sym("u", 1)
-p = ca.MX.sym("p", 1)
+p = ca.MX.sym("p", 4)
 
-f = ca.vertcat([x[1], p[0]/(m*(L**2))*(u-x[0]) - g/L * pl.sin(x[0])])
+f = ca.vertcat([
+        x[1], \
+        (u - scale[3] * p[3] * x[0]**3 - scale[2] * p[2] * x[0] - \
+            scale[1] * p[1] * x[1]) / (scale[0] * p[0]), \
+    ])
 
 phi = x
 
 system = cp.system.System(x = x, u = u, p = p, f = f, phi = phi)
 
-data = pl.loadtxt('data_pendulum.txt')
-time_points = data[:500, 0]
-numeas = data[:500, 1]
-wmeas = data[:500, 2]
-N = time_points.size
-ydata = pl.array([numeas,wmeas])
-udata = [psi] * (N-1)
+dt = 1.0 / fs
+time_points = pl.linspace(0, N, N+1) * dt
 
-ptrue = [3.0]
+udata = ca.DMatrix(0.1*pl.random(N))
 
-sim_true = cp.sim.Simulation(system, ptrue) 
+ydata = pl.zeros((x.shape[0], N+1))
+
+sim_true = cp.sim.Simulation(system, (p_true / scale) )
 
 sim_true.run_system_simulation(time_points = time_points, \
     x0 = ydata[:, 0], udata = udata)
 
-# pl.figure()
-# pl.plot(time_points, pl.squeeze(sim_true.simulation_results[0,:]))
-# pl.plot(time_points, pl.squeeze(sim_true.simulation_results[1,:]))
-# pl.show()
+# lsqpe_sim = pecas.LSq( \
+#     system = odesys, tu = tu, \
+#     uN = uN, \
+#     pinit = p_guess, \
+#     xinit = yN, 
+#     # linear_solver = "ma97", \
+#     yN = yN, wv = wv)
+
+# lsqpe_sim.run_simulation(x0 = [0.0, 0.0], psim = p_true/scale)
 
 p_test = []
 
-sigma = 0.1
+sigma = 0.01
 wv = (1. / sigma**2) * pl.ones(ydata.shape)
-
 
 repetitions = 100
 
@@ -65,19 +59,25 @@ for k in range(repetitions):
     y_randn = sim_true.simulation_results + \
         sigma * (pl.randn(*sim_true.simulation_results.shape))
 
-    pe_test = cp.pe.LSq(system = system, time_points = time_points,
-        udata = udata, xinit = y_randn, ydata = y_randn, wv = wv, pinit = 1)
+    pe_test = cp.pe.LSq(system = system, time_points = time_points, \
+    udata = udata, pinit = p_guess, \
+    xinit = y_randn, ydata = y_randn, wv = wv) #, \
+    # linear_solver = "ma97")
 
     pe_test.run_parameter_estimation()
 
     p_test.append(pe_test.estimated_parameters)
 
 
-p_mean = pl.mean(p_test)
-p_std = pl.std(p_test, ddof=0)
+p_mean = []
+p_std = []
+
+for j, e in enumerate(p_true):
+
+    p_mean.append(pl.mean([k[j] for k in p_test]))
+    p_std.append(pl.std([k[j] for k in p_test], ddof = 0))
 
 pe_test.compute_covariance_matrix()
-pe_test.print_estimation_results()
 
 
 # Generate report
@@ -115,7 +115,7 @@ and compare to single covariance matrix computation done in PECas.
 
 ''')
 
-prob = "ODE, 2 states, 1 control, 1 param, (pendulum)"
+prob = "ODE, 2 states, 1 control, 1 param, (silverbox)"
 report.write(prob)
 report.write("\n" + "-" * len(prob) + "\n\n.. code-block:: python")
 
@@ -132,13 +132,14 @@ report.write( \
 
     Particularly, the system has:
         1 inputs u
-        1 parameters p
+        4 parameters p
         2 states x
         2 outputs phi
 
     Where xdot is defined by: 
     xdot[0] = x[1]
-    xdot[1] = (((p/9)*(u-x[0]))-(3.27*sin(x[0])))
+    xdot[1] = ((((u-(p[3]*pow(x[0],3)))-(p[2]*x[0]))- 
+        ((0.0001*p[1])*x[1]))/(1e-06*p[0]))
 
     And where phi is defined by: 
     y[0] = x[0]
@@ -150,21 +151,18 @@ report.write("\n**Test results:**\n\n.. code-block:: python")
 report.write("\n\n    repetitions    = " + str(repetitions))
 report.write("\n    sigma          = " + str(sigma))
 
-report.write("\n\n    p_true         = " + str(ca.DMatrix(ptrue)))
+report.write("\n\n    p_orig         = " + str(ca.DMatrix(p_true/scale)))
 report.write("\n\n    p_mean         = " + str(ca.DMatrix(p_mean)))
-report.write("\n    phat_last_exp  = " + \
-    str(ca.DMatrix(pe_test.estimated_parameters)))
+report.write("\n    phat_last_exp  = " + str(ca.DMatrix(lsqpe_test.phat)))
 
 report.write("\n\n    p_sd           = " + str(ca.DMatrix(p_std)))
-report.write("\n    sd_from_covmat = " \
-    + str(ca.diag(ca.sqrt(pe_test.covariance_matrix))))
-report.write("\n    beta           = " + str(pe_test.beta))
+report.write("\n    sd_from_covmat = " + str(ca.diag(ca.sqrt(lsqpe_test.Covp))))
+report.write("\n    beta           = " + str(lsqpe_test.beta))
 
 report.write("\n\n    delta_abs_sd   = " + str(ca.fabs(ca.DMatrix(p_std) - \
-    ca.diag(ca.sqrt(pe_test.covariance_matrix)))))
+    ca.diag(ca.sqrt(lsqpe_test.Covp)))))
 report.write("\n    delta_rel_sd   = " + str(ca.fabs(ca.DMatrix(p_std) - \
-    ca.diag(ca.sqrt(pe_test.covariance_matrix))) / ca.DMatrix(p_std)) \
-    + "\n")
+    ca.diag(ca.sqrt(lsqpe_test.Covp))) / ca.DMatrix(p_std)) + "\n")
 
 report.close()
 
