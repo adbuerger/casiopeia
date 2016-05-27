@@ -175,3 +175,8 @@ def det(inputobj):
 def diagcat(inputobj):
 
     return ca.diagcat(inputobj)
+
+
+def mx_ones(dim1, dim2):
+
+    return ca.MX.ones(dim1, dim2)
