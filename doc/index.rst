@@ -30,7 +30,7 @@ Casadi Interface for Optimum experimental design and Parameter Estimation and Id
 
 `casiopeia <https://github.com/adbuerger/casiopeia>`_ holds a user-friendly environment for optimum experimental design and parameter estimation and identification applications. It does so by providing Python classes that can be initialized with the problem specifications, while the computations can then easily be performed using the available class functions.
 
-casiopeia makes use of the optimization framework
+casiopeia uses the optimization framework
 `CasADi <http://casadi.org>`_ to solve the resulting optimization problems.
 
 .. note:: casiopeia is still in it's testing state, and does not yet contain all the features it will provide in future versions. Therefore, you should check for updates on a regular basis.
