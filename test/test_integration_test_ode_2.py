@@ -160,6 +160,11 @@ class IntegrationTestODE2(unittest.TestCase):
             umin = self.umin_doe, umax = self.umax_doe, \
             xmin = self.xmin_doe, xmax = self.xmax_doe)
 
+        doe.print_initial_experimental_properties()
+
+        self.assertRaises(AttributeError, \
+            doe.print_optimized_experimental_properties)
+
         # assertRaises only accepts callables, see e. g.:
         # http://stackoverflow.com/questions/1274047/why-isnt-assertraises-
         # catching-my-attribute-error-using-python-unittest
@@ -171,6 +176,8 @@ class IntegrationTestODE2(unittest.TestCase):
         self.assertRaises(AttributeError, no_doe_results_test, doe)
 
         doe.run_experimental_design()
+
+        doe.print_optimized_experimental_properties()
 
         assert_array_almost_equal(doe.optimized_controls, \
             self.design_results, decimal = 4)
