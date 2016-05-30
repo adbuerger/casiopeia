@@ -88,7 +88,8 @@ pe = cp.pe.LSq( \
     ydata = ydata, wv = wv, \
     discretization_method = "collocation")
 
-pe.run_parameter_estimation({"linear_solver": "ma27"})
+# pe.run_parameter_estimation({"linear_solver": "ma27"})
+pe.run_parameter_estimation()
 pe.print_estimation_results()
 
 pe.compute_covariance_matrix()

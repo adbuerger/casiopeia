@@ -80,4 +80,4 @@ mdoe = cp.doe.MultiDoE(doe_setups)
 # mdoe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
 mdoe.run_experimental_design()
 
-# pl.savetxt("results_2d_vehicle_doe_coll.txt", doe.design_results["x"])
+# pl.savetxt("results_2d_vehicle_multi_doe.txt", doe.design_results["x"])
