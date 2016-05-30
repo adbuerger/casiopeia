@@ -148,6 +148,93 @@ Possible values are "A" and "D".
         '''
 
 
+    def _plot_confidence_ellipsoids(self, pdata, properties = "initial"):
+
+        r'''
+        :param properties: Set whether the experimental properties for the
+                           initial setup ("initial", default), the optimized setup
+                           ("optimized") or for both setups ("all") shall be
+                           plotted. In the later case, both ellipsoids for one
+                           pair of parameters will be displayed within one plot
+                           to provide quality evaluation possibilities.
+
+                           Since the number of plots is possibly big, all plots
+                           will be saved within a folder "confidence_ellipsoids"
+                           in you current working directory, rather than
+                           being displayed directly.
+        :type properties: str
+
+        '''
+
+        if properties == "initial":
+
+            covariance_matrix = {"initial": self.covariance_matrix_initial}
+
+        elif properties == "optimized":
+
+            covariance_matrix = {"optimized": self.covariance_matrix_optimized}
+
+        elif properties == "all":
+
+            covariance_matrix = {"initial" : self._covariance_matrix_initial, \
+                "optimized" : self._covariance_matrix_optimized}
+
+        else:
+
+            raise ValueError('''
+Input-value not supported, choose either "initial", "final", or "all".
+''')
+
+        plotting_directory = "confidence_ellipsoids_" + \
+                os.path.basename(__main__.__file__).strip(".py")
+
+        try:
+            os.mkdir(plotting_directory)
+
+        except OSError:
+            if not os.path.isdir(plotting_directory):
+
+                raise OSError('''
+Plotting directory "confidence_ellipsoids_{0}"
+does not yet exist, but could not be created.
+
+Do you have write access within your working folder, or is
+some file with this name already present within your working folder?
+'''.format(plotting_directory))
+
+        xy = np.array([np.cos(np.linspace(0, 2*np.pi, 100)), 
+            np.sin(np.linspace(0, 2*np.pi, 100))])
+
+        for p1 in range(pdata.size):
+
+            for p2 in range(pdata.size)[p1+1:]:
+
+                plt.figure()
+
+                for prop, cm in covariance_matrix.iteritems():
+
+                    covariance_matrix_p1p2 = np.array([ \
+
+                            [cm[p1, p1], cm[p1, p2]], \
+                            [cm[p2, p1], cm[p2, p2]]
+
+                        ])
+
+                    w, v = np.linalg.eig(covariance_matrix_p1p2)
+
+                    ellipsoid = ci.repmat(np.array([pdata[p1], pdata[p2]]), 1, 100) + \
+                        ci.mul([v, ci.diag(w), xy])
+
+                    plt.plot(ellipsoid[0,:].T, ellipsoid[1,:].T, label = \
+                        "p_" + str(p1) + ", p_" + str(p2) + " " + prop)
+                
+                plt.scatter(pdata[p1], pdata[p2], color = "k")    
+                plt.legend(loc="upper right")                
+                plt.savefig(plotting_directory + "/p_" + str(p1) + \
+                    "-p_" + str(p2) + "-" + properties + ".png", bbox_inches='tight')
+                plt.close()
+
+
     def print_initial_experimental_properties(self):
 
         r'''
@@ -230,93 +317,6 @@ Optimum experimental design finished. Check IPOPT output for status information.
         print("\nFinal experimental properties:")
 
         self._print_experimental_properties(self.covariance_matrix_optimized)
-
-
-    def plot_confidence_ellipsoids(self, properties = "initial"):
-
-        r'''
-        :param properties: Set whether the experimental properties for the
-                           initial setup ("initial"), the optimized setup
-                           ("optimized") or for both setups ("all") shall be
-                           plotted. In the later case, both ellipsoids for one
-                           pair of parameters will be displayed within one plot
-                           to provide quality evaluation possibilities.
-
-                           Since the number of plots is possibly big, all plots
-                           will be saved within a folder "confidence_ellipsoids"
-                           in you current working directory, rather than
-                           being displayed directly.
-        :type properties: str
-
-        '''
-
-        if properties == "initial":
-
-            covariance_matrix = {"initial": self.covariance_matrix_initial}
-
-        elif properties == "optimized":
-
-            covariance_matrix = {"optimized": self.covariance_matrix_optimized}
-
-        elif properties == "all":
-
-            covariance_matrix = {"initial" : self._covariance_matrix_initial, \
-                "optimized" : self._covariance_matrix_optimized}
-
-        else:
-
-            raise ValueError('''
-Input-value not supported, choose either "initial", "final", or "all".
-''')
-
-        plotting_directory = "confidence_ellipsoids_" + \
-                os.path.basename(__main__.__file__).strip(".py")
-
-        try:
-            os.mkdir(plotting_directory)
-
-        except OSError:
-            if not os.path.isdir(plotting_directory):
-
-                raise OSError('''
-Plotting directory "confidence_ellipsoids_{0}"
-does not yet exist, but could not be created.
-
-Do you have write access within your working folder, or is
-some file with this name already present within your working folder?
-'''.format(plotting_directory))
-
-        xy = np.array([np.cos(np.linspace(0, 2*np.pi, 100)), 
-            np.sin(np.linspace(0, 2*np.pi, 100))])
-
-        for p1 in range(self._pdata.size):
-
-            for p2 in range(self._pdata.size)[p1+1:]:
-
-                plt.figure()
-
-                for prop, cm in covariance_matrix.iteritems():
-
-                    covariance_matrix_p1p2 = np.array([ \
-
-                            [cm[p1, p1], cm[p1, p2]], \
-                            [cm[p2, p1], cm[p2, p2]]
-
-                        ])
-
-                    w, v = np.linalg.eig(covariance_matrix_p1p2)
-
-                    ellipsoid = ci.repmat(np.array([self._pdata[p1], self._pdata[p2]]), 1, 100) + \
-                        ci.mul([v, ci.diag(w), xy])
-
-                    plt.plot(ellipsoid[0,:].T, ellipsoid[1,:].T, label = \
-                        "p_" + str(p1) + ", p_" + str(p2) + " " + prop)
-                
-                plt.scatter(self._pdata[p1], self._pdata[p2], color = "k")    
-                plt.legend(loc="upper right")                
-                plt.savefig(plotting_directory + "/p_" + str(p1) + \
-                    "-p_" + str(p2) + "-" + properties + ".png", bbox_inches='tight')
-                plt.close()
 
 
 class DoE(DoEProblem):
@@ -440,7 +440,7 @@ but will be in future versions.
         self.simulation = Simulation(self._discretization.system, \
             self._pdata, qinit)
         self.simulation.run_system_simulation(x0, \
-            self._discretization.time_points, uinit)
+            self._discretization.time_points, uinit, print_status = False)
         xinit = self.simulation.simulation_results
 
         repretitions_xinit = \
@@ -975,6 +975,16 @@ but will be in future versions.
             [covariance_matrix_optimized_input])[0]
 
 
+    def plot_confidence_ellipsoids(self, properties = "initial"):
+
+        r'''
+        parent:
+        '''
+
+        self._plot_confidence_ellipsoids(pdata = self._pdata, \
+            properties = properties)
+
+
 class MultiDoE(DoEProblem):
 
     __metaclass__ = ABCMeta
@@ -1206,6 +1216,16 @@ class MultiDoE(DoEProblem):
 
         self._covariance_matrix_optimized = self._covariance_matrix_fcn( \
             [covariance_matrix_optimized_input])[0]
+
+
+    def plot_confidence_ellipsoids(self, properties = "initial"):
+
+        r'''
+        parent:
+        '''
+
+        self._plot_confidence_ellipsoids(pdata = self._doe_setups[0]._pdata, \
+            properties = properties)
 
 
 class MultiDoESingleKKT(MultiDoE):

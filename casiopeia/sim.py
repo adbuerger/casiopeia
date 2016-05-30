@@ -133,7 +133,7 @@ can be accessed, please run run_system_simulation() first.
 
 
     def run_system_simulation(self, x0, time_points, udata = None, \
-        integrator_options = {}):
+        integrator_options = {}, print_status = True):
 
         r'''
         :param x0: state values :math:`x_0 \in \mathbb{R}^{\text{n}_\text{x}}`
@@ -154,6 +154,10 @@ can be accessed, please run run_system_simulation() first.
                                    integrator (see the CasADi documentation
                                    for a list of all possible options)
         :type integrator_options: dict
+
+        :param print_status: optional, set to True (default) or False to
+                                       enable or disable console printing.
+        :type print_status: bool
 
         This function will run a system simulation for the specified initial
         state values and control data from :math:`t_0` to
