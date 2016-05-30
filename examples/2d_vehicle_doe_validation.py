@@ -57,7 +57,7 @@ ydata = data[200:600:5, [2, 4, 6, 8]]
 
 uinit = data[200:600:5, [9, 10]][:-1, :]
 
-data_opt = pl.loadtxt("2d_vehicle_doe_correct_coll_ma57_20160105_bounded_bigger.txt")
+data_opt = pl.loadtxt("results_2d_vehicle_doe_coll.txt")
 uopt = data_opt[:158].reshape(-1, 2)
 
 pdata = [0.273408, 11.5602, 2.45652, 7.90959, -0.44353, -0.249098]
