@@ -26,7 +26,7 @@ The following sample applications give hands-on impressions on how to use casiop
 Parameter estimation for a Lotka-Volterra predator-prey-model
 -------------------------------------------------------------
 
-The aim of the application `lotka_volterra.py <https://github.com/adbuerger/casiopeia/blob/master/examples/lotka_volterra.py>`_ is to estimate the unknown parameters of a Lotka-Volterra predator-prey-model for experimentally received measurement data and given standard deviations for the measurements [#f1]_. The predator-prey-model is an ODE of the form :math:`\dot{x} = f(x,p)`, given by
+The aim of the application `lotka_volterra.py <https://github.com/adbuerger/casiopeia/blob/master/examples/lotka_volterra_pe.py>`_ is to estimate the unknown parameters of a Lotka-Volterra predator-prey-model for experimentally received measurement data and given standard deviations for the measurements [#f1]_. The predator-prey-model is an ODE of the form :math:`\dot{x} = f(x,p)`, given by
 
 .. math::
 
@@ -65,7 +65,7 @@ The results for the system simulation using the estimated parameters in comparis
 Parameter estimation for a pendulum model
 -----------------------------------------
 
-The aim of the application `pendulum.py <https://github.com/adbuerger/casiopeia/blob/master/examples/pendulum.py>`_ is to estimate the spring constant :math:`k` of a pendulum model for experimentally received measurement data [#f2]_. The pendulum model is an ODE of the form :math:`\dot{x} = f(x,u,p)`, given by
+The aim of the application `pendulum.py <https://github.com/adbuerger/casiopeia/blob/master/examples/pendulum_pe.py>`_ is to estimate the spring constant :math:`k` of a pendulum model for experimentally received measurement data [#f2]_. The pendulum model is an ODE of the form :math:`\dot{x} = f(x,u,p)`, given by
 
 .. math::
 
