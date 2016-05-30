@@ -30,4 +30,5 @@ Optimum experimental design of single experiments
 Optimum experimental design of multiple experiments
 ---------------------------------------------------
 
-to be announced
+.. autoclass:: casiopeia.doe.MultiDoE
+    :members:

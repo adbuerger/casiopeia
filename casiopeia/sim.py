@@ -155,7 +155,7 @@ can be accessed, please run run_system_simulation() first.
                                    for a list of all possible options)
         :type integrator_options: dict
 
-        :param print_status: optional, set to True (default) or False to
+        :param print_status: optional, set to ``True`` (default) or ``False`` to
                                        enable or disable console printing.
         :type print_status: bool
 

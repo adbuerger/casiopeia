@@ -150,22 +150,6 @@ Possible values are "A" and "D".
 
     def _plot_confidence_ellipsoids(self, pdata, properties = "initial"):
 
-        r'''
-        :param properties: Set whether the experimental properties for the
-                           initial setup ("initial", default), the optimized setup
-                           ("optimized") or for both setups ("all") shall be
-                           plotted. In the later case, both ellipsoids for one
-                           pair of parameters will be displayed within one plot
-                           to provide quality evaluation possibilities.
-
-                           Since the number of plots is possibly big, all plots
-                           will be saved within a folder "confidence_ellipsoids"
-                           in you current working directory, rather than
-                           being displayed directly.
-        :type properties: str
-
-        '''
-
         if properties == "initial":
 
             covariance_matrix = {"initial": self.covariance_matrix_initial}
@@ -321,7 +305,7 @@ Optimum experimental design finished. Check IPOPT output for status information.
 
 class DoE(DoEProblem):
 
-    '''The class :class:`casiopeia.pe.DoE` is used to set up
+    '''The class :class:`casiopeia.doe.DoE` is used to set up
     Design-of-Experiments-problems for systems defined with the
     :class:`casiopeia.system.System` class.
 
@@ -978,14 +962,25 @@ but will be in future versions.
     def plot_confidence_ellipsoids(self, properties = "initial"):
 
         r'''
-        parent:
+        :param properties: Set whether the experimental properties for the
+                           initial setup ("initial", default), the optimized setup
+                           ("optimized") or for both setups ("all") shall be
+                           plotted. In the later case, both ellipsoids for one
+                           pair of parameters will be displayed within one plot.
+        :type properties: str
+
+        Plot confidence ellipsoids for all parameter pairs. 
+        Since the number of plots is possibly big, all plots will be saved
+        within a folder *confidence_ellipsoids_scriptname* in you current
+        working directory rather than being displayed directly.
+
         '''
 
         self._plot_confidence_ellipsoids(pdata = self._pdata, \
             properties = properties)
 
 
-class MultiDoE(DoEProblem):
+class MultiDoEProblem(DoEProblem):
 
     __metaclass__ = ABCMeta
 
@@ -1221,14 +1216,25 @@ class MultiDoE(DoEProblem):
     def plot_confidence_ellipsoids(self, properties = "initial"):
 
         r'''
-        parent:
+        :param properties: Set whether the experimental properties for the
+                           initial setup ("initial", default), the optimized setup
+                           ("optimized") or for both setups ("all") shall be
+                           plotted. In the later case, both ellipsoids for one
+                           pair of parameters will be displayed within one plot.
+        :type properties: str
+
+        Plot confidence ellipsoids for all parameter pairs. 
+        Since the number of plots is possibly big, all plots will be saved
+        within a folder *confidence_ellipsoids_scriptname* in you current
+        working directory rather than being displayed directly.
+
         '''
 
         self._plot_confidence_ellipsoids(pdata = self._doe_setups[0]._pdata, \
             properties = properties)
 
 
-class MultiDoESingleKKT(MultiDoE):
+class MultiDoESingleKKT(MultiDoEProblem):
 
     def _merge_cov_matrix_derivative_directions(self):
 
@@ -1253,7 +1259,7 @@ class MultiDoESingleKKT(MultiDoE):
     def __init__(self, doe_setups = [], optimality_criterion = "A"):
 
         r'''
-        :param doe_setups: list of two or more objects of type :class:`casiopeia.pe.DoE`
+        :param doe_setups: list of two or more objects of type :class:`casiopeia.doe.DoE`
         :type doe_setups: list
 
         '''
@@ -1276,7 +1282,7 @@ class MultiDoESingleKKT(MultiDoE):
         self._setup_nlp()
 
 
-class MultiDoEMultiKKT(MultiDoE):
+class MultiDoEMultiKKT(MultiDoEProblem):
 
     def _setup_fisher_matrix(self):
 
@@ -1305,7 +1311,7 @@ class MultiDoEMultiKKT(MultiDoE):
     def __init__(self, doe_setups = [], optimality_criterion = "A"):
 
         r'''
-        :param doe_setups: list of two or more objects of type :class:`casiopeia.pe.DoE`
+        :param doe_setups: list of two or more objects of type :class:`casiopeia.doe.DoE`
         :type doe_setups: list
 
         '''
@@ -1324,3 +1330,28 @@ class MultiDoEMultiKKT(MultiDoE):
         self._apply_parameters_to_objective()
 
         self._setup_nlp()
+
+
+class MultiDoE(MultiDoEMultiKKT):
+
+    '''The class :class:`casiopeia.doe.MultiDoE` is used to construct a single
+    experimental design problem from multiple experimental design problems
+    defined via two or more objects of type :class:`casiopeia.doe.DoE`.
+
+    This provides the possibility to design multiple experiments within one
+    single optimization, so that the several experiments can focus on different
+    aspects of the system which in combination then yields more information
+    about the complete system.
+
+    Also, this functionality is in particular useful in case an experiment is
+    limited to only small variable bounds, small time horizons, highly
+    depends on the initialization of the system, or any other case when a single
+    experiment might not be enough to capture enough information about a system.
+
+    .. note::
+
+        It is assumed that the system description used for setting up
+        the several experimental design problems is the same!
+    '''
+
+    pass

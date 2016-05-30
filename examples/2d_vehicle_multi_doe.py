@@ -75,7 +75,7 @@ for k in range(2):
         umin = umin, umax = umax, \
         xmin = xmin, xmax = xmax))
 
-mdoe = cp.doe.MultiDoEMultiKKT(doe_setups)
+mdoe = cp.doe.MultiDoE(doe_setups)
 
 # mdoe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
 mdoe.run_experimental_design()

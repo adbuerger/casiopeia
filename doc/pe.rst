@@ -33,4 +33,3 @@ Parameter estimation from multiple experiments
 
 .. autoclass:: casiopeia.pe.MultiLSq
     :members:
-    :inherited-members:

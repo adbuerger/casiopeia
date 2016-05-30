@@ -774,9 +774,12 @@ class MultiLSq(PEProblem):
     :class:`casiopeia.pe.LSq`.
 
     In this way, the results of multiple independent experimental setups
-    can be used for parameter estimation. It is assumend though, that the
-    system description used for setting up the several parameter estimation
-    problems is the same.
+    can be used for parameter estimation.
+
+    .. note::
+
+        It is assumed that the system description used for setting up
+        the several parameter estimation problems is the same.
     '''
 
     @property
