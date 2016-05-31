@@ -172,7 +172,7 @@ Initial setup
 
 For this application, we assume that we are not bound to the previous race track to obtain measurements for the race car, but can drive the car on a rectangular mat of the racetrack's material. The controls are bounded by the maximum and minimum values of the controls measurements from `Parameter estimation for a model race car`_, as well as the states are bounded by their corresponding maximum and minimum values of the states measurements. The bounds are introduced to prevent the optimizer from creating unrealistic scenarios that could e. g. cause the race car to fall over when taking too sharp turns, which is not explicitly considered within the model.
 
-The previous parameter estimation results :math:`\hat{p}` from `Parameter estimation for a model race car`_ are used as a "guess" for the parameter values for the experimental design, and with this, to scale all parameter values within the optimization to 1.0 to prevent influences of the numerical values of the parameters on the optimization result. The control values from the previous estimation are used as initial guesses for the optimized controls. 
+The previous parameter estimation results :math:`\hat{p}` from `Parameter estimation for a model race car`_ are used as a "guess" for the parameter values for the experimental design, and with this, to scale all parameter values within the optimization to 1.0 to prevent influences of the numerical values of the parameters on the optimization result. A subset of the control values from the previous estimation is used as initial guesses for the optimized controls. 
 
 The quality of the initial experimental setup in terms of estimated standard deviations of the unknown parameters is evaluated as follows
 
