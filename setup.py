@@ -96,7 +96,7 @@ if on_rtd:
     setup(
 
         name='casiopeia',
-        version='0.1.1',
+        version='0.1.2',
 
         author='Adrian Buerger',
         author_email='adrian.buerger@hs-karlsruhe.de',
@@ -123,7 +123,7 @@ else:
 
     setup(
         name='casiopeia',
-        version='0.1.1',
+        version='0.1.2',
 
         author='Adrian Buerger',
         author_email='adrian.buerger@hs-karlsruhe.de',
