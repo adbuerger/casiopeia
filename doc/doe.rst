@@ -15,6 +15,7 @@
 .. You should have received a copy of the GNU Lesser General Public License
 .. along with casiopeia. If not, see <http://www.gnu.org/licenses/>.
 
+.. _doe:
 
 Optimum experimental design
 ===========================
@@ -26,6 +27,8 @@ Optimum experimental design of single experiments
 
 .. autoclass:: casiopeia.doe.DoE
     :members:
+
+.. _multidoe:
 
 Optimum experimental design of multiple experiments
 ---------------------------------------------------

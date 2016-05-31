@@ -28,6 +28,8 @@ Parameter estimation from single experiments
     :members:
     :inherited-members:
 
+.. _multipe:
+
 Parameter estimation from multiple experiments
 ----------------------------------------------
 
