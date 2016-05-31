@@ -58,7 +58,7 @@ Also, you might want to install the `Spyder IDE <https://pythonhosted.org/spyder
 CasADi
 ^^^^^^
 
-For casiopeia to work correctly, you need `CasADi <http://casadi.org>`_  version >= 2.4.2 but (for the moment) <= 3.x to be installed on your system. Installation instructions for CasADi can be found  `here <https://github.com/casadi/casadi/wiki/InstallationInstructions>`_. You can simply use `"Option 1: Download a binary installation" <https://github.com/casadi/casadi/wiki/InstallationInstructions#option-1-download-a-binary-installation-recommended>`_ and download and unpack e. g. `this archive <http://sourceforge.net/projects/casadi/files/CasADi/2.4.1/linux/casadi-py27-np1.9.1-v2.4.1.tar.gz/download>`_.
+For casiopeia to work correctly, you need `CasADi <http://casadi.org>`_  version >= 2.4.2 but (for the moment) <= 3.x to be installed on your system. Installation instructions for CasADi can be found  `here <https://github.com/casadi/casadi/wiki/InstallationInstructions>`_. You can simply use `"Option 1: Download a binary installation" <https://github.com/casadi/casadi/wiki/InstallationInstructions#option-1-download-a-binary-installation-recommended>`_ and download and unpack e. g. `this archive <http://sourceforge.net/projects/casadi/files/CasADi/2.4.2/linux/casadi-py27-np1.9.1-v2.4.2.tar.gz/download>`_.
 
 .. note:: Some plugins for CasADi require extra prerequisites to work on Linux. For a list of the required libraries and installation instructions, see `the corresponding section in the CasADi installation guide <https://github.com/casadi/casadi/wiki/linuxplugins>`_. If something goes wrong with executing CasADi and/or casiopeia, missing one or more of these libraries might be the reason.
 
