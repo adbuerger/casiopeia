@@ -31,19 +31,21 @@ x = ca.MX.sym("x", 4)
 p = ca.MX.sym("p", 6)
 u = ca.MX.sym("u", 2)
 
+pdata_scale = [0.273408, 11.5602, 2.45652, 7.90959, -0.44353, -0.249098]
+
 f = ca.vertcat( \
 
-    x[3] * pl.cos(x[2] + p[0] * u[0]),
+    x[3] * pl.cos(x[2] + pdata_scale[0] * p[0] * u[0]),
 
-    x[3] * pl.sin(x[2] + p[0] * u[0]),
+    x[3] * pl.sin(x[2] + pdata_scale[0] * p[0] * u[0]),
 
-    x[3] * u[0] * p[1],
+    x[3] * u[0] * pdata_scale[1] * p[1],
 
-    p[2] * u[1] \
-        - p[3] * u[1] * x[3] \
-        - p[4] * x[3]**2 \
-        - p[5] \
-        - (x[3] * u[0])**2 * p[1]* p[0])
+    pdata_scale[2] * p[2] * u[1] \
+        - pdata_scale[3] * p[3] * u[1] * x[3] \
+        - pdata_scale[4] * p[4] * x[3]**2 \
+        - pdata_scale[5] * p[5] \
+        - (x[3] * u[0])**2 * pdata_scale[1] * p[1]* pdata_scale[0] * p[0])
 
 phi = x
 
@@ -58,7 +60,7 @@ ydata = data[200:400:5, [2, 4, 6, 8]]
 
 uinit = data[200:400:5, [9, 10]][:-1, :]
 
-pdata = [0.273408, 11.5602, 2.45652, 7.90959, -0.44353, -0.249098]
+pdata = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
 umin = [-0.436332, -0.3216]
 umax = [0.436332, 1.0]
@@ -73,4 +75,4 @@ doe = cp.doe.DoE(system = system, time_points = time_points, \
 
 # doe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
 
-# pl.savetxt("results_2d_vehicle_doe_coll.txt", doe.design_results["x"])
+# pl.savetxt("results_2d_vehicle_doe.txt", doe.design_results["x"])

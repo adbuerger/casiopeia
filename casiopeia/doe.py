@@ -1210,7 +1210,7 @@ class MultiDoEProblem(DoEProblem):
             covariance_matrix_optimized_input)
 
         self._covariance_matrix_optimized = self._covariance_matrix_fcn( \
-            [covariance_matrix_optimized_input])[0]
+            covariance_matrix_optimized_input)
 
 
     def plot_confidence_ellipsoids(self, properties = "initial"):
