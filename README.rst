@@ -5,11 +5,11 @@ Casadi Interface for Optimum experimental design and Parameter Estimation and Id
 
 |travis| |coveralls| |rtd|
 
-.. |travis| image:: https://travis-ci.org/adbuerger/casiopeia.svg?branch=master
+.. |travis| image:: https://travis-ci.org/adbuerger/casiopeia.svg?branch=casadi_3.0
     :target: https://travis-ci.org/adbuerger/casiopeia
-    :alt: Travis CI build status master branch
+    :alt: Travis CI build status casadi_3.0 branch
 
-.. |coveralls| image:: https://coveralls.io/repos/github/adbuerger/casiopeia/badge.svg?branch=master
+.. |coveralls| image:: https://coveralls.io/repos/github/adbuerger/casiopeia/badge.svg?branch=casadi_3.0
     :target: https://coveralls.io/github/adbuerger/casiopeia?branch=master        
     :alt: Coverage Status
 
