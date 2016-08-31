@@ -1,6 +1,6 @@
-.. Copyright 2014-2016 Adrian Bürger
-..
 .. This file is part of casiopeia.
+..
+.. Copyright 2014-2016 Adrian Bürger, Moritz Diehl
 ..
 .. casiopeia is free software: you can redistribute it and/or modify
 .. it under the terms of the GNU Lesser General Public License as published by
@@ -58,7 +58,7 @@ Also, you might want to install the `Spyder IDE <https://pythonhosted.org/spyder
 CasADi
 ^^^^^^
 
-For casiopeia to work correctly, a recent version of `CasADi <http://casadi.org>`_ (>= 2.4.0-rc2) needs to be installed on your system. Installation instructions for CasADi can be found  `here <https://github.com/casadi/casadi/wiki/InstallationInstructions>`_. You can simply use `"Option 1: Download a binary installation" <https://github.com/casadi/casadi/wiki/InstallationInstructions#option-1-download-a-binary-installation-recommended>`_ and download and unpack e. g. `this archive <http://sourceforge.net/projects/casadi/files/CasADi/2.4.1/linux/casadi-py27-np1.9.1-v2.4.1.tar.gz/download>`_.
+For casiopeia to work correctly, you need `CasADi <http://casadi.org>`_  version >= 3.x to be installed on your system. Installation instructions for CasADi can be found  `here <https://github.com/casadi/casadi/wiki/InstallationInstructions>`_.
 
 .. note:: Some plugins for CasADi require extra prerequisites to work on Linux. For a list of the required libraries and installation instructions, see `the corresponding section in the CasADi installation guide <https://github.com/casadi/casadi/wiki/linuxplugins>`_. If something goes wrong with executing CasADi and/or casiopeia, missing one or more of these libraries might be the reason.
 
@@ -214,7 +214,7 @@ The easiest way to meet the prerequesites for casiopeia and CasADi on a Windows 
 CasADi
 ^^^^^^
 
-After installing Python(x,y), a recent version of `CasADi <http://casadi.org>`_ (>= 2.4.0-rc2) needs to be installed on your system. Installation instructions for CasADi can be found  `here <https://github.com/casadi/casadi/wiki/InstallationInstructions>`_. You can simpy use `"Option 1: Download a binary installation" <https://github.com/casadi/casadi/wiki/InstallationInstructions#option-1-download-a-binary-installation-recommended>`_ and download and unpack e. g. `this archive <http://sourceforge.net/projects/casadi/files/CasADi/2.4.1/windows/casadi-py27-np1.9.1-v2.4.1.zip/download>`_, which is compatible with the previous Python(x,y) installation.
+For casiopeia to work correctly, you need `CasADi <http://casadi.org>`_  version >= 3.x to be installed on your system. Installation instructions for CasADi can be found  `here <https://github.com/casadi/casadi/wiki/InstallationInstructions>`_.
 
 After unpacking the archive, go to :code:`My Computer > Properties > Advanced System Settings > Environment Variables`. If a variable :code:`PYTHONPATH` already exists, apply the full path to the CasADi folder to the end of the variable value, and separate this new path from the ones already contained by :code:`;`. If :code:`PYTHONPATH` does not yet exist on the system, create a new environmental variable with this name, and fill in the path to the unpacked CasADi folder.
 

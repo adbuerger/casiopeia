@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014-2016 Adrian Bürger
-#
 # This file is part of casiopeia.
+#
+# Copyright 2014-2016 Adrian Bürger, Moritz Diehl
 #
 # casiopeia is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -79,6 +79,21 @@ can be accessed, please run run_parameter_estimation() first.
             raise AttributeError('''
 A parameter estimation has to be executed before the estimated parameters
 can be accessed, please run run_parameter_estimation() first.
+''')
+
+
+    @property
+    def beta(self):
+
+        try:
+
+            return self._beta
+
+        except AttributeError:
+
+            raise AttributeError('''
+Beta-factor for the parameter estimation not yet computed.
+Run compute_covariance_matrix() to do so.
 ''')
 
 
@@ -320,8 +335,13 @@ this might take some time ...''')
 
         self._covariance_matrix = CovarianceMatrix(fisher_matrix.fisher_matrix)
 
-        self._beta = setup_covariance_matrix_scaling_factor_beta( \
+        beta = setup_covariance_matrix_scaling_factor_beta( \
             self._constraints, self._optimization_variables, self._residuals)
+
+        beta_fcn = ci.mx_function("beta_fcn", \
+            [self._optimization_variables], [beta])
+
+        self._beta = beta_fcn(self.estimation_results["x"])
 
         self._covariance_matrix_scaled = self._beta * \
             self._covariance_matrix.covariance_matrix

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014-2016 Adrian Bürger
-#
 # This file is part of casiopeia.
+#
+# Copyright 2014-2016 Adrian Bürger, Moritz Diehl
 #
 # casiopeia is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -75,8 +75,8 @@ for k in range(2):
         umin = umin, umax = umax, \
         xmin = xmin, xmax = xmax))
 
-mdoe = cp.doe.MultiDoEMultiKKT(doe_setups)
+mdoe = cp.doe.MultiDoE(doe_setups)
 
 mdoe.run_experimental_design(solver_options = {"ipopt.linear_solver": "ma86"})
 
-# pl.savetxt("results_2d_vehicle_doe_coll.txt", doe.design_results["x"])
+# pl.savetxt("results_2d_vehicle_multi_doe.txt", doe.design_results["x"])

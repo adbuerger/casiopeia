@@ -8,3 +8,4 @@ files.txt
 *.lprof
 *.coverage
 *.ipynb_checkpoints/
+examples_other/

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014-2016 Adrian Bürger
-#
 # This file is part of casiopeia.
+#
+# Copyright 2014-2016 Adrian Bürger, Moritz Diehl
 #
 # casiopeia is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -159,6 +159,11 @@ class IntegrationTestODE2(unittest.TestCase):
             x0 = self.ydata_doe[0,:], \
             umin = self.umin_doe, umax = self.umax_doe, \
             xmin = self.xmin_doe, xmax = self.xmax_doe)
+
+        doe.print_initial_experimental_properties()
+
+        self.assertRaises(AttributeError, \
+            doe.print_optimized_experimental_properties)
 
         # assertRaises only accepts callables, see e. g.:
         # http://stackoverflow.com/questions/1274047/why-isnt-assertraises-

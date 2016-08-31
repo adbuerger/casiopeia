@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014-2016 Adrian Bürger
-#
 # This file is part of casiopeia.
+#
+# Copyright 2014-2016 Adrian Bürger, Moritz Diehl
 #
 # casiopeia is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -100,7 +100,7 @@ class System(unittest.TestCase):
         sys = casiopeia.system.System(t = self.t, u = self.u, q = self.q, \
             p = self.p, x = self.x, eps_e = self.eps_e, eps_u = self.eps_u, \
             phi = self.phi, f = self.f, g = self.g)
-
+        
         self.assertEqual(sys.nu, self.u.numel())
         self.assertEqual(sys.nq, self.q.numel())
         self.assertEqual(sys.np, self.p.numel())

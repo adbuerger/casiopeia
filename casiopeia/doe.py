@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014-2016 Adrian Bürger
-#
 # This file is part of casiopeia.
+#
+# Copyright 2014-2016 Adrian Bürger, Moritz Diehl
 #
 # casiopeia is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,10 @@
 experimental design.'''
 
 import numpy as np
+import matplotlib.pyplot as plt
 import time
+import __main__
+import os
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 
@@ -64,6 +67,33 @@ class DoEProblem(object):
 An experimental design has to be executed before the design results
 can be accessed, please run run_experimental_design() first.
 ''')
+
+    @property
+    def covariance_matrix_initial(self):
+
+        try:
+
+            return self._covariance_matrix_initial
+
+        except AttributeError:
+
+            self._compute_initial_covariance_matrix()
+
+        return self._covariance_matrix_initial
+
+
+    @property
+    def covariance_matrix_optimized(self):
+
+        try:
+
+            return self._covariance_matrix_optimized
+
+        except AttributeError:
+
+            self._compute_optimized_covariance_matrix()
+
+        return self._covariance_matrix_optimized
 
 
     def _set_optimiality_criterion(self, optimality_criterion):
@@ -118,6 +148,89 @@ Possible values are "A" and "D".
         '''
 
 
+    def _plot_confidence_ellipsoids(self, pdata, properties = "initial"):
+
+        if properties == "initial":
+
+            covariance_matrix = {"initial": self.covariance_matrix_initial}
+
+        elif properties == "optimized":
+
+            covariance_matrix = {"optimized": self.covariance_matrix_optimized}
+
+        elif properties == "all":
+
+            covariance_matrix = {"initial" : self._covariance_matrix_initial, \
+                "optimized" : self._covariance_matrix_optimized}
+
+        else:
+
+            raise ValueError('''
+Input-value not supported, choose either "initial", "final", or "all".
+''')
+
+        plotting_directory = "confidence_ellipsoids_" + \
+                os.path.basename(__main__.__file__).strip(".py")
+
+        try:
+            os.mkdir(plotting_directory)
+
+        except OSError:
+            if not os.path.isdir(plotting_directory):
+
+                raise OSError('''
+Plotting directory "confidence_ellipsoids_{0}"
+does not yet exist, but could not be created.
+
+Do you have write access within your working folder, or is
+some file with this name already present within your working folder?
+'''.format(plotting_directory))
+
+        xy = np.array([np.cos(np.linspace(0, 2*np.pi, 100)), 
+            np.sin(np.linspace(0, 2*np.pi, 100))])
+
+        for p1 in range(pdata.size):
+
+            for p2 in range(pdata.size)[p1+1:]:
+
+                plt.figure()
+
+                for prop, cm in covariance_matrix.iteritems():
+
+                    covariance_matrix_p1p2 = np.array([ \
+
+                            [cm[p1, p1], cm[p1, p2]], \
+                            [cm[p2, p1], cm[p2, p2]]
+
+                        ])
+
+                    w, v = np.linalg.eig(covariance_matrix_p1p2)
+
+                    ellipsoid = ci.repmat(np.array([pdata[p1], pdata[p2]]), 1, 100) + \
+                        ci.mul([v, ci.diag(w), xy])
+
+                    plt.plot(ellipsoid[0,:].T, ellipsoid[1,:].T, label = \
+                        "p_" + str(p1) + ", p_" + str(p2) + " " + prop)
+                
+                plt.scatter(pdata[p1], pdata[p2], color = "k")    
+                plt.legend(loc="upper right")                
+                plt.savefig(plotting_directory + "/p_" + str(p1) + \
+                    "-p_" + str(p2) + "-" + properties + ".png", bbox_inches='tight')
+                plt.close()
+
+
+    def print_initial_experimental_properties(self):
+
+        r'''
+        Print the standard deviations and the covariance matrix for the initial
+        experimental setup, i. e. before optimization.
+        '''
+
+        print("\nInitial experimental properties:")
+
+        self._print_experimental_properties(self.covariance_matrix_initial)
+
+
     def run_experimental_design(self, solver_options = {}):
 
         r'''
@@ -148,6 +261,8 @@ Possible values are "A" and "D".
         print('\n' + '# ' +  18 * '-' + \
             ' casiopeia optimum experimental design ' + 17 * '-' + ' #')
 
+        self.print_initial_experimental_properties()
+
         print('''
 Starting optimum experimental design using IPOPT, 
 this might take some time ...
@@ -168,15 +283,29 @@ this might take some time ...
 Optimum experimental design finished. Check IPOPT output for status information.
 ''')
 
-        self._tend_optimum_experimental_deisng = time.time()
+        self.print_optimized_experimental_properties()
+
+        self._tend_optimum_experimental_design = time.time()
         self._duration_optimum_experimental_design = \
-            self._tend_optimum_experimental_deisng - \
+            self._tend_optimum_experimental_design - \
             self._tstart_optimum_experimental_design
+
+
+    def print_optimized_experimental_properties(self):
+
+        r'''
+        Print the standard deviations and the covariance matrix for the
+        optimized experimental setup.
+        '''
+
+        print("\nFinal experimental properties:")
+
+        self._print_experimental_properties(self.covariance_matrix_optimized)
 
 
 class DoE(DoEProblem):
 
-    '''The class :class:`casiopeia.pe.DoE` is used to set up
+    '''The class :class:`casiopeia.doe.DoE` is used to set up
     Design-of-Experiments-problems for systems defined with the
     :class:`casiopeia.system.System` class.
 
@@ -295,7 +424,7 @@ but will be in future versions.
         self.simulation = Simulation(self._discretization.system, \
             self._pdata, qinit)
         self.simulation.run_system_simulation(x0, \
-            self._discretization.time_points, uinit)
+            self._discretization.time_points, uinit, print_status = False)
         xinit = self.simulation.simulation_results
 
         repretitions_xinit = \
@@ -516,6 +645,22 @@ but will be in future versions.
 
         self._gauss_newton_lagrangian_hessian = ci.diag( \
             gauss_newton_lagrangian_hessian_diag)
+
+
+    def _setup_covariance_matrix_for_evaluation(self):
+
+        covariance_matrix_free_variables = ci.veccat([ \
+
+                self._discretization.optimization_variables["P"],
+                self._discretization.optimization_variables["U"],
+                self._discretization.optimization_variables["Q"],
+                self._discretization.optimization_variables["X"],
+
+            ])
+
+        self._covariance_matrix_fcn = ci.mx_function("covariance_matrix_fcn", \
+            [covariance_matrix_free_variables], \
+            [self._covariance_matrix.covariance_matrix])
 
 
     def _apply_parameters_to_objective(self):
@@ -758,6 +903,8 @@ but will be in future versions.
 
         self._setup_covariance_matrix()
 
+        self._setup_covariance_matrix_for_evaluation()
+
         self._set_optimiality_criterion(optimality_criterion)
 
         self._setup_objective()
@@ -767,7 +914,73 @@ but will be in future versions.
         self._setup_nlp()
 
 
-class MultiDoE(DoEProblem):
+    def _print_experimental_properties(self, covariance_matrix):
+
+        np.set_printoptions(linewidth = 200, \
+            formatter={'float': lambda x: format(x, ' 10.8e')})
+
+        print("\nParameters p_i:")
+
+        for k, pk in enumerate(self._pdata):
+
+            print("    p_{0:<3} = {1} +/- {2}".format( \
+                 k, pk, ci.sqrt(abs(ci.diag(covariance_matrix)[k]))))
+
+        print("\nCovariance matrix for this setup:")
+
+        print(np.atleast_2d(covariance_matrix))
+
+
+    def _compute_initial_covariance_matrix(self):
+
+        covariance_matrix_initial_input = ci.veccat([ \
+
+                self._pdata,
+                self._optimization_variables_initials
+
+            ])
+
+
+        self._covariance_matrix_initial = self._covariance_matrix_fcn( \
+            covariance_matrix_initial_input)
+
+
+
+    def _compute_optimized_covariance_matrix(self):
+
+        covariance_matrix_optimized_input = ci.veccat([ \
+
+                self._pdata,
+                self.design_results["x"]
+
+            ])
+
+        self._covariance_matrix_optimized = self._covariance_matrix_fcn( \
+            covariance_matrix_optimized_input)
+
+
+    def plot_confidence_ellipsoids(self, properties = "initial"):
+
+        r'''
+        :param properties: Set whether the experimental properties for the
+                           initial setup ("initial", default), the optimized setup
+                           ("optimized") or for both setups ("all") shall be
+                           plotted. In the later case, both ellipsoids for one
+                           pair of parameters will be displayed within one plot.
+        :type properties: str
+
+        Plot confidence ellipsoids for all parameter pairs. 
+        Since the number of plots is possibly big, all plots will be saved
+        within a folder *confidence_ellipsoids_scriptname* in you current
+        working directory rather than being displayed directly.
+
+        '''
+
+        self._plot_confidence_ellipsoids(pdata = self._pdata, \
+            properties = properties)
+
+
+class MultiDoEProblem(DoEProblem):
 
     __metaclass__ = ABCMeta
 
@@ -869,6 +1082,25 @@ class MultiDoE(DoEProblem):
         self._constraints = ci.vertcat(constraints)
 
 
+    def _setup_covariance_matrix_for_evaluation(self):
+
+        covariance_matrix_free_variables = []
+
+        for doe_setup in self._doe_setups:
+
+            for key in ["P", "U", "Q", "X"]:
+
+                covariance_matrix_free_variables.append( \
+                    doe_setup._discretization.optimization_variables[key])
+
+        covariance_matrix_free_variables = ci.veccat( \
+            covariance_matrix_free_variables)
+
+        self._covariance_matrix_fcn = ci.mx_function("covariance_matrix_fcn", \
+            [covariance_matrix_free_variables], \
+            [self._covariance_matrix.covariance_matrix])
+
+
     def _apply_parameters_to_objective(self):
 
         objective_free_variables = []
@@ -921,7 +1153,88 @@ class MultiDoE(DoEProblem):
         self._set_optimiality_criterion(optimality_criterion)
 
 
-class MultiDoESingleKKT(MultiDoE):
+    def _print_experimental_properties(self, covariance_matrix):
+
+        np.set_printoptions(linewidth = 200, \
+            formatter={'float': lambda x: format(x, ' 10.8e')})
+
+        print("\nParameters p_i:")
+
+        for k, pk in enumerate(self._doe_setups[0]._pdata):
+
+            print("    p_{0:<3} = {1} +/- {2}".format( \
+                 k, pk, ci.sqrt(abs(ci.diag(covariance_matrix)[k]))))
+
+        print("\nCovariance matrix for this setup:")
+
+        print(np.atleast_2d(covariance_matrix))
+
+
+    def _compute_initial_covariance_matrix(self):
+
+        covariance_matrix_initial_input = []
+
+        for doe_setup in self._doe_setups:
+
+            covariance_matrix_initial_input.append(doe_setup._pdata)
+            covariance_matrix_initial_input.append( \
+                doe_setup._optimization_variables_initials)
+
+        covariance_matrix_initial_input = ci.veccat( \
+            covariance_matrix_initial_input)
+
+
+        self._covariance_matrix_initial = self._covariance_matrix_fcn( \
+            covariance_matrix_initial_input)
+
+
+    def _compute_optimized_covariance_matrix(self):
+
+        starting_position_design_results = 0
+
+        covariance_matrix_optimized_input = []
+
+        for doe_setup in self._doe_setups:
+
+            covariance_matrix_optimized_input.append(doe_setup._pdata)
+
+            covariance_matrix_optimized_input.append(self.design_results["x"][ \
+                starting_position_design_results : \
+                starting_position_design_results + \
+                doe_setup._optimization_variables.shape[0]])
+
+            starting_position_design_results += \
+                doe_setup._optimization_variables.shape[0]
+
+        covariance_matrix_optimized_input = ci.veccat( \
+            covariance_matrix_optimized_input)
+
+        self._covariance_matrix_optimized = self._covariance_matrix_fcn( \
+            [covariance_matrix_optimized_input])[0]
+
+
+    def plot_confidence_ellipsoids(self, properties = "initial"):
+
+        r'''
+        :param properties: Set whether the experimental properties for the
+                           initial setup ("initial", default), the optimized setup
+                           ("optimized") or for both setups ("all") shall be
+                           plotted. In the later case, both ellipsoids for one
+                           pair of parameters will be displayed within one plot.
+        :type properties: str
+
+        Plot confidence ellipsoids for all parameter pairs. 
+        Since the number of plots is possibly big, all plots will be saved
+        within a folder *confidence_ellipsoids_scriptname* in you current
+        working directory rather than being displayed directly.
+
+        '''
+
+        self._plot_confidence_ellipsoids(pdata = self._doe_setups[0]._pdata, \
+            properties = properties)
+
+
+class MultiDoESingleKKT(MultiDoEProblem):
 
     def _merge_cov_matrix_derivative_directions(self):
 
@@ -946,7 +1259,7 @@ class MultiDoESingleKKT(MultiDoE):
     def __init__(self, doe_setups = [], optimality_criterion = "A"):
 
         r'''
-        :param doe_setups: list of two or more objects of type :class:`casiopeia.pe.DoE`
+        :param doe_setups: list of two or more objects of type :class:`casiopeia.doe.DoE`
         :type doe_setups: list
 
         '''
@@ -960,6 +1273,8 @@ class MultiDoESingleKKT(MultiDoE):
 
         self._setup_covariance_matrix()
 
+        self._setup_covariance_matrix_for_evaluation()
+
         self._setup_objective()
 
         self._apply_parameters_to_objective()
@@ -967,7 +1282,7 @@ class MultiDoESingleKKT(MultiDoE):
         self._setup_nlp()
 
 
-class MultiDoEMultiKKT(MultiDoE):
+class MultiDoEMultiKKT(MultiDoEProblem):
 
     def _setup_fisher_matrix(self):
 
@@ -996,7 +1311,7 @@ class MultiDoEMultiKKT(MultiDoE):
     def __init__(self, doe_setups = [], optimality_criterion = "A"):
 
         r'''
-        :param doe_setups: list of two or more objects of type :class:`casiopeia.pe.DoE`
+        :param doe_setups: list of two or more objects of type :class:`casiopeia.doe.DoE`
         :type doe_setups: list
 
         '''
@@ -1008,8 +1323,35 @@ class MultiDoEMultiKKT(MultiDoE):
 
         self._setup_covariance_matrix()
 
+        self._setup_covariance_matrix_for_evaluation()
+
         self._setup_objective()
 
         self._apply_parameters_to_objective()
 
         self._setup_nlp()
+
+
+class MultiDoE(MultiDoEMultiKKT):
+
+    '''The class :class:`casiopeia.doe.MultiDoE` is used to construct a single
+    experimental design problem from multiple experimental design problems
+    defined via two or more objects of type :class:`casiopeia.doe.DoE`.
+
+    This provides the possibility to design multiple experiments within one
+    single optimization, so that the several experiments can focus on different
+    aspects of the system which in combination then yields more information
+    about the complete system.
+
+    Also, this functionality is in particular useful in case an experiment is
+    limited to only small variable bounds, small time horizons, highly
+    depends on the initialization of the system, or any other case when a single
+    experiment might not be enough to capture enough information about a system.
+
+    .. note::
+
+        It is assumed that the system description used for setting up
+        the several experimental design problems is the same!
+    '''
+
+    pass

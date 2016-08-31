@@ -1,6 +1,6 @@
-.. Copyright 2014-2016 Adrian Bürger
-..
 .. This file is part of casiopeia.
+..
+.. Copyright 2014-2016 Adrian Bürger, Moritz Diehl
 ..
 .. casiopeia is free software: you can redistribute it and/or modify
 .. it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@ The following sample applications give hands-on impressions on how to use casiop
 Parameter estimation for a Lotka-Volterra predator-prey-model
 -------------------------------------------------------------
 
-The aim of the application `lotka_volterra.py <https://github.com/adbuerger/casiopeia/blob/master/examples/lotka_volterra.py>`_ is to estimate the unknown parameters of a Lotka-Volterra predator-prey-model for experimentally received measurement data and given standard deviations for the measurements [#f1]_. The predator-prey-model is an ODE of the form :math:`\dot{x} = f(x,p)`, given by
+The aim of the application `lotka_volterra_pe.py <https://github.com/adbuerger/casiopeia/blob/master/examples/lotka_volterra_pe.py>`_ is to estimate the unknown parameters of a Lotka-Volterra predator-prey-model for experimentally received measurement data and given standard deviations for the measurements [#f1]_. The predator-prey-model is an ODE of the form :math:`\dot{x} = f(x,p)`, given by
 
 .. math::
 
@@ -65,7 +65,7 @@ The results for the system simulation using the estimated parameters in comparis
 Parameter estimation for a pendulum model
 -----------------------------------------
 
-The aim of the application `pendulum.py <https://github.com/adbuerger/casiopeia/blob/master/examples/pendulum.py>`_ is to estimate the spring constant :math:`k` of a pendulum model for experimentally received measurement data [#f2]_. The pendulum model is an ODE of the form :math:`\dot{x} = f(x,u,p)`, given by
+The aim of the application `pendulum_pe.py <https://github.com/adbuerger/casiopeia/blob/master/examples/pendulum_pe.py>`_ is to estimate the spring constant :math:`k` of a pendulum model for experimentally received measurement data [#f2]_. The pendulum model is an ODE of the form :math:`\dot{x} = f(x,u,p)`, given by
 
 .. math::
 
@@ -165,15 +165,29 @@ This intends that the estimation results for the parameters  :math:`\hat{C_{\tex
 Optimum experimental design for a model race car
 ------------------------------------------------
 
-The aim of the application `2d_vehicle_doe.py <https://github.com/adbuerger/casiopeia/blob/master/examples/2d_vehicle_doe.py>`_ is to solve an optimum experimental design problem for the 2D race car model from `Parameter estimation for a model race car`_ to obtain control values that allow for a better estimation of the unknown parameters of the model.
+The aim of the application `2d_vehicle_doe_scaled.py <https://github.com/adbuerger/casiopeia/blob/master/examples/2d_vehicle_doe_scaled.py>`_ is to solve an optimum experimental design problem for the 2D race car model from `Parameter estimation for a model race car`_ to obtain control values that allow for a better estimation of the unknown parameters of the model.
+
+Initial setup
+~~~~~~~~~~~~~
 
 For this application, we assume that we are not bound to the previous race track to obtain measurements for the race car, but can drive the car on a rectangular mat of the racetrack's material. The controls are bounded by the maximum and minimum values of the controls measurements from `Parameter estimation for a model race car`_, as well as the states are bounded by their corresponding maximum and minimum values of the states measurements. The bounds are introduced to prevent the optimizer from creating unrealistic scenarios that could e. g. cause the race car to fall over when taking too sharp turns, which is not explicitly considered within the model.
 
-The estimation results :math:`\hat{p}` from `Parameter estimation for a model race car`_ are use as a "guess" for the parameter values for the experimental design. The control values from the previous estimation are used as initial guesses for the optimized controls.
+The previous parameter estimation results :math:`\hat{p}` from `Parameter estimation for a model race car`_ are used as a "guess" for the parameter values for the experimental design, and with this, to scale all parameter values within the optimization to 1.0 to prevent influences of the numerical values of the parameters on the optimization result.
+
+A subset of the control values from the previous estimation is used as initial guesses for the optimized controls. The quality of the initial experimental setup in terms of estimated standard deviations of the unknown parameters is evaluated as follows
+
+.. math::
+
+    p_\text{I} = \begin{pmatrix} {C_{1, \text{I}}} \\ {C_{2, \text{I}}} \\ {C_{\text{m}_{1},\text{I}}}  \\ {C_{\text{m}_{2},\text{I}}} \\ {C_{\text{r}_{2},\text{I}}} \\ {C_{\text{r}_{0},\text{I}}} \end{pmatrix} = \begin{pmatrix} {1.0} \\ {1.0} \\ {1.0} \\ {1.0} \\ {1.0} \\ {1.0} \end{pmatrix} \pm \begin{pmatrix} {6.1591763006} \\ {0.318683714861} \\ {92.0037213296} \\ {62.6460661875} \\ {286.556042737} \\ {108.733245939} \end{pmatrix}
+
+which indicates that the experimental setup is rather inappropriate for a sufficient estimation.
+
+Optimized setup
+~~~~~~~~~~~~~~~
 
 .. note:: Running this optimization takes about 10 min on an Intel(R) Core(TM) i5-4570 3.20GHz CPU.
 
-The results of the optimization can be analyzed and visualized with the script `2d_vehicle_doe_validation.py <https://github.com/adbuerger/casiopeia/blob/master/examples/2d_vehicle_validation.py>`_. The figure below shows the optimized control values in comparison to the initially used control values, while the suffix `coll` indicates that the values were obtained using collocation discretization.
+We use the A-criterion as objective for the experimental design (see :ref:`doe`). The results of the optimization can be analyzed and visualized with the script `2d_vehicle_doe_scaled_validation.py <https://github.com/adbuerger/casiopeia/blob/master/examples/2d_vehicle_doe_scaled_validation.py>`_. The figure below shows the optimized control values in comparison to the initially used control values, while the suffix `coll` indicates that the values were obtained using collocation discretization.
 
 ..  figure:: rc_doe_controls.png
     :scale: 70%
@@ -188,6 +202,23 @@ The figure below shows a comparison of the simulated states values for both init
     :align: center
 
     Figure: Comparison of the simulated states values for initial and optimized controls
+
+The quality of the optimized experimental setup in terms of estimated standard deviations of the unknown parameters is evaluated as follows
+
+.. math::
+
+    p_\text{O} = \begin{pmatrix} {C_{1, \text{O}}} \\ {C_{2, \text{O}}} \\ {C_{\text{m}_{1},\text{O}}}  \\ {C_{\text{m}_{2},\text{O}}} \\ {C_{\text{r}_{2},\text{O}}} \\ {C_{\text{r}_{0},\text{O}}} \end{pmatrix} = \begin{pmatrix} {1.0} \\ {1.0} \\ {1.0} \\ {1.0} \\ {1.0} \\ {1.0} \end{pmatrix} \pm \begin{pmatrix} {1.93054150676} \\ {0.278656552587} \\ {1.96689422255} \\ {1.51815346784} \\ {3.42713773836} \\ {1.88475684297} \end{pmatrix}
+
+which indicates that the optimized setup is more appropriate for parameter estimation compared to the initial experimental design. Though, the estimated standard deviations are still relatively big in comparison to the scaled parameter values, so it would probably make sense to further refine the experimental design. 
+
+Further steps
+~~~~~~~~~~~~~
+
+Possible strategies for further refinement of the experimental design could be to increase the duration of the experiment so that more measurements can be taken, or to loosen control and state bounds to allow for greater system excitation.
+
+In case these strategies are not applicable (physical limitations, safety concerns or alike), designing multiple experiments within one optimization problem can be a useful approach, so that several independent experiments can focus on different aspects of the system, which allows for a structured gathering of additional information about the system that can later be used within one parameter estimation.
+
+Both planning of such experiments and using independent measurements data sets within one parameter estimation can be realized with casiopeia as well, see :ref:`multidoe` and :ref:`multipe`.
 
 .. rubric:: References
 

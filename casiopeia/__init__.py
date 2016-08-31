@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014-2016 Adrian Bürger
-#
 # This file is part of casiopeia.
+#
+# Copyright 2014-2016 Adrian Bürger, Moritz Diehl
 #
 # casiopeia is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with casiopeia. If not, see <http://www.gnu.org/licenses/>.
 
-__version__ = "0.1"
+__version__ = "0.1.2"
 
 import system
 import sim

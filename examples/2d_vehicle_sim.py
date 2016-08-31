@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014-2016 Adrian Bürger
-#
 # This file is part of casiopeia.
+#
+# Copyright 2014-2016 Adrian Bürger, Moritz Diehl
 #
 # casiopeia is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -56,18 +56,11 @@ system = cp.system.System(x = x, u = u, p = p, f = f, phi = phi)
 data = pl.array(pl.loadtxt("data_2d_vehicle.dat", \
     delimiter = ", ", skiprows = 1))
 
-time_points = data[100:1600:5, 1]
+time_points = data[100:800:5, 1]
 
-ydata = data[100:1600:5, [2, 4, 6, 8]]
+ydata = data[100:800:5, [2, 4, 6, 8]]
 
-udata = data[100:1600:5, [9, 10]][:-1, :]
-
-# pdata = [0.273408, 11.5602, 2.45652, 7.90959, -0.44353, -0.249098]
-# pdata = [0.459451, 12.0833, 7.35549, 17.8766, -2.65797, 0.284578]
-# pdata = [0.240075, 11.9636, 4.49592, 9.37924, -1.35157, 0.287253]
-# pdata = [0.332029, 11.976, 3.23111, 7.31793, -0.00469368, -0.0981495]
-
-# pdata= [0.271779, 11.677, 1.55872, 2.26329, 1.08074, -0.169861]
+udata = data[100:800:5, [9, 10]][:-1, :]
 
 pdata = [0.326061, 11.9923, -0.347853, -1.06176, 1.94634, -0.451728]
 
@@ -84,8 +77,6 @@ xhat = sim.simulation_results[0,:].T
 yhat = sim.simulation_results[1,:].T
 psihat = sim.simulation_results[2,:].T
 vhat = sim.simulation_results[3,:].T
-
-# pl.close("all")
 
 pl.figure()
 
