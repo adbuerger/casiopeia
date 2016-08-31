@@ -3,7 +3,7 @@ language: python
 matrix:
   include:
     - python: 2.7
-      env: NUMPY=1.8 SCIPY=0.13 CASADIVERSION=2.4.2
+      env: NUMPY=1.8 SCIPY=0.13 CASADIVERSION=3.0.0
 
 notifications:
   email: false
@@ -50,10 +50,10 @@ script:
 after_success:
  - coveralls --config_file .coveragerc
 
-deploy:
-  provider: pypi
-  user: "adbuerger"
-  password:
-    secure: rKSzd1gc4j/BjT2TXFNsJd2aL0G2ztttgQXs5Rh3p0txMemTEDx9XwO28kkw8goAjV7F+D04sCnhs6fV12POqdVhVPgGT1obFNE24ePingkuwWHWG9Uy+i7GPsGd5lz7E+lh73ZMvNvst3fppP9mSGTYwd7ig7RWCyovljFoVSYYi0h0lbJg3QU3+Nz+nMpFZ9fB1H34dFSkTXKpr00Ff1fsVgjnqwPBLlQutGzTWTGtrBdNPEToBNKceG3LFeR69nlbkIxBsxeLPb86GIJY48UeBGGoXH99WGqVs2F6hR66V9QjqyJNKyyZ78v+DtFKdiEa+ZTbLxo4egDyQ6jIvTsRBe81kunzGq8/AN8xv3NYp87JDk4gQ9uzpLEQ/ThselVPsh3g0hfRvkyEyZb3nedcIxkmOPLphhArHQT0P/DE+Tqs+2ufLk7gM+VbO3kbI80zbGMefGmTNW6cxK5l2+3zCHmfWdL+MFGKwLlqzSRpKFtA+axqNGXGXTOD9F0Ph5SHFv0x1W/5+PQ+qkQvYuAkaWMUvqmjqJJ4Kwx7JoRwSk1D0rSW1n028vE7240CRIAcKut8lifGvmy1EXsU3mFGS2v727yQibYc7fvlNgd39tbh7lTfMu4kratGm71J5PTa8SjuEmRvwuQs6b6qIa43WIPu3BYKFz0cGAVTYHk=
-  on:
-    tags: true
+# deploy:
+#   provider: pypi
+#   user: "adbuerger"
+#   password:
+#     secure: rKSzd1gc4j/BjT2TXFNsJd2aL0G2ztttgQXs5Rh3p0txMemTEDx9XwO28kkw8goAjV7F+D04sCnhs6fV12POqdVhVPgGT1obFNE24ePingkuwWHWG9Uy+i7GPsGd5lz7E+lh73ZMvNvst3fppP9mSGTYwd7ig7RWCyovljFoVSYYi0h0lbJg3QU3+Nz+nMpFZ9fB1H34dFSkTXKpr00Ff1fsVgjnqwPBLlQutGzTWTGtrBdNPEToBNKceG3LFeR69nlbkIxBsxeLPb86GIJY48UeBGGoXH99WGqVs2F6hR66V9QjqyJNKyyZ78v+DtFKdiEa+ZTbLxo4egDyQ6jIvTsRBe81kunzGq8/AN8xv3NYp87JDk4gQ9uzpLEQ/ThselVPsh3g0hfRvkyEyZb3nedcIxkmOPLphhArHQT0P/DE+Tqs+2ufLk7gM+VbO3kbI80zbGMefGmTNW6cxK5l2+3zCHmfWdL+MFGKwLlqzSRpKFtA+axqNGXGXTOD9F0Ph5SHFv0x1W/5+PQ+qkQvYuAkaWMUvqmjqJJ4Kwx7JoRwSk1D0rSW1n028vE7240CRIAcKut8lifGvmy1EXsU3mFGS2v727yQibYc7fvlNgd39tbh7lTfMu4kratGm71J5PTa8SjuEmRvwuQs6b6qIa43WIPu3BYKFz0cGAVTYHk=
+#   on:
+#     tags: true
