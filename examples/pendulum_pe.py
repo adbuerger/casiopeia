@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014-2016 Adrian Bürger
-#
 # This file is part of casiopeia.
+#
+# Copyright 2014-2016 Adrian Bürger, Moritz Diehl
 #
 # casiopeia is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -82,14 +82,14 @@ wv = pl.array([wnu, ww])
 
 pe = cp.pe.LSq( \
     system = system, time_points = time_points, \
-    x0 = ydata[:,0], \
     udata = udata, \
     pinit = 1, \
     xinit = ydata, 
     ydata = ydata, wv = wv, \
     discretization_method = "collocation")
 
-pe.run_parameter_estimation({"linear_solver": "ma27"})
+# pe.run_parameter_estimation({"linear_solver": "ma27"})
+pe.run_parameter_estimation()
 pe.print_estimation_results()
 
 pe.compute_covariance_matrix()

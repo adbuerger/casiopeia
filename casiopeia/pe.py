@@ -117,8 +117,18 @@ Run compute_covariance_matrix() to do so.
 
         try:
 
-            return ci.sqrt([abs(var) for var \
-                in ci.diag(self.covariance_matrix)])
+            variances = []
+
+            for k in range(ci.diag(self.covariance_matrix).numel()):
+
+                variances.append(abs(ci.diag(self.covariance_matrix)[k]))
+
+            standard_deviations = ci.sqrt(variances)
+
+            return standard_deviations
+
+            # return ci.sqrt([abs(var) for var \
+            #     in ci.diag(self.covariance_matrix)])
 
         except AttributeError:
 
