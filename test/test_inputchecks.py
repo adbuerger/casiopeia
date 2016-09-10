@@ -490,34 +490,33 @@ class CheckInputErrorWeightings(unittest.TestCase):
     def setUp(self):
 
         self.neps_u = 3
+        self.number_of_intervals = 20
 
 
     def test_input_rows(self):
 
-        weps_u_ref = \
-            np.atleast_2d(np.linspace(0, self.neps_u - 1, self.neps_u))
+        weps_u_ref = 2 * np.ones((self.neps_u, self.number_of_intervals))
 
         weps_u = inputchecks.check_input_error_weightings(weps_u_ref, \
-            self.neps_u)
+            self.neps_u, self.number_of_intervals)
         assert_array_equal(weps_u, np.squeeze(weps_u_ref))
 
 
     def test_input_columns(self):
 
-        weps_u_ref = \
-            np.atleast_2d(np.linspace(0, self.neps_u - 1, self.neps_u))
+        weps_u_ref = 2 * np.ones((self.neps_u, self.number_of_intervals))
 
         weps_u = inputchecks.check_input_error_weightings(weps_u_ref.T, \
-            self.neps_u)
+            self.neps_u, self.number_of_intervals)
         assert_array_equal(weps_u, np.squeeze(weps_u_ref))
 
 
     def test_input_none(self):
 
-        weps_u_ref = np.ones(self.neps_u)
+        weps_u_ref = np.ones((self.neps_u, self.number_of_intervals))
 
         weps_u = inputchecks.check_input_error_weightings(None, \
-            self.neps_u)
+            self.neps_u, self.number_of_intervals)
         assert_array_equal(weps_u, weps_u_ref)
 
 
@@ -531,7 +530,7 @@ class CheckInputErrorWeightings(unittest.TestCase):
         # therefor irrelevant at this point
 
         weps_u = inputchecks.check_input_error_weightings(None, \
-            neps_u)
+            neps_u, self.number_of_intervals)
         assert_array_equal(weps_u, weps_u_ref)
 
 
@@ -542,7 +541,7 @@ class CheckInputErrorWeightings(unittest.TestCase):
 
         self.assertRaises(ValueError, \
             inputchecks.check_input_error_weightings, weps_u_ref, \
-            self.neps_u)
+            self.neps_u, self.number_of_intervals)
 
 
     def test_input_invalid_twodim(self):
@@ -551,7 +550,7 @@ class CheckInputErrorWeightings(unittest.TestCase):
 
         self.assertRaises(ValueError, \
             inputchecks.check_input_error_weightings, weps_u_ref, \
-            self.neps_u)
+            self.neps_u, self.number_of_intervals)
 
 
 class CheckMultiDoeInput(unittest.TestCase):

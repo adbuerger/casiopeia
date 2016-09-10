@@ -148,10 +148,14 @@ class ODEMultipleShooting(Discretization):
 
             ci.horzcat([self.optimization_variables["U"], \
                 self.optimization_variables["U"][:, -1]]),
+            
             self.optimization_variables["Q"],
             
             self.optimization_variables["X"],
-            self.optimization_variables["EPS_U"],
+            
+            ci.horzcat([self.optimization_variables["EPS_U"],
+                self.optimization_variables["EPS_U"][:,-1]]),
+
             self.optimization_variables["P"],
         ]
 

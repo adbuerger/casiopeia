@@ -138,6 +138,8 @@ class FisherMatrix(object):
 
         self._setup_fisher_matrix()
 
+        # self._fisher_matrix = kkt_matrix
+
 
 class CovarianceMatrix(object):
 

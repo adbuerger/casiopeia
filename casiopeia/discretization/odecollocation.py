@@ -171,8 +171,7 @@ class ODECollocation(Discretization):
             (self.collocation_polynomial_degree + 1))
         eps_e = ci.mx_sym("eps_e", \
             self.system.neps_e * self.collocation_polynomial_degree)
-        eps_u = ci.mx_sym("eps_u", \
-            self.system.neps_u * self.collocation_polynomial_degree)
+        eps_u = self.system.eps_u
 
         collocation_node = ci.vertcat([ \
 
@@ -182,7 +181,7 @@ class ODECollocation(Discretization):
 
                 x[j*self.system.nx : (j+1)*self.system.nx], \
                 eps_e[(j-1)*self.system.neps_e : j*self.system.neps_e], \
-                eps_u[(j-1)*self.system.neps_u : j*self.system.neps_u]])[0] - \
+                eps_u])[0] - \
 
                 sum([self.__C[r,j] * x[r*self.system.nx : (r+1)*self.system.nx] \
 
@@ -199,16 +198,12 @@ class ODECollocation(Discretization):
             (self.system.nx * (self.collocation_polynomial_degree + 1), \
             self.number_of_intervals))
 
-        # import ipdb
-        # ipdb.set_trace()
-
         EPS_E = self.optimization_variables["EPS_E"][:].reshape( \
             (self.system.neps_e * self.collocation_polynomial_degree, \
             self.number_of_intervals))
 
         EPS_U = self.optimization_variables["EPS_U"][:].reshape( \
-            (self.system.neps_u * self.collocation_polynomial_degree, \
-            self.number_of_intervals))
+            (self.system.neps_u, self.number_of_intervals))
 
         [self.__collocation_nodes] = collocation_node_fcn.map([ \
             np.atleast_2d((self.time_points[1:] - self.time_points[:-1])), \
@@ -277,12 +272,15 @@ class ODECollocation(Discretization):
 
             ci.horzcat([self.optimization_variables["U"], \
                 self.optimization_variables["U"][:, -1]]), 
+            
             self.optimization_variables["Q"], \
             
             self.optimization_variables["X"][:, \
                 :: (self.collocation_polynomial_degree + 1)],
-            self.optimization_variables["EPS_U"][:, \
-                ::(self.collocation_polynomial_degree + 1)],
+
+            ci.horzcat([self.optimization_variables["EPS_U"],
+                self.optimization_variables["EPS_U"][:, -1]]),
+
             self.optimization_variables["P"]
         ]
 

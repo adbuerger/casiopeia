@@ -586,7 +586,8 @@ but will be in future versions.
 
         input_error_weightings = \
             inputchecks.check_input_error_weightings(weps_u, \
-            self._discretization.system.neps_u)
+            self._discretization.system.neps_u, 
+            self._discretization.number_of_intervals)
 
         self._weightings_vectorized = ci.veccat([ \
 

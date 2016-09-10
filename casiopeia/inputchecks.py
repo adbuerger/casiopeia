@@ -190,16 +190,19 @@ def check_equation_error_weightings(weps_e, neps_e):
         return ci.dmatrix(0, 0)
 
 
-def check_input_error_weightings(weps_u, neps_u):
+def check_input_error_weightings(weps_u, neps_u, number_of_intervals):
 
     if not neps_u == 0:
 
         if weps_u is None:
-            weps_u = np.ones(neps_u)
+            weps_u = np.ones((neps_u, number_of_intervals))
 
-        weps_u = np.atleast_1d(np.squeeze(weps_u))
+        weps_u = np.atleast_2d(weps_u)
 
-        if not weps_u.shape == (neps_u,):
+        if weps_u.shape == (number_of_intervals,neps_u):
+            weps_u = weps_u.T
+
+        if not weps_u.shape == (neps_u, number_of_intervals):
 
             raise ValueError( \
                 "Input error weightings provided by user have wrong dimension.")
