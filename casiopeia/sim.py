@@ -124,7 +124,7 @@ can be accessed, please run run_system_simulation() first.
         self.__simulation_input = ci.vertcat([np.atleast_2d(time_steps), udata])
 
         integrator_options = integrator_options_user.copy()
-        integrator_options.update({"t0": 0, "tf": 1})
+        integrator_options.update({"t0": 0, "tf": 1})#, "number_of_finite_elements": 1})
         integrator = ci.Integrator("integrator", "cvodes", \
             self.__dae_scaled, integrator_options)
 
@@ -172,10 +172,11 @@ can be accessed, please run run_system_simulation() first.
         ``Simulation.simulation_results``.
 
         '''
+        if print_status:
 
-        print('\n' + '# ' + 23 * '-' + \
-            ' casiopeia system simulation ' + 22 * '-' + ' #')
-        print('\nRunning system simulation, this might take some time ...') 
+            print('\n' + '# ' + 23 * '-' + \
+                ' casiopeia system simulation ' + 22 * '-' + ' #')
+            print('\nRunning system simulation, this might take some time ...') 
 
         self.__initialize_simulation(x0 = x0, time_points = time_points, \
             udata = udata, integrator_options_user = integrator_options)
@@ -187,4 +188,6 @@ can be accessed, please run run_system_simulation() first.
 
             ])
 
-        print("\nSystem simulation finished.")
+        if print_status:
+
+            print("\nSystem simulation finished.")
