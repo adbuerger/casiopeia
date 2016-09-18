@@ -29,7 +29,18 @@ import casiopeia as cp
 
 from time import time
 
+import matplotlib.lines as mlines
+
 pl.close("all")
+
+pl.rc('text', usetex=True)
+
+pgf_with_rc_fonts = {
+    "font.family": "serif",
+    "font.serif": [],                   # use latex default serif font
+    "font.sans-serif": ["DejaVu Sans"], # use a specific sans-serif font
+}
+pl.rcParams.update(pgf_with_rc_fonts)
 
 USE_KNOWN_NOISE = False
 PARAMETER_ESTIMATION = True
@@ -62,29 +73,39 @@ p_true = [k_M_true, c_M_true, c_m_true]
 
 p_scale = [1e3, 1e4, 1e5]
 
-f = ca.vertcat([ \
+f_noise = ca.vertcat([ \
 
         x[1], \
-        # (p_scale[0] * k_M / m) * (x[3] - x[1]) + (p_scale[1] * c_M / m) * (x[2] - x[0]) - (p_scale[2] * c_m / m) * (x[0] - (u)), \
         (p_scale[0] * k_M / m) * (x[3] - x[1]) + (p_scale[1] * c_M / m) * (x[2] - x[0]) - (p_scale[2] * c_m / m) * (x[0] - (u + eps_u)), \
         x[3], \
         -(p_scale[0] * k_M / M) * (x[3] - x[1]) - (p_scale[1] * c_M / M) * (x[2] - x[0]) \
 
     ])
 
+f_no_noise = ca.vertcat([ \
+
+        x[1], \
+        (p_scale[0] * k_M / m) * (x[3] - x[1]) + (p_scale[1] * c_M / m) * (x[2] - x[0]) - (p_scale[2] * c_m / m) * (x[0] - (u)), \
+        x[3], \
+        -(p_scale[0] * k_M / M) * (x[3] - x[1]) - (p_scale[1] * c_M / M) * (x[2] - x[0]) \
+
+    ])
+
+
 phi = x
 
 system = cp.system.System( \
-    # x = x, u = u, p = p, f = f, phi = phi)
-    x = x, u = u, p = p, f = f, phi = phi, eps_u = eps_u)
+    x = x, u = u, p = p, f = f_no_noise, phi = phi)
 
+system_noise = cp.system.System( \
+    x = x, u = u, p = p, f = f_noise, phi = phi, eps_u = eps_u)
 
 # Generate "measurement" data
 
 time_points = pl.linspace(0, T, N+1)
 
 u0 = 0.05
-uinit = u0 * pl.sin(pl.pi*time_points[:-1])
+uinit = u0 * pl.sin(2 * pl.pi*time_points[:-1])
 
 x0 = pl.zeros(x.shape)
 
@@ -107,6 +128,8 @@ else:
     ydata = (ydata + 0.01 * pl.random(ydata.shape))
     uinit_noise = uinit + 0.01 * pl.random(uinit.shape)
 
+sigma = 0.01
+wv = (1. / sigma**2) * pl.ones(ydata.shape)
 
 # Parameter estimation
 
@@ -118,15 +141,26 @@ if PARAMETER_ESTIMATION:
         pinit = [1.0, 1.0, 1.0], \
         ydata = ydata, \
         xinit = ydata, \
+        wv = wv,
         discretization_method = "multiple_shooting")
-         # discretization_method = "collocation")
 
     pe.run_parameter_estimation()
-    pe.print_estimation_results()
-
     pe.compute_covariance_matrix()
-    pe.print_estimation_results()
 
+    pe_noise = cp.pe.LSq(system = system_noise, \
+        time_points = time_points, \
+        udata = uinit_noise, \
+        pinit = [1.0, 1.0, 1.0], \
+        ydata = ydata, \
+        xinit = ydata, \
+        wv = wv,
+        discretization_method = "multiple_shooting")
+
+    pe_noise.run_parameter_estimation()
+    pe_noise.compute_covariance_matrix()
+
+    pe.print_estimation_results()
+    pe.print_estimation_results()
 
     # Single shooting for comparison
 
@@ -134,7 +168,7 @@ if PARAMETER_ESTIMATION:
 
     ffcn = ca.MXFunction("ffcn", \
         ca.daeIn(x = x, p = ca.vertcat([u, eps_u, p])), \
-        ca.daeOut(ode = f))
+        ca.daeOut(ode = f_noise))
 
     ffcn = ffcn.expand()
 
@@ -195,7 +229,8 @@ if PARAMETER_ESTIMATION:
 
     print "\n\n--- Conclusion ---"
 
-    print "\np multiple shooting: " + str(pe.estimated_parameters)
+    print "\np multiple shooting no noise: " + str(pe.estimated_parameters)
+    print "p multiple shooting noise: " + str(pe_noise.estimated_parameters)
     print "p single shooting: " + str(p_est_single_shooting)
 
     print "\nDuration Sigma_p computation multiple shooting :" + \
@@ -211,13 +246,22 @@ if PARAMETER_ESTIMATION:
 
     # Simulation with estimated parameters
 
-    simulation_est_multiple_shooting = cp.sim.Simulation( \
+    simulation_est_multiple_shooting_no_noise = cp.sim.Simulation( \
         system = system, pdata = pe.estimated_parameters)
 
-    simulation_est_multiple_shooting.run_system_simulation( \
+    simulation_est_multiple_shooting_no_noise.run_system_simulation( \
         x0 = x0, time_points = time_points, udata = uinit, print_status = False)
 
-    x_sim_m = simulation_est_multiple_shooting.simulation_results.T
+    x_sim_m_no_noise = simulation_est_multiple_shooting_no_noise.simulation_results.T
+
+
+    simulation_est_multiple_shooting_noise = cp.sim.Simulation( \
+        system = system, pdata = pe_noise.estimated_parameters)
+
+    simulation_est_multiple_shooting_noise.run_system_simulation( \
+        x0 = x0, time_points = time_points, udata = uinit, print_status = False)
+
+    x_sim_m_noise = simulation_est_multiple_shooting_noise.simulation_results.T
 
 
     simulation_est_single_shooting = cp.sim.Simulation( \
@@ -229,35 +273,68 @@ if PARAMETER_ESTIMATION:
     x_sim_s = simulation_est_single_shooting.simulation_results.T
 
 
-    pl.figure()
-    pl.subplot(5, 1, 1)
-    pl.plot(time_points, ydata[:,0], label = "x1_meas")
-    pl.plot(time_points, x_sim_m[:,0], "x", label = "x1_sim_m")
-    pl.plot(time_points, x_sim_s[:,0], label = "x1_sim_s")
-    pl.legend()
-    pl.subplot(5, 1, 2)
-    pl.plot(time_points, ydata[:,1], label = "x2_meas")
-    pl.plot(time_points, x_sim_m[:,1], "x", label = "x2_sim_m")
-    pl.plot(time_points, x_sim_s[:,1], label = "x2_sim_s")
-    pl.legend()
-    pl.subplot(5, 1, 3)
-    pl.plot(time_points, ydata[:,2], label = "x3_meas")
-    pl.plot(time_points, x_sim_m[:,2], "x", label = "x3_sim_m")
-    pl.plot(time_points, x_sim_s[:,2], label = "x3_sim_s")
-    pl.legend()
-    pl.subplot(5, 1, 4)
-    pl.plot(time_points, ydata[:,3], label = "x4_meas")
-    pl.plot(time_points, x_sim_m[:,3], "x", label = "x4_sim_m")
-    pl.plot(time_points, x_sim_s[:,3], label = "x4_sim_s")
-    pl.legend()
-    pl.subplot(5, 1, 5)
-    pl.plot(time_points[:-1], uinit, label = "uinit")
-    pl.plot(time_points[:-1], uinit_noise, label = "uinit_noise")
-    pl.legend()
-    pl.show()
+    fig, ax = pl.subplots(nrows = 5, ncols = 1, sharex = True, facecolor = "white", figsize=(8,7))
+    fig.subplots_adjust(hspace=0.25)
+
+    blue_line = mlines.Line2D([], [], color='blue',  linestyle = "None", marker = "x", label='Measurement')
+    green_line = mlines.Line2D([], [], color='green', label=r'Simulation $\hat{p}_{(\mathrm{w} \neq 0)}$')
+    red_line = mlines.Line2D([], [], color='red', label=r'Simulation $\hat{p}_{(\mathrm{w} = 0)}$')
+
+    handles = [blue_line,green_line, red_line]
+    labels = [h.get_label() for h in handles] 
+
+    lgd = fig.legend(handles=handles, labels=labels,ncol = 3, loc = "upper center", frameon=False) 
+
+    ax[0].scatter(time_points, ydata[:,0], label = "$x_\mathrm{1,meas}$", marker = "x")
+    ax[0].plot(time_points, x_sim_m_noise[:,0], label = "$x_\mathrm{1,sim,n}$", color = "g")
+    ax[0].plot(time_points, x_sim_m_no_noise[:,0], label = "$x_\mathrm{1,sim}$", color = "r")
+    ax[0].locator_params(axis = "y", nbins=2)
+    # pl.plot(time_points, x_sim_s[:,0], label = "x1_sim_s")
+    ax[0].set_xlim([0,1.0])
+    ax[0].set_ylabel(r"$x_\mathrm{m}$", rotation = 0
+        )
+    # ax[0].legend()
+
+    ax[1].scatter(time_points, ydata[:,1], label = "$x_\mathrm{2,meas}$", marker = "x")
+    ax[1].plot(time_points, x_sim_m_noise[:,1], label = "$x_\mathrm{2,sim,n}$", color = "g")
+    ax[1].plot(time_points, x_sim_m_no_noise[:,1], label = "$x_\mathrm{2,sim}$", color = "r")
+    ax[1].locator_params(axis = "y", nbins=2)
+    # pl.plot(time_points, x_sim_s[:,1], label = "x2_sim_s")
+    ax[1].set_xlim([0,1.0])
+    ax[1].set_ylabel(r"$v_\mathrm{m}$", rotation = 0)
+    # ax[1].legend()
+
+    ax[2].scatter(time_points, ydata[:,2], label = "$x_\mathrm{3,meas}$", marker = "x")
+    ax[2].plot(time_points, x_sim_m_noise[:,2], label = "$x_\mathrm{3,sim,n}$", color = "g")
+    ax[2].plot(time_points, x_sim_m_no_noise[:,2], label = "$x_\mathrm{3,sim}$", color = "r")
+    ax[2].locator_params(axis = "y", nbins=2)
+    # pl.plot(time_points, x_sim_s[:,2], label = "x3_sim_s")
+    ax[2].set_xlim([0,1.0])
+    ax[2].set_ylabel(r"$x_\mathrm{M}$", rotation = 0)
+    # ax[2].legend()
+
+    ax[3].scatter(time_points, ydata[:,3], label = "$x_\mathrm{4,meas}$", marker = "x")
+    ax[3].plot(time_points, x_sim_m_noise[:,3], label = "$x_\mathrm{4,sim,n}$", color = "g")
+    ax[3].plot(time_points, x_sim_m_no_noise[:,3], label = "$x_\mathrm{4,sim}$", color = "r")
+    ax[3].locator_params(axis = "y", nbins=2)
+    # pl.plot(time_points, x_sim_s[:,3], label = "x4_sim_s")
+    ax[3].set_xlim([0,1.0])
+    ax[3].set_ylabel(r"$v_\mathrm{M}$", rotation = 0)
+    # ax[3].legend()
+
+    # pl.scatter(time_points[:-1], uinit, label = "uinit", marker = "x")
+    ax[4].scatter(time_points[:-1], uinit_noise, label = "$u$", marker = "x")
+    ax[4].locator_params(axis = "y", nbins=2)
+    ax[4].set_xlim([0,1.0])
+    # ax[4].legend()
+    ax[4].set_xlabel("Time (s)")
+    ax[4].set_ylabel(r"$u$", rotation = 0)
+    # pl.show()
 
     p_for_oed = pe.estimated_parameters
 
+    pl.savefig("/tmp/quarter_vehicle.png", bbox_extra_artists=(lgd,), \
+        bbox_inches="tight")
 
 # Optimum experimental design
 

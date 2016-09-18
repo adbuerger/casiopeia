@@ -37,16 +37,6 @@ sim_true = cp.sim.Simulation(system, (p_true / scale) )
 sim_true.run_system_simulation(time_points = time_points, \
     x0 = ydata[:, 0], udata = udata)
 
-# lsqpe_sim = pecas.LSq( \
-#     system = odesys, tu = tu, \
-#     uN = uN, \
-#     pinit = p_guess, \
-#     xinit = yN, 
-#     # linear_solver = "ma97", \
-#     yN = yN, wv = wv)
-
-# lsqpe_sim.run_simulation(x0 = [0.0, 0.0], psim = p_true/scale)
-
 p_test = []
 
 sigma = 0.01
