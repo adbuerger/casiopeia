@@ -504,9 +504,9 @@ but will be in future versions.
 
                 self._discretization.optimization_variables["P"],
                 self._discretization.optimization_variables["X"],
-                self._discretization.optimization_variables["V"],
                 self._discretization.optimization_variables["EPS_E"],
                 self._discretization.optimization_variables["EPS_U"],
+                self._discretization.optimization_variables["V"],
 
             ])
 
@@ -544,9 +544,9 @@ but will be in future versions.
 
                 Pinit,
                 Xinit,
-                Vinit,
                 EPS_Einit,
                 EPS_Uinit,
+                Vinit,
 
             ])
 
@@ -561,11 +561,6 @@ but will be in future versions.
 
     def _set_weightings(self, wv, weps_e, weps_u):
 
-        measurement_weightings = \
-            inputchecks.check_measurement_weightings(wv, \
-            self._discretization.system.nphi, \
-            self._discretization.number_of_intervals + 1)
-
         equation_error_weightings = \
             inputchecks.check_equation_error_weightings(weps_e, \
             self._discretization.system.neps_e)
@@ -575,11 +570,16 @@ but will be in future versions.
             self._discretization.system.neps_u, \
             self._discretization.number_of_intervals)
 
+        measurement_weightings = \
+            inputchecks.check_measurement_weightings(wv, \
+            self._discretization.system.nphi, \
+            self._discretization.number_of_intervals + 1)
+
         self._weightings_vectorized = ci.veccat([ \
 
-            measurement_weightings,
             equation_error_weightings,
             input_error_weightings, 
+            measurement_weightings,
 
             ])
 
@@ -600,9 +600,9 @@ but will be in future versions.
         self._residuals = ci.sqrt(self._weightings_vectorized) * \
             ci.veccat([ \
 
-                self._discretization.optimization_variables["V"],
                 self._discretization.optimization_variables["EPS_E"],
                 self._discretization.optimization_variables["EPS_U"],
+                self._discretization.optimization_variables["V"],
 
             ])
 
