@@ -141,7 +141,7 @@ if PARAMETER_ESTIMATION:
         pinit = [1.0, 1.0, 1.0], \
         ydata = ydata, \
         xinit = ydata, \
-        wv = wv,
+        # wv = wv,
         discretization_method = "multiple_shooting")
 
     pe.run_parameter_estimation()
@@ -153,7 +153,7 @@ if PARAMETER_ESTIMATION:
         pinit = [1.0, 1.0, 1.0], \
         ydata = ydata, \
         xinit = ydata, \
-        wv = wv,
+        # wv = wv,
         discretization_method = "multiple_shooting")
 
     pe_noise.run_parameter_estimation()
@@ -340,17 +340,17 @@ if PARAMETER_ESTIMATION:
 
 if EXPERIMENTAL_DESIGN:
 
-    p_for_oed = [4.0, 4.0, 1.6]
+    p_for_oed = [4.0, 4.0, 1.8]
 
     ulim = 0.05
     umin = -ulim
     umax = +ulim
 
-    xlim = [0.1, 0.06, 0.1, 0.22]
+    xlim = [0.1, 0.1, 0.1, 0.22]
     xmin = [-lim for lim in xlim]
     xmax = [+lim for lim in xlim]
 
-    doe = cp.doe.DoE(system = system, time_points = time_points, \
+    doe = cp.doe.DoE(system = system_noise, time_points = time_points, \
         uinit = uinit, pdata = p_for_oed, \
         x0 = ydata[0,:], \
         umin = umin, umax = umax, \

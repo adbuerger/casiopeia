@@ -388,7 +388,7 @@ but will be in future versions.
                 self._discretization.optimization_variables["U"], 
                 self._discretization.optimization_variables["Q"], 
                 self._discretization.optimization_variables["X"], 
-                self._discretization.optimization_variables["EPS_U"], 
+                ci.mx(*self._discretization.optimization_variables["EPS_U"].shape), 
                 self._discretization.optimization_variables["EPS_E"], 
                 self._pdata, 
 
@@ -575,11 +575,6 @@ but will be in future versions.
 
     def _set_weightings(self, wv, weps_e, weps_u):
 
-        measurement_weightings = \
-            inputchecks.check_measurement_weightings(wv, \
-            self._discretization.system.nphi, \
-            self._discretization.number_of_intervals + 1)
-
         equation_error_weightings = \
             inputchecks.check_equation_error_weightings(weps_e, \
             self._discretization.system.neps_e)
@@ -589,11 +584,16 @@ but will be in future versions.
             self._discretization.system.neps_u, 
             self._discretization.number_of_intervals)
 
+        measurement_weightings = \
+            inputchecks.check_measurement_weightings(wv, \
+            self._discretization.system.nphi, \
+            self._discretization.number_of_intervals + 1)
+
         self._weightings_vectorized = ci.veccat([ \
 
-            measurement_weightings,
             equation_error_weightings,
             input_error_weightings, 
+            measurement_weightings,
 
             ])
 
@@ -630,9 +630,9 @@ but will be in future versions.
 
                 self._discretization.optimization_variables["P"],
                 self._discretization.optimization_variables["X"],
-                self._discretization.optimization_variables["V"],
                 self._discretization.optimization_variables["EPS_E"],
                 self._discretization.optimization_variables["EPS_U"],
+                self._discretization.optimization_variables["V"],
 
             ])
 
@@ -656,6 +656,8 @@ but will be in future versions.
                 self._discretization.optimization_variables["U"],
                 self._discretization.optimization_variables["Q"],
                 self._discretization.optimization_variables["X"],
+                self._discretization.optimization_variables["EPS_E"],
+                self._discretization.optimization_variables["EPS_U"],
 
             ])
 
@@ -667,7 +669,8 @@ but will be in future versions.
     def _apply_parameters_to_objective(self):
 
         # As mentioned above, the objective does not depend on the actual
-        # values of V, EPS_E and EPS_U, but on the values of P
+        # values of V, but on the values of P and EPS_E and EPS_U, while
+        # P is fed from pdata, and EPS_E, EPS_u are supposed to be 0
 
         objective_free_variables = ci.veccat([ \
 
@@ -675,6 +678,8 @@ but will be in future versions.
                 self._discretization.optimization_variables["U"],
                 self._discretization.optimization_variables["Q"],
                 self._discretization.optimization_variables["X"],
+                self._discretization.optimization_variables["EPS_E"],
+                self._discretization.optimization_variables["EPS_U"],
 
             ])
 
@@ -684,6 +689,8 @@ but will be in future versions.
                 self._discretization.optimization_variables["U"],
                 self._discretization.optimization_variables["Q"],
                 self._discretization.optimization_variables["X"],
+                ci.mx(*self._discretization.optimization_variables["EPS_E"].shape),
+                ci.mx(*self._discretization.optimization_variables["EPS_U"].shape),
 
             ])
 
@@ -937,7 +944,9 @@ but will be in future versions.
         covariance_matrix_initial_input = ci.veccat([ \
 
                 self._pdata,
-                self._optimization_variables_initials
+                self._optimization_variables_initials,
+                np.zeros(self._discretization.optimization_variables["EPS_E"].shape),
+                np.zeros(self._discretization.optimization_variables["EPS_U"].shape)
 
             ])
 
@@ -952,7 +961,9 @@ but will be in future versions.
         covariance_matrix_optimized_input = ci.veccat([ \
 
                 self._pdata,
-                self.design_results["x"]
+                self.design_results["x"],
+                np.zeros(self._discretization.optimization_variables["EPS_E"].shape),
+                np.zeros(self._discretization.optimization_variables["EPS_U"].shape)
 
             ])
 
