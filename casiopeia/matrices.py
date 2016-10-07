@@ -175,6 +175,43 @@ class CovarianceMatrix(object):
         self._setup_covariance_matrix(fisher_matrix)
 
 
+class AlternativeCovarianceMatrix(object):
+
+    @property
+    def covariance_matrix(self):
+
+        return self._covariance_matrix
+
+
+    def _setup_covariance_matrix(self, kkt_matrix, \
+            number_of_unknown_parameters):
+
+        # import ipdb
+        # ipdb.set_trace()
+
+        I = ci.mx_eye(number_of_unknown_parameters)
+        O = ci.mx(kkt_matrix.shape[0] - number_of_unknown_parameters, \
+            number_of_unknown_parameters)
+
+        Z_p = ci.vertcat([I,O])
+
+        self._covariance_matrix = ci.solve(kkt_matrix, Z_p, "csparse")[ \
+            :number_of_unknown_parameters, :number_of_unknown_parameters]
+
+
+    def __init__(self, kkt_matrix, number_of_unknown_parameters):
+
+        r'''
+
+        This class is designed only for comparsion of other covariance matrix 
+        implementations in casiopeia!
+
+        '''
+
+        self._setup_covariance_matrix(kkt_matrix, \
+            number_of_unknown_parameters)
+
+
 def setup_covariance_matrix_scaling_factor_beta(equality_constraints, \
     optimization_variables, residuals):
 

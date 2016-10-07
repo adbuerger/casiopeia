@@ -70,7 +70,7 @@ system = cp.system.System( \
 
 time_covariance_matrix_evlaution = []
 
-time_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]
+time_horizons = [1.0]#, 2.0, 3.0, 4.0, 5.0, 10.0, 25.0]#, 50.0, 75.0, 100.0]
 
 for tf in time_horizons:
 

@@ -73,20 +73,22 @@ system = cp.system.System( \
 
 time_points = pl.linspace(0, T, N+1)
 
-u0 = 0.05
+# u0 = 0.05
 x0 = pl.zeros(x.shape)
 
-udata = u0 * pl.sin(2 * pl.pi*time_points[:-1])
+# udata = u0 * pl.sin(2 * pl.pi*time_points[:-1])
+
+udata = ca.DMatrix([-0.0144505, -0.00970027, -0.0131704, -0.0162461, -0.0194673, -0.0226493, 0.00758111, -0.0377716, 0.00802565, -0.0376995, 0.00770359, -0.00442005, -0.000855387, 0.0022456, 0.00545773, 0.00859222, 0.0117409, 0.0148885, 0.0180565, 0.0212502, 0.0154754, 0.0304801, -0.00435828, 0.0413637, -0.00430136, 0.0415592, -0.00399078, 0.0419632, -0.00324539, 0.00905321, 0.0056727, 0.00271414, -0.000364645, -0.00338611, -0.00643686, -0.00950217, -0.00850269, -0.017266, -0.00206468, -0.025834, 0.0121024, -0.0336159, 0.0120527, -0.0338047, 0.0117481, -0.0342033, 0.0110075, -0.00128918, 0.00209328, 0.00505328, 0.00813338, 0.0111559, 0.0142075, 0.0172735, 0.017385, 0.0247696, -0.00750083, 0.038085, -0.0077066, 0.0380376, -0.00733884, 0.00481979, 0.0348082, -0.010399, 0.0355777, -0.00990138, 0.0360839, -0.00939524, 0.0365825, -0.00891039, 0.0370485, -0.00846729, 0.0374656, -0.00807851, 0.0378246, -0.00775023, 0.0381219, -0.00748364, 0.0383584, -0.00727628, 0.0385379, -0.00712312, 0.0386664, -0.0070176, 0.0387508, -0.00695237, 0.0387987, -0.0069199, 0.0388175, -0.00691297, 0.0388142, -0.00692494, 0.0387951, -0.00694997, 0.0387654, -0.00698312, 0.0387298, -0.00702037, 0.0386917, -0.00705856])
 
 simulation_true_parameters = cp.sim.Simulation( \
     system = system, pdata = p_true)
 
-simulation_true_parameters.run_system_simulation( \
-    x0 = x0, time_points = time_points, udata = udata)
+# simulation_true_parameters.run_system_simulation( \
+#     x0 = x0, time_points = time_points, udata = udata)
 
-ydata = simulation_true_parameters.simulation_results.T
+# ydata = simulation_true_parameters.simulation_results.T
 
-sigma = 0.01
+sigma = 0.005
 
 repetitions = 100
 
@@ -94,13 +96,19 @@ p_test =[]
 
 for k in range(repetitions):
 
+    udata_noise = udata + sigma * pl.random(udata.shape)
+
+    simulation_true_parameters.run_system_simulation( \
+        x0 = x0, time_points = time_points, udata = udata_noise)
+
+    ydata = simulation_true_parameters.simulation_results.T
+
     ydata_noise = ydata + sigma * pl.random(ydata.shape)
 
-    udata_noise = udata + sigma * pl.random(udata.shape)
 
     pe_test = cp.pe.LSq(system = system, \
         time_points = time_points, \
-        udata = udata_noise, \
+        udata = udata, \
         pinit = [1.0, 1.0, 1.0], \
         ydata = ydata_noise, \
         xinit = ydata_noise, \

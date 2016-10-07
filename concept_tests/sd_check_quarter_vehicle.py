@@ -80,12 +80,12 @@ udata = u0 * pl.sin(2 * pl.pi*time_points[:-1])
 simulation_true_parameters = cp.sim.Simulation( \
     system = system, pdata = p_true)
 
-simulation_true_parameters.run_system_simulation( \
-    x0 = x0, time_points = time_points, udata = udata)
+# simulation_true_parameters.run_system_simulation( \
+#     x0 = x0, time_points = time_points, udata = udata)
 
-ydata = simulation_true_parameters.simulation_results.T
+# ydata = simulation_true_parameters.simulation_results.T
 
-sigma = 0.01
+sigma = 0.005
 
 repetitions = 100
 
@@ -93,9 +93,14 @@ p_test =[]
 
 for k in range(repetitions):
 
-    ydata_noise = ydata + sigma * pl.random(ydata.shape)
-
     udata_noise = udata + sigma * pl.random(udata.shape)
+
+    simulation_true_parameters.run_system_simulation( \
+        x0 = x0, time_points = time_points, udata = udata)
+
+    ydata = simulation_true_parameters.simulation_results.T
+
+    ydata_noise = ydata + sigma * pl.random(ydata.shape)
 
     pe_test = cp.pe.LSq(system = system, \
         time_points = time_points, \

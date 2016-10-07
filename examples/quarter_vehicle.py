@@ -43,8 +43,8 @@ pgf_with_rc_fonts = {
 pl.rcParams.update(pgf_with_rc_fonts)
 
 USE_KNOWN_NOISE = False
-PARAMETER_ESTIMATION = True
-EXPERIMENTAL_DESIGN = False
+PARAMETER_ESTIMATION = False
+EXPERIMENTAL_DESIGN = True
 
 # System setup
 
@@ -346,7 +346,7 @@ if EXPERIMENTAL_DESIGN:
     umin = -ulim
     umax = +ulim
 
-    xlim = [0.1, 0.1, 0.1, 0.22]
+    xlim = [0.1, 0.4, 0.1, 0.4]
     xmin = [-lim for lim in xlim]
     xmax = [+lim for lim in xlim]
 
@@ -356,4 +356,4 @@ if EXPERIMENTAL_DESIGN:
         umin = umin, umax = umax, \
         xmin = xmin, xmax = xmax)
 
-    doe.run_experimental_design()
+    doe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
