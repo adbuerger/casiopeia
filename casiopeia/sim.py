@@ -55,14 +55,14 @@ can be accessed, please run run_system_simulation() first.
         q = inputchecks.check_constant_controls_data(qdata, self.__system.nq)
 
         ode_fcn = ci.mx_function("ode_fcn", \
-            [self.__system.t, self.__system.u, self.__system.q, self.__system.x, \
+            [self.__system.u, self.__system.q, self.__system.x, \
             self.__system.eps_u, self.__system.p], \
             [self.__system.f])
 
         # Needs to be changes for allowance of explicit time dependency!
 
         self.__ode_parameters_applied = ode_fcn([ \
-            np.zeros(1), self.__system.u, q, self.__system.x, \
+            self.__system.u, q, self.__system.x, \
             np.zeros(self.__system.neps_u), p])[0]
 
 

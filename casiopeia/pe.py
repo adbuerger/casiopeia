@@ -388,11 +388,11 @@ class LSq(PEProblem):
     def _discretize_system(self, system, time_points, discretization_method, \
         **kwargs):
 
-        if system.nx == 0 and system.nz == 0:
+        if system.nx == 0:
 
             self._discretization = NoDiscretization(system, time_points)
 
-        elif system.nx != 0 and system.nz == 0:
+        elif system.nx != 0:
 
             if discretization_method == "collocation":
 
@@ -409,14 +409,7 @@ class LSq(PEProblem):
                 raise NotImplementedError('''
 Unknown discretization method: {0}.
 Possible values are "collocation" and "multiple_shooting".
-'''.format(str(discretization_method)))
-
-        elif system.nx != 0 and system.nz != 0:
-
-            raise NotImplementedError('''
-Support of implicit DAEs is not implemented yet,
-but will be in future versions.
-''')            
+'''.format(str(discretization_method)))     
 
 
     def _apply_controls_to_equality_constraints(self, udata, qdata):

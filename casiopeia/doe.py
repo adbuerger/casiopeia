@@ -334,11 +334,11 @@ class DoE(DoEProblem):
     def _discretize_system(self, system, time_points, discretization_method, \
         **kwargs):
 
-        if system.nx == 0 and system.nz == 0:
+        if system.nx == 0:
 
             self._discretization = NoDiscretization(system, time_points)
 
-        elif system.nx != 0 and system.nz == 0:
+        elif system.nx != 0:
 
             if discretization_method == "collocation":
 
@@ -356,13 +356,7 @@ class DoE(DoEProblem):
 Unknown discretization method: {0}.
 Possible values are "collocation" and "multiple_shooting".
 '''.format(str(discretization_method)))
-
-        elif system.nx != 0 and system.nz != 0:
-
-            raise NotImplementedError('''
-Support of implicit DAEs is not implemented yet,
-but will be in future versions.
-''')            
+      
 
     def _set_parameter_guess(self, pdata):
 
@@ -560,7 +554,7 @@ but will be in future versions.
 
     def _set_measurement_data(self):
 
-        # The DOE problem does not depend on actual emasurement values,
+        # The DOE problem does not depend on actual measurement values,
         # the measurement deviations are only needed to set up the objective;
         # therefore, dummy-values for the measurements can be used
         # (see issue #7 for further information)

@@ -51,12 +51,6 @@ class System:
 
 
     @property
-    def nz(self):
-
-        return self.z.size()
-
-
-    @property
     def neps_u(self):
 
         return self.eps_u.size()
@@ -79,23 +73,14 @@ Missing input argument for system definition or wrong variable type for an
 input argument. Input arguments must be CasADi symbolic types.''')
 
 
-    def __check_no_explicit_time_dependecy(self):
-
-        if ci.depends_on(self.f, self.t):
-
-            raise NotImplementedError('''
-Explicit time dependecies of the ODE right hand side are not yet supported in
-casiopeia, but will be in future versions.''')
-
-
     def __print_nondyn_system_information(self):
 
         print('''
 The system is a non-dynamic systems with the general input-output
 structure and equality constraints:
 
-y = phi(t, u, q, p),
-g(t, u, q, p) = 0.
+y = phi(u, q, p),
+g(u, q, p) = 0.
 
 Particularly, the system has:
 {0} time-varying controls u
@@ -119,8 +104,8 @@ The system is a dynamic system defined by a set of explicit ODEs xdot
 which establish the system state x and by an output function phi which
 sets the system measurements:
 
-xdot = f(t, u, q, x, p, eps_e, eps_u),
-y = phi(t, u, q, x, p).
+xdot = f(u, q, x, p, eps_e, eps_u),
+y = phi(u, q, x, p).
 
 Particularly, the system has:
 {0} time-varying controls u
@@ -143,11 +128,11 @@ Particularly, the system has:
 
     def print_system_information(self):
 
-        if self.nx == 0 and self.nz == 0:
+        if self.nx == 0:
 
             self.__print_nondyn_system_information()
 
-        elif self.nx != 0 and self.nz == 0:
+        elif self.nx != 0:
 
             self.__print_ode_system_information()
 
@@ -155,32 +140,14 @@ Particularly, the system has:
     def __system_validation(self):
 
         self.__check_all_system_parts_are_casadi_symbolics()
-        self.__check_no_explicit_time_dependecy()
-
-        if self.nx != 0 and self.nz != 0:
-
-            raise NotImplementedError('''
-Support of implicit DAEs is not implemented yet,
-but will be in future versions.
-''')
-
-        if self.nx == 0 and self.nz != 0:
-
-            raise NotImplementedError('''
-The system definition provided by the user is invalid.
-See the documentation for a list of valid definitions.
-''')
-
         self.print_system_information()
 
 
     def __init__(self, \
-             t = ci.mx_sym("t", 1),
              u = ci.mx_sym("u", 0), \
              q = ci.mx_sym("q", 0), \
              p = None, \
              x = ci.mx_sym("x", 0), \
-             z = ci.mx_sym("z", 0),
              eps_u = ci.mx_sym("eps_u", 0), \
              phi = None, \
              f = ci.mx_sym("f", 0), \
@@ -189,9 +156,6 @@ See the documentation for a list of valid definitions.
 
         r'''
         :raises: TypeError, NotImplementedError
-
-        :param t: time :math:`t \in \mathbb{R}` *(not yet supported)*
-        :type t: casadi.casadi.MX
 
         :param u: time-varying controls :math:`u \in \mathbb{R}^{\text{n}_\text{u}}` that are applied piece-wise-constant for each control intervals, and therefor can change from on interval to another, e. g. motor dutycycles, temperatures, massflows (optional)
         :type u: casadi.casadi.MX
@@ -205,9 +169,6 @@ See the documentation for a list of valid definitions.
         :param x: differential states :math:`x \in \mathbb{R}^{\text{n}_\text{x}}` (optional)
         :type x: casadi.casadi.MX
 
-        :param z: algebraic states :math:`x \in \mathbb{R}^{\text{n}_\text{z}}` (optional)
-        :type z: casadi.casadi.MX
-
         :param eps_u: input errors :math:`\epsilon_{u} \in \mathbb{R}^{\text{n}_{\epsilon_\text{u}}}` (optional)
         :type eps_u: casadi.casadi.MX
 
@@ -218,7 +179,6 @@ See the documentation for a list of valid definitions.
         :type f: casadi.casadi.MX
 
         :param g: equality constraints :math:`g(t, u, q, x, z, p) = 0 \in \mathbb{R}^{\text{n}_\text{g}}` (optional)
-                  (optional)
         :type g: casadi.casadi.MX
 
 
@@ -226,33 +186,23 @@ See the documentation for a list of valid definitions.
         is interpreted as follows:
 
 
-        **Non-dynamic system** (x = None, z = None):
+        **Non-dynamic system** (x = None):
 
         .. math::
 
-            y = \phi(t, u, q, p)
+            y = \phi(u, q, p)
 
-            0 = g(t, u, q, p).
-
-
-        **Explicit ODE system** (x != None, z = None):
-
-        .. math::
-
-            y & = & \phi(t, u, q, x, p) \\
-
-            \dot{x}  & = & f(t, u, q, x, p, \epsilon_\text{u}).
+            0 = g(u, q, p).
 
 
-        **Fully implicit DAE system** *(not yet supported)*:
+        **Explicit ODE system** (x != None):
 
         .. math::
 
-            y & = & \phi(t, u, q, x, p) \\
+            y & = & \phi(u, q, x, p) \\
 
-            0 & = & f(t, u, q, x, \dot{x}, z, p, \epsilon_\text{u}).
+            \dot{x}  & = & f(u, q, x, p, \epsilon_\text{u}).
 
-            0 = g(t, u, q, x, z, p)
 
         '''
 
@@ -263,13 +213,11 @@ See the documentation for a list of valid definitions.
             ' casiopeia system definition ' + 22 * '-' + ' #')
         print('\nStarting system definition ...')
 
-        self.t = t
         self.u = u
         self.q = q
         self.p = p
 
         self.x = x
-        self.z = z
 
         self.eps_u = eps_u
 

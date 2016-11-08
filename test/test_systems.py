@@ -27,12 +27,10 @@ class System(unittest.TestCase):
 
     def setUp(self):
 
-        self.t = ci.mx_sym("t", 1)
         self.u = ci.mx_sym("u", 2)
         self.q = ci.mx_sym("q", 11)
         self.p = ci.mx_sym("p", 3)
         self.x = ci.mx_sym("x", 4)
-        self.z = ci.mx_sym("z", 5)
         self.eps_u = ci.mx_sym("eps_u", 7)
         self.phi = ci.mx_sym("phi", 8)
         self.f = ci.mx_sym("f", 9)
@@ -47,12 +45,12 @@ class System(unittest.TestCase):
 
     def test_all_nondynamic_inputs(self):
 
-        sys = casiopeia.system.System(t = self.t, u = self.u, p = self.p, \
+        sys = casiopeia.system.System(u = self.u, p = self.p, \
             phi = self.phi, g = self.g)
 
     def test_all_ode_inputs(self):
 
-        sys = casiopeia.system.System(t = self.t, u = self.u, q = self.q, \
+        sys = casiopeia.system.System(u = self.u, q = self.q, \
             p = self.p, x = self.x, eps_u = self.eps_u, \
             phi = self.phi, f = self.f)
         sys.print_system_information()
@@ -73,30 +71,9 @@ class System(unittest.TestCase):
         self.assertRaises(TypeError,  casiopeia.system.System, p = self.p)
 
 
-    def test_assure_no_explicit_time_dependecy(self):
-
-        # Assure as long as explicit time dependency is not allowed
-
-        self.assertRaises(NotImplementedError, casiopeia.system.System, \
-            t = self.t, u = self.u, x = self.x, \
-            p = self.p,  phi = self.phi, f = self.t)
-
-
-    def test_assure_not_dae(self):
-
-        self.assertRaises(NotImplementedError, casiopeia.system.System, \
-            p = self.p, phi = self.phi, x = self.x, z = self.z)
-
-
-    def test_assure_not_algebraic_states_without_dynamic_states(self):
-
-        self.assertRaises(NotImplementedError, casiopeia.system.System, \
-            p = self.p, phi = self.phi, z = self.z)
-    
-
     def test_sizes_attributes(self):
 
-        sys = casiopeia.system.System(t = self.t, u = self.u, q = self.q, \
+        sys = casiopeia.system.System(u = self.u, q = self.q, \
             p = self.p, x = self.x, eps_u = self.eps_u, \
             phi = self.phi, f = self.f, g = self.g)
         
@@ -104,6 +81,5 @@ class System(unittest.TestCase):
         self.assertEqual(sys.nq, self.q.size())
         self.assertEqual(sys.np, self.p.size())
         self.assertEqual(sys.nx, self.x.size())
-        self.assertEqual(sys.nz, 0)
         self.assertEqual(sys.neps_u, self.eps_u.size())
         self.assertEqual(sys.nphi, self.phi.size())

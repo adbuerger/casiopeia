@@ -149,7 +149,7 @@ class ODECollocation(Discretization):
     def __initialize_ode_right_hand_side(self):
 
         self.__ffcn = ci.mx_function("ffcn", \
-            [self.system.t, self.system.u, self.system.q, \
+            [self.system.u, self.system.q, \
             self.system.p, self.system.x, \
             self.system.eps_u], [self.system.f])
 
@@ -158,7 +158,6 @@ class ODECollocation(Discretization):
 
         h = ci.mx_sym("h", 1)
 
-        t = ci.mx_sym("t", self.collocation_polynomial_degree)
         u = self.system.u
         q = self.system.q
         p = self.system.p
@@ -171,7 +170,7 @@ class ODECollocation(Discretization):
 
             h * self.__ffcn([ \
 
-                t[j-1], u, q, p, \
+                u, q, p, \
 
                 x[j*self.system.nx : (j+1)*self.system.nx], \
                 eps_u])[0] - \
@@ -184,7 +183,7 @@ class ODECollocation(Discretization):
 
 
         collocation_node_fcn = ci.mx_function("coleqnfcn", \
-            [h, t, u, q, x, eps_u, p], [collocation_node])
+            [h, u, q, x, eps_u, p], [collocation_node])
         collocation_node_fcn = collocation_node_fcn.expand()
 
         X = self.optimization_variables["X"][:, :-1].reshape( \
@@ -196,7 +195,6 @@ class ODECollocation(Discretization):
 
         [self.__collocation_nodes] = collocation_node_fcn.map([ \
             np.atleast_2d((self.time_points[1:] - self.time_points[:-1])), \
-            self.__T[1:,:], \
             self.optimization_variables["U"], self.optimization_variables["Q"], \
              X, EPS_U, self.optimization_variables["P"]])
 
@@ -248,7 +246,7 @@ class ODECollocation(Discretization):
     def __evaluate_measurement_function(self):
 
         phifcn = ci.mx_function("phifcn", \
-            [self.system.t, self.system.u, self.system.q, self.system.x, \
+            [self.system.u, self.system.q, self.system.x, \
                 self.system.eps_u, self.system.p], \
             [self.system.phi])
         phifcn = phifcn.expand()
@@ -257,7 +255,6 @@ class ODECollocation(Discretization):
         # or at least the user should be noticed about that!
 
         measurement_function_input = [ \
-            ci.horzcat(self.time_points.tolist()),
 
             ci.horzcat([self.optimization_variables["U"], \
                 self.optimization_variables["U"][:, -1]]), 

@@ -84,7 +84,7 @@ class ODEMultipleShooting(Discretization):
 
         self.__ode_scaled = ci.mx_function("ode_scaled", \
                 ci.daeIn(x = self.system.x, \
-                    p = ci.vertcat([t_scale, self.system.t, \
+                    p = ci.vertcat([t_scale, \
                         self.system.u, self.system.q, \
                         self.system.p, self.system.eps_u])), 
                 ci.daeOut(ode = t_scale * self.system.f))
@@ -96,7 +96,6 @@ class ODEMultipleShooting(Discretization):
         integrator = ci.Integrator("integrator", "rk", self.__ode_scaled, {"t0": 0, "tf": 1})
 
         params = ci.vertcat([np.atleast_2d(self.time_points[1:] - self.time_points[:-1]), \
-            np.atleast_2d(self.time_points[:-1]), \
             self.optimization_variables["U"], \
             ci.repmat(self.optimization_variables["Q"], 1, self.number_of_intervals), \
             ci.repmat(self.optimization_variables["P"], 1, self.number_of_intervals), \
@@ -130,7 +129,7 @@ class ODEMultipleShooting(Discretization):
     def __evaluate_measurement_function(self):
 
         phifcn = ci.mx_function("phifcn", \
-            [self.system.t, self.system.u, self.system.q, self.system.x, \
+            [self.system.u, self.system.q, self.system.x, \
                 self.system.eps_u, self.system.p], \
             [self.system.phi])
         phifcn = phifcn.expand()
@@ -139,7 +138,6 @@ class ODEMultipleShooting(Discretization):
         # or at least the user should be noticed about that!)
 
         measurement_function_input = [ \
-            ci.horzcat(self.time_points.tolist()),
 
             ci.horzcat([self.optimization_variables["U"], \
                 self.optimization_variables["U"][:, -1]]),
