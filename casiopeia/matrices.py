@@ -175,7 +175,7 @@ class CovarianceMatrix(object):
         self._setup_covariance_matrix(fisher_matrix)
 
 
-class AlternativeCovarianceMatrix(object):
+class DirectFactorizationCovarianceMatrix(object):
 
     @property
     def covariance_matrix(self):
@@ -186,8 +186,6 @@ class AlternativeCovarianceMatrix(object):
     def _setup_covariance_matrix(self, kkt_matrix, \
             number_of_unknown_parameters):
 
-        # import ipdb
-        # ipdb.set_trace()
 
         I = ci.mx_eye(number_of_unknown_parameters)
         O = ci.mx(kkt_matrix.shape[0] - number_of_unknown_parameters, \

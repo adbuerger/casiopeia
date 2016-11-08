@@ -70,7 +70,7 @@ system = cp.system.System( \
 
 time_covariance_matrix_evlaution = []
 
-time_horizons = [1.0]#, 2.0, 3.0, 4.0, 5.0, 10.0, 25.0]#, 50.0, 75.0, 100.0]
+time_horizons = [1.0, 2.0, 3.0, 4.0, 5.0, 10.0, 25.0]#, 50.0, 75.0, 100.0]
 
 for tf in time_horizons:
 
@@ -79,33 +79,38 @@ for tf in time_horizons:
 
     N = T / dt
 
+    simulation_true_parameters = cp.sim.Simulation( \
+        system = system, pdata = p_true)
+
     time_points = pl.linspace(0, T, N+1)
 
     u0 = 0.05
     x0 = pl.zeros(x.shape)
 
-    udata = u0 * pl.sin(2 * pl.pi*time_points[:-1])
+    sigma_u = 0.005
+    sigma_y = pl.array([0.01, 0.01, 0.01, 0.01])
 
-    simulation_true_parameters = cp.sim.Simulation( \
-        system = system, pdata = p_true)
+    udata = u0 * pl.sin(2 * pl.pi*time_points[:-1])
+    udata_noise = udata + sigma_u * pl.randn(*udata.shape)
 
     simulation_true_parameters.run_system_simulation( \
-        x0 = x0, time_points = time_points, udata = udata)
+        x0 = x0, time_points = time_points, udata = udata_noise)
 
     ydata = simulation_true_parameters.simulation_results.T
 
-    sigma = 0.01
+    ydata_noise = ydata + sigma_y * pl.randn(*ydata.shape)
 
-    ydata_noise = ydata + sigma * pl.random(ydata.shape)
-
-    udata_noise = udata + sigma * pl.random(udata.shape)
+    wv = (1.0 / sigma_y**2) * pl.ones(ydata.shape)
+    weps_u = (1.0 / sigma_u**2) * pl.ones(udata.shape)
 
     pe_test = cp.pe.LSq(system = system, \
         time_points = time_points, \
-        udata = udata_noise, \
+        udata = udata, \
         pinit = [1.0, 1.0, 1.0], \
         ydata = ydata_noise, \
         xinit = ydata_noise, \
+        wv = wv, 
+        weps_u = weps_u,
         discretization_method = "multiple_shooting")
 
     pe_test.run_parameter_estimation()
@@ -113,3 +118,5 @@ for tf in time_horizons:
 
     time_covariance_matrix_evlaution.append( \
         pe_test._duration_covariance_computation)
+
+print time_covariance_matrix_evlaution

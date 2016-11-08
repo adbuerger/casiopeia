@@ -85,7 +85,8 @@ simulation_true_parameters = cp.sim.Simulation( \
 
 # ydata = simulation_true_parameters.simulation_results.T
 
-sigma = 0.005
+sigma_u = 0.001
+sigma_y = pl.array([0.01, 0.01, 0.01, 0.01])
 
 repetitions = 100
 
@@ -93,21 +94,24 @@ p_test =[]
 
 for k in range(repetitions):
 
-    udata_noise = udata + sigma * pl.random(udata.shape)
+    udata_noise = udata + sigma_u * pl.randn(*udata.shape)
 
     simulation_true_parameters.run_system_simulation( \
-        x0 = x0, time_points = time_points, udata = udata)
+        x0 = x0, time_points = time_points, udata = udata_noise)
 
     ydata = simulation_true_parameters.simulation_results.T
 
-    ydata_noise = ydata + sigma * pl.random(ydata.shape)
+    ydata_noise = ydata + sigma_y * pl.randn(*ydata.shape)
+
+    wv = (1.0 / sigma_y**2) * pl.ones(ydata.shape)
 
     pe_test = cp.pe.LSq(system = system, \
         time_points = time_points, \
-        udata = udata_noise, \
+        udata = udata, \
         pinit = [1.0, 1.0, 1.0], \
         ydata = ydata_noise, \
         xinit = ydata_noise, \
+        wv = wv,
         discretization_method = "multiple_shooting")
 
     pe_test.run_parameter_estimation()
@@ -203,7 +207,7 @@ report.write( \
 report.write("\n**Test results:**\n\n.. code-block:: python")
 
 report.write("\n\n    repetitions    = " + str(repetitions))
-report.write("\n    sigma          = " + str(sigma))
+# report.write("\n    sigma          = " + str(sigma))
 
 report.write("\n\n    p_true         = " + str(ca.DMatrix(p_true)))
 report.write("\n\n    p_mean         = " + str(ca.DMatrix(p_mean)))

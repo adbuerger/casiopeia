@@ -31,9 +31,9 @@ from discretization.odecollocation import ODECollocation
 from discretization.odemultipleshooting import ODEMultipleShooting
 
 from interfaces import casadi_interface as ci
-# from covariance_matrix import CovarianceMatrix
 from matrices import KKTMatrix, FisherMatrix, CovarianceMatrix, \
-    AlternativeCovarianceMatrix, setup_covariance_matrix_scaling_factor_beta
+    DirectFactorizationCovarianceMatrix, \
+    setup_covariance_matrix_scaling_factor_beta
 from intro import intro
 
 import inputchecks
@@ -334,7 +334,7 @@ this might take some time ...''')
 
         self._covariance_matrix = CovarianceMatrix(fisher_matrix.fisher_matrix)
 
-        # self._covariance_matrix = AlternativeCovarianceMatrix( \
+        # self._covariance_matrix = DirectFactorizationCovarianceMatrix( \
         #     kkt_matrix.kkt_matrix, self._discretization.system.np)
 
         beta = setup_covariance_matrix_scaling_factor_beta( \

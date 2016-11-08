@@ -85,21 +85,22 @@ for tf in time_horizons:
     u0 = 0.05
     x0 = pl.zeros(x.shape)
 
-    udata = u0 * pl.sin(2 * pl.pi*time_points[:-1])
-
     simulation_true_parameters = cp.sim.Simulation( \
         system = system, pdata = p_true)
 
+    sigma_u = 0.005
+    sigma_y = pl.array([0.01, 0.01, 0.01, 0.01])
+
+    udata = u0 * pl.sin(2 * pl.pi*time_points[:-1])
+    udata_noise = udata + sigma_u * pl.randn(*udata.shape)
+
     simulation_true_parameters.run_system_simulation( \
-        x0 = x0, time_points = time_points, udata = udata)
+        x0 = x0, time_points = time_points, udata = udata_noise)
 
     ydata = simulation_true_parameters.simulation_results.T
 
-    sigma = 0.01
+    ydata_noise = ydata + sigma_y * pl.randn(*ydata.shape)
 
-    ydata_noise = ydata + sigma * pl.random(ydata.shape)
-
-    udata_noise = udata + sigma * pl.random(udata.shape)
 
     ffcn = ca.MXFunction("ffcn", \
         ca.daeIn(x = x, p = ca.vertcat([u, eps_u, p])), \
@@ -121,12 +122,21 @@ for tf in time_horizons:
 
     for k in range(int(N)):
 
-        x_end = rk4(x0 = x_end, p = ca.vertcat([udata_noise[k], EPS_U[k], P]))["xf"]
+        x_end = rk4(x0 = x_end, p = ca.vertcat([udata[k], EPS_U[k], P]))["xf"]
         obj.append(x_end - ydata_noise[k+1, :].T)
 
     r = ca.vertcat([ca.vertcat(obj), EPS_U])
 
-    nlp = ca.MXFunction("nlp", ca.nlpIn(x = V), ca.nlpOut(f = ca.mul(r.T, r)))
+    wv = (1.0 / sigma_y**2) * pl.ones(ydata.shape)
+    weps_u = (1.0 / sigma_u**2) * pl.ones(udata.shape)
+
+    Sigma_y_inv = ca.diag(ca.vec(wv))
+    Sigma_u_inv = ca.diag(weps_u)
+
+    Sigma = ca.blockcat(Sigma_y_inv, ca.DMatrix(pl.zeros((Sigma_y_inv.shape[0], Sigma_u_inv.shape[1]))),\
+        ca.DMatrix(pl.zeros((Sigma_u_inv.shape[0], Sigma_y_inv.shape[1]))), Sigma_u_inv)
+
+    nlp = ca.MXFunction("nlp", ca.nlpIn(x = V), ca.nlpOut(f = ca.mul([r.T, Sigma, r])))
 
     nlpsolver = ca.NlpSolver("nlpsolver", "ipopt", nlp)
 
