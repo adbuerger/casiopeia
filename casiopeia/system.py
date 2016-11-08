@@ -172,13 +172,13 @@ Particularly, the system has:
         :param eps_u: input errors :math:`\epsilon_{u} \in \mathbb{R}^{\text{n}_{\epsilon_\text{u}}}` (optional)
         :type eps_u: casadi.casadi.MX
 
-        :param phi: output function :math:`\phi(t, u, q, x, p) = y \in \mathbb{R}^{\text{n}_\text{y}}`
+        :param phi: output function :math:`\phi(u, q, x, p) = y \in \mathbb{R}^{\text{n}_\text{y}}`
         :type phi: casadi.casadi.MX
 
-        :param f: explicit system of ODEs :math:`f(t, u, q, x, z, p, \epsilon_\text{e}, \epsilon_\text{u}) = \dot{x} \in \mathbb{R}^{\text{n}_\text{x}}` (optional)
+        :param f: explicit system of ODEs :math:`f(u, q, x, p, \epsilon_\text{u}) = \dot{x} \in \mathbb{R}^{\text{n}_\text{x}}` (optional)
         :type f: casadi.casadi.MX
 
-        :param g: equality constraints :math:`g(t, u, q, x, z, p) = 0 \in \mathbb{R}^{\text{n}_\text{g}}` (optional)
+        :param g: equality constraints :math:`g(u, q, p) = 0 \in \mathbb{R}^{\text{n}_\text{g}}` (optional)
         :type g: casadi.casadi.MX
 
 

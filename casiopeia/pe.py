@@ -303,13 +303,13 @@ and compute_covariance_matrix() before all results can be displayed.
 
         .. [#f1] |linkf1|_
 
-        .. _linkf1: http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/Freising10_19_-_Kostina_-_Towards_Optimum.pdf
+        .. _linkf1:  https://www.researchgate.net/publication/228407918_Computing_Covariance_Matrices_for_Constrained_Nonlinear_Large_Scale_Parameter_Estimation_Problems_Using_Krylov_Subspace_Methods
 
         .. |linkf1| replace:: *Kostina, Ekaterina and Kostyukova, Olga: Computing Covariance Matrices for Constrained Nonlinear Large Scale Parameter Estimation Problems Using Krylov Subspace Methods, 2012.*
 
         .. [#f2] |linkf2|_
 
-        .. _linkf2: https://www.researchgate.net/publication/228407918_Computing_Covariance_Matrices_for_Constrained_Nonlinear_Large_Scale_Parameter_Estimation_Problems_Using_Krylov_Subspace_Methods
+        .. _linkf2: http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/Freising10_19_-_Kostina_-_Towards_Optimum.pdf
 
         .. |linkf2| replace:: *Kostina, Ekaterina and Kriwet, Gregor: Towards Optimum Experimental Design for Partial Differential Equations, SPP 1253 annual conference 2010, slides 12/13.*
 
@@ -707,9 +707,9 @@ Possible values are "collocation" and "multiple_shooting".
         .. math::
 
             \begin{aligned}
-                \text{arg}\,\underset{p, x, v, \epsilon_\text{u}}{\text{min}} & & \frac{1}{2} \| R(w, v, \epsilon_\text{e}, \epsilon_\text{u}) \|_2^2 &\\
-                \text{subject to:} & & v_\text{k} + y_\text{k} - \phi(x_\text{k}, p; t_\text{k}, u_\text{k}, q) & = 0 \hspace{1cm} k = 1, \dots, N\\
-                & & g(p, x, \epsilon_\text{u}; u, q) & = 0 \\
+                \text{arg}\,\underset{p, x, v, \epsilon_\text{u}}{\text{min}} & & \frac{1}{2} \| R(\cdot) \|_2^2 &\\
+                \text{subject to:} & & v_\text{k} + y_\text{k} - \phi(x_\text{k}, p; u_\text{k}, q) & = 0 \hspace{1cm} k = 1, \dots, N\\
+                & & g(x, p, \epsilon_\text{u}; u, q) & = 0 \\
                 \text{with:} & & \begin{pmatrix} {w_\text{v}}^T & {w_{\epsilon_\text{u}}}^T \end{pmatrix}^{^\mathbb{1}/_\mathbb{2}} \begin{pmatrix} {v} \\ {\epsilon_\text{u}} \end{pmatrix} & = R \\
             \end{aligned}
 
