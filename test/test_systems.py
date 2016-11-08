@@ -33,7 +33,6 @@ class System(unittest.TestCase):
         self.p = ci.mx_sym("p", 3)
         self.x = ci.mx_sym("x", 4)
         self.z = ci.mx_sym("z", 5)
-        self.eps_e = ci.mx_sym("eps_e", 6)
         self.eps_u = ci.mx_sym("eps_u", 7)
         self.phi = ci.mx_sym("phi", 8)
         self.f = ci.mx_sym("f", 9)
@@ -54,7 +53,7 @@ class System(unittest.TestCase):
     def test_all_ode_inputs(self):
 
         sys = casiopeia.system.System(t = self.t, u = self.u, q = self.q, \
-            p = self.p, x = self.x, eps_e = self.eps_e, eps_u = self.eps_u, \
+            p = self.p, x = self.x, eps_u = self.eps_u, \
             phi = self.phi, f = self.f)
         sys.print_system_information()
 
@@ -76,11 +75,11 @@ class System(unittest.TestCase):
 
     def test_assure_no_explicit_time_dependecy(self):
 
-        # Assure as long as explicit time dependecy is not allowed
+        # Assure as long as explicit time dependency is not allowed
 
         self.assertRaises(NotImplementedError, casiopeia.system.System, \
             t = self.t, u = self.u, x = self.x, \
-            p = self.p, eps_e = self.eps_e, phi = self.phi, f = self.t)
+            p = self.p,  phi = self.phi, f = self.t)
 
 
     def test_assure_not_dae(self):
@@ -98,7 +97,7 @@ class System(unittest.TestCase):
     def test_sizes_attributes(self):
 
         sys = casiopeia.system.System(t = self.t, u = self.u, q = self.q, \
-            p = self.p, x = self.x, eps_e = self.eps_e, eps_u = self.eps_u, \
+            p = self.p, x = self.x, eps_u = self.eps_u, \
             phi = self.phi, f = self.f, g = self.g)
         
         self.assertEqual(sys.nu, self.u.size())
@@ -106,6 +105,5 @@ class System(unittest.TestCase):
         self.assertEqual(sys.np, self.p.size())
         self.assertEqual(sys.nx, self.x.size())
         self.assertEqual(sys.nz, 0)
-        self.assertEqual(sys.neps_e, self.eps_e.size())
         self.assertEqual(sys.neps_u, self.eps_u.size())
         self.assertEqual(sys.nphi, self.phi.size())

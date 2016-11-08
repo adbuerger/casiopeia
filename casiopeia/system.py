@@ -57,12 +57,6 @@ class System:
 
 
     @property
-    def neps_e(self):
-
-        return self.eps_e.size()
-
-
-    @property
     def neps_u(self):
 
         return self.eps_u.size()
@@ -133,7 +127,9 @@ Particularly, the system has:
 {1} time-constant controls q
 {2} parameters p
 {3} states x
-{4} outputs phi'''.format(self.nu, self.nq, self.np, self.nx, self.nphi))
+{4} outputs phi
+{5} input errors eps_u'''.format(self.nu, self.nq, self.np, self.nx, \
+    self.nphi, self.neps_u))
 
         
         print("\nwhere xdot is defined by ")
@@ -185,7 +181,6 @@ See the documentation for a list of valid definitions.
              p = None, \
              x = ci.mx_sym("x", 0), \
              z = ci.mx_sym("z", 0),
-             eps_e = ci.mx_sym("eps_e", 0), \
              eps_u = ci.mx_sym("eps_u", 0), \
              phi = None, \
              f = ci.mx_sym("f", 0), \
@@ -212,9 +207,6 @@ See the documentation for a list of valid definitions.
 
         :param z: algebraic states :math:`x \in \mathbb{R}^{\text{n}_\text{z}}` (optional)
         :type z: casadi.casadi.MX
-
-        :param eps_e: equation errors :math:`\epsilon_{e} \in \mathbb{R}^{\text{n}_{\epsilon_\text{e}}}` (optional)
-        :type eps_e: casadi.casadi.MX
 
         :param eps_u: input errors :math:`\epsilon_{u} \in \mathbb{R}^{\text{n}_{\epsilon_\text{u}}}` (optional)
         :type eps_u: casadi.casadi.MX
@@ -249,7 +241,7 @@ See the documentation for a list of valid definitions.
 
             y & = & \phi(t, u, q, x, p) \\
 
-            \dot{x}  & = & f(t, u, q, x, p, \epsilon_\text{e}, \epsilon_\text{u}).
+            \dot{x}  & = & f(t, u, q, x, p, \epsilon_\text{u}).
 
 
         **Fully implicit DAE system** *(not yet supported)*:
@@ -258,7 +250,7 @@ See the documentation for a list of valid definitions.
 
             y & = & \phi(t, u, q, x, p) \\
 
-            0 & = & f(t, u, q, x, \dot{x}, z, p, \epsilon_\text{e}, \epsilon_\text{u}).
+            0 & = & f(t, u, q, x, \dot{x}, z, p, \epsilon_\text{u}).
 
             0 = g(t, u, q, x, z, p)
 
@@ -279,7 +271,6 @@ See the documentation for a list of valid definitions.
         self.x = x
         self.z = z
 
-        self.eps_e = eps_e
         self.eps_u = eps_u
 
         self.phi = phi

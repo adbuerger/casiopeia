@@ -52,11 +52,7 @@ class ODEMultipleShooting(Discretization):
 
             self.optimization_variables["X"] = ci.mx_sym("X", self.system.nx, \
                 self.number_of_intervals + 1)
-        
-        if self.system.neps_e != 0:
 
-            self.optimization_variables["EPS_E"] = \
-                ci.mx_sym("EPS_E", self.system.neps_e, self.number_of_intervals)
 
         if self.system.neps_u != 0:
                 
@@ -90,7 +86,7 @@ class ODEMultipleShooting(Discretization):
                 ci.daeIn(x = self.system.x, \
                     p = ci.vertcat([t_scale, self.system.t, \
                         self.system.u, self.system.q, \
-                        self.system.p, self.system.eps_e, self.system.eps_u])), 
+                        self.system.p, self.system.eps_u])), 
                 ci.daeOut(ode = t_scale * self.system.f))
         self.__ode_scaled = self.__ode_scaled.expand()
 
@@ -104,7 +100,6 @@ class ODEMultipleShooting(Discretization):
             self.optimization_variables["U"], \
             ci.repmat(self.optimization_variables["Q"], 1, self.number_of_intervals), \
             ci.repmat(self.optimization_variables["P"], 1, self.number_of_intervals), \
-            self.optimization_variables["EPS_E"], \
             self.optimization_variables["EPS_U"]])
 
         shooting = integrator.map("shooting", self.number_of_intervals)

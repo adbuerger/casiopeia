@@ -169,27 +169,6 @@ def check_measurement_weightings(wv, nphi, number_of_measurements):
     return wv
 
 
-def check_equation_error_weightings(weps_e, neps_e):
-
-    if not neps_e == 0:
-
-        if weps_e is None:
-            weps_e = np.ones(neps_e)
-
-        weps_e = np.atleast_1d(np.squeeze(weps_e))
-
-        if not weps_e.shape == (neps_e,):
-
-            raise ValueError( \
-                "Equation error weightings provided by user have wrong dimension.")
-
-        return weps_e
-
-    else:
-
-        return ci.dmatrix(0, 0)
-
-
 def check_input_error_weightings(weps_u, neps_u, number_of_intervals):
 
     if not neps_u == 0:

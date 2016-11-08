@@ -433,7 +433,6 @@ but will be in future versions.
                 self._discretization.optimization_variables["Q"],
                 self._discretization.optimization_variables["X"], 
                 self._discretization.optimization_variables["EPS_U"], 
-                self._discretization.optimization_variables["EPS_E"], 
                 self._discretization.optimization_variables["P"], 
 
             ])
@@ -444,7 +443,6 @@ but will be in future versions.
                 qdata,
                 self._discretization.optimization_variables["X"], 
                 self._discretization.optimization_variables["EPS_U"], 
-                self._discretization.optimization_variables["EPS_E"], 
                 self._discretization.optimization_variables["P"], 
 
             ])
@@ -507,7 +505,6 @@ but will be in future versions.
 
                 self._discretization.optimization_variables["P"],
                 self._discretization.optimization_variables["X"],
-                self._discretization.optimization_variables["EPS_E"],
                 self._discretization.optimization_variables["EPS_U"],
                 self._discretization.optimization_variables["V"],
 
@@ -538,8 +535,6 @@ but will be in future versions.
         Pinit = pinit
 
         Vinit = np.zeros(self._discretization.optimization_variables["V"].shape)
-        EPS_Einit = np.zeros( \
-            self._discretization.optimization_variables["EPS_E"].shape)
         EPS_Uinit = np.zeros( \
             self._discretization.optimization_variables["EPS_U"].shape)
 
@@ -547,7 +542,6 @@ but will be in future versions.
 
                 Pinit,
                 Xinit,
-                EPS_Einit,
                 EPS_Uinit,
                 Vinit,
 
@@ -562,11 +556,7 @@ but will be in future versions.
         self._measurement_data_vectorized = ci.vec(measurement_data)
 
 
-    def _set_weightings(self, wv, weps_e, weps_u):
-
-        equation_error_weightings = \
-            inputchecks.check_equation_error_weightings(weps_e, \
-            self._discretization.system.neps_e)
+    def _set_weightings(self, wv, weps_u):
 
         input_error_weightings = \
             inputchecks.check_input_error_weightings(weps_u, \
@@ -580,7 +570,6 @@ but will be in future versions.
 
         self._weightings_vectorized = ci.veccat([ \
 
-            equation_error_weightings,
             input_error_weightings, 
             measurement_weightings,
 
@@ -603,7 +592,6 @@ but will be in future versions.
         self._residuals = ci.sqrt(self._weightings_vectorized) * \
             ci.veccat([ \
 
-                self._discretization.optimization_variables["EPS_E"],
                 self._discretization.optimization_variables["EPS_U"],
                 self._discretization.optimization_variables["V"],
 
@@ -624,7 +612,7 @@ but will be in future versions.
         udata = None, qdata = None,\
         ydata = None, \
         pinit = None, xinit = None, \
-        wv = None, weps_e = None, weps_u = None, \
+        wv = None, weps_u = None, \
         discretization_method = "collocation", **kwargs):
 
         r'''
@@ -661,12 +649,6 @@ but will be in future versions.
         :param wv: weightings for the measurements
                    :math:`w_\text{v} \in \mathbb{R}^{\text{n}_\text{y} \times \text{N}}`
         :type wv: numpy.ndarray, casadi.DMatrix    
-
-        :param weps_e: weightings for equation errors
-                   :math:`w_{\epsilon_\text{e}} \in \mathbb{R}^{\text{n}_{\epsilon_\text{e}}}`
-                   (only necessary 
-                   if equation errors are used within ``system``)
-        :type weps_e: numpy.ndarray, casadi.DMatrix    
 
         :param weps_u: weightings for the input errors
                    :math:`w_{\epsilon_\text{u}} \in \mathbb{R}^{\text{n}_{\epsilon_\text{u}}}`
@@ -732,10 +714,10 @@ but will be in future versions.
         .. math::
 
             \begin{aligned}
-                \text{arg}\,\underset{p, x, v, \epsilon_\text{e}, \epsilon_\text{u}}{\text{min}} & & \frac{1}{2} \| R(w, v, \epsilon_\text{e}, \epsilon_\text{u}) \|_2^2 &\\
+                \text{arg}\,\underset{p, x, v, \epsilon_\text{u}}{\text{min}} & & \frac{1}{2} \| R(w, v, \epsilon_\text{e}, \epsilon_\text{u}) \|_2^2 &\\
                 \text{subject to:} & & v_\text{k} + y_\text{k} - \phi(x_\text{k}, p; t_\text{k}, u_\text{k}, q) & = 0 \hspace{1cm} k = 1, \dots, N\\
-                & & g(p, x, \epsilon_\text{e}, \epsilon_\text{u}; u, q) & = 0 \\
-                \text{with:} & & \begin{pmatrix} {w_\text{v}}^T & {w_{\epsilon_\text{e}}}^T & {w_{\epsilon_\text{u}}}^T \end{pmatrix}^{^\mathbb{1}/_\mathbb{2}} \begin{pmatrix} {v} \\ {\epsilon_\text{e}} \\ {\epsilon_\text{u}} \end{pmatrix} & = R \\
+                & & g(p, x, \epsilon_\text{u}; u, q) & = 0 \\
+                \text{with:} & & \begin{pmatrix} {w_\text{v}}^T & {w_{\epsilon_\text{u}}}^T \end{pmatrix}^{^\mathbb{1}/_\mathbb{2}} \begin{pmatrix} {v} \\ {\epsilon_\text{u}} \end{pmatrix} & = R \\
             \end{aligned}
 
         while :math:`g(\cdot)` contains the discretized system dynamics
@@ -757,7 +739,7 @@ but will be in future versions.
 
         self._set_measurement_data(ydata)
 
-        self._set_weightings(wv, weps_e, weps_u)
+        self._set_weightings(wv, weps_u)
 
         self._set_measurement_deviations()
 
