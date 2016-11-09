@@ -52,7 +52,7 @@ class ODEMultipleShooting(Discretization):
 
             self.optimization_variables["X"] = ci.mx_sym("X", self.system.nx, \
                 self.number_of_intervals + 1)
-
+        
 
         if self.system.neps_u != 0:
                 
@@ -82,18 +82,16 @@ class ODEMultipleShooting(Discretization):
 
         t_scale = ci.mx_sym("t_scale", 1)
 
-        self.__ode_scaled = ci.mx_function("ode_scaled", \
-                ci.daeIn(x = self.system.x, \
-                    p = ci.vertcat([t_scale, \
-                        self.system.u, self.system.q, \
-                        self.system.p, self.system.eps_u])), 
-                ci.daeOut(ode = t_scale * self.system.f))
-        self.__ode_scaled = self.__ode_scaled.expand()
+        self.__ode_scaled = {"x": self.system.x, \
+            "p": ci.vertcat([t_scale, \
+                self.system.u, self.system.q, \
+                self.system.p, self.system.eps_u]), \
+            "ode": t_scale * self.system.f}
 
 
     def __compute_continuity_constraints(self):
 
-        integrator = ci.Integrator("integrator", "rk", self.__ode_scaled, {"t0": 0, "tf": 1})
+        integrator = ci.Integrator("integrator", "rk", self.__ode_scaled, {"t0": 0, "tf": 1, "expand": True})
 
         params = ci.vertcat([np.atleast_2d(self.time_points[1:] - self.time_points[:-1]), \
             self.optimization_variables["U"], \
@@ -101,7 +99,7 @@ class ODEMultipleShooting(Discretization):
             ci.repmat(self.optimization_variables["P"], 1, self.number_of_intervals), \
             self.optimization_variables["EPS_U"]])
 
-        shooting = integrator.map("shooting", self.number_of_intervals)
+        shooting = integrator.map("shooting", "knampf", self.number_of_intervals)
         X_next = shooting(x0 = self.optimization_variables["X"][:,:-1], \
             p = params)["xf"]
 
@@ -141,7 +139,6 @@ class ODEMultipleShooting(Discretization):
 
             ci.horzcat([self.optimization_variables["U"], \
                 self.optimization_variables["U"][:, -1]]),
-            
             self.optimization_variables["Q"],
             
             self.optimization_variables["X"],

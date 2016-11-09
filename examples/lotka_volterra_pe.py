@@ -45,8 +45,8 @@ gamma = 1.0
 p = ca.MX.sym("p", 2)
 
 f = ca.vertcat( \
-    [-alpha * x[0] + p[0] * x[0] * x[1], 
-    gamma * x[1] - p[1] * x[0] * x[1]])
+    -alpha * x[0] + p[0] * x[0] * x[1], 
+    gamma * x[1] - p[1] * x[0] * x[1])
 
 phi = x
 

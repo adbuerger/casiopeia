@@ -134,10 +134,10 @@ Possible values are "A" and "D".
 
     def _setup_nlp(self):
 
-        self._nlp = ci.mx_function("nlp", \
-            ci.nlpIn(x = self._optimization_variables), \
-            ci.nlpOut(f = self._objective, \
-                g = self._equality_constraints_parameters_applied))
+        self._nlp = {"x": self._optimization_variables, \
+            "f": self._objective, \
+            "g": self._equality_constraints_parameters_applied}
+
 
 
     @abstractmethod
@@ -391,8 +391,8 @@ Possible values are "collocation" and "multiple_shooting".
             [optimization_variables_for_equality_constraints], \
             [self._discretization.equality_constraints])
 
-        [self._equality_constraints_parameters_applied] = \
-            equality_constraints_fcn([optimization_variables_parameters_applied])
+        self._equality_constraints_parameters_applied = \
+            equality_constraints_fcn(optimization_variables_parameters_applied)
 
 
     def _apply_parameters_to_discretization(self):
@@ -428,7 +428,7 @@ Possible values are "collocation" and "multiple_shooting".
         Xinit = ci.horzcat([ \
 
             Xinit.reshape((self._discretization.system.nx, \
-                Xinit.size() / self._discretization.system.nx)),
+                Xinit.numel() / self._discretization.system.nx)),
             xinit[:, -1],
 
             ])
@@ -617,8 +617,8 @@ Possible values are "collocation" and "multiple_shooting".
 
                 self._discretization.optimization_variables["P"],
                 self._discretization.optimization_variables["X"],
-                self._discretization.optimization_variables["EPS_U"],
                 self._discretization.optimization_variables["V"],
+                self._discretization.optimization_variables["EPS_U"],
 
             ])
 
@@ -654,8 +654,8 @@ Possible values are "collocation" and "multiple_shooting".
     def _apply_parameters_to_objective(self):
 
         # As mentioned above, the objective does not depend on the actual
-        # values of V, but on the values of P and EPS_E and EPS_U, while
-        # P is fed from pdata, and EPS_E, EPS_u are supposed to be 0
+        # values of V, but on the values of P and EPS_U, while
+        # P is fed from pdata, and EPS_U is supposed to be 0
 
         objective_free_variables = ci.veccat([ \
 
@@ -680,8 +680,8 @@ Possible values are "collocation" and "multiple_shooting".
         objective_fcn = ci.mx_function("objective_fcn", \
             [objective_free_variables], [self._objective_parameters_free])
 
-        [self._objective] = objective_fcn( \
-            [objective_free_variables_parameters_applied])
+        self._objective = objective_fcn( \
+            objective_free_variables_parameters_applied)
 
 
     def __init__(self, system, time_points, \
@@ -928,7 +928,7 @@ Possible values are "collocation" and "multiple_shooting".
 
 
         self._covariance_matrix_initial = self._covariance_matrix_fcn( \
-            [covariance_matrix_initial_input])[0]
+            covariance_matrix_initial_input)
 
 
 
@@ -943,7 +943,7 @@ Possible values are "collocation" and "multiple_shooting".
             ])
 
         self._covariance_matrix_optimized = self._covariance_matrix_fcn( \
-            [covariance_matrix_optimized_input])[0]
+            covariance_matrix_optimized_input)
 
 
     def plot_confidence_ellipsoids(self, properties = "initial"):
@@ -1114,8 +1114,8 @@ class MultiDoEProblem(DoEProblem):
         objective_fcn = ci.mx_function("objective_fcn", \
             [objective_free_variables], [self._objective_parameters_free])
 
-        [self._objective] = objective_fcn( \
-            [objective_free_variables_parameters_applied])
+        self._objective = objective_fcn( \
+            objective_free_variables_parameters_applied)
 
 
     @abstractmethod
@@ -1172,7 +1172,7 @@ class MultiDoEProblem(DoEProblem):
 
 
         self._covariance_matrix_initial = self._covariance_matrix_fcn( \
-            [covariance_matrix_initial_input])[0]
+            covariance_matrix_initial_input)
 
 
     def _compute_optimized_covariance_matrix(self):
@@ -1197,7 +1197,7 @@ class MultiDoEProblem(DoEProblem):
             covariance_matrix_optimized_input)
 
         self._covariance_matrix_optimized = self._covariance_matrix_fcn( \
-            [covariance_matrix_optimized_input])[0]
+            covariance_matrix_optimized_input)
 
 
     def plot_confidence_ellipsoids(self, properties = "initial"):
