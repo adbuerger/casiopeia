@@ -75,7 +75,7 @@ can be accessed, please run run_system_simulation() first.
 
         self.__dae_scaled = {"x": self.__system.x, \
             "p": ci.vertcat([t_scale, self.__system.u]), \
-            "ode": t_scale * self.__ode_parameters_applied, "expand": True}
+            "ode": t_scale * self.__ode_parameters_applied}
 
     def __init__(self, system, pdata, qdata = None):
 
@@ -118,7 +118,7 @@ can be accessed, please run run_system_simulation() first.
         self.__simulation_input = ci.vertcat([np.atleast_2d(time_steps), udata])
 
         integrator_options = integrator_options_user.copy()
-        integrator_options.update({"t0": 0, "tf": 1}) # ,  "number_of_finite_elements": 1})
+        integrator_options.update({"t0": 0, "tf": 1})#, "expand": True}) # ,  "number_of_finite_elements": 1})
         # integrator = ci.Integrator("integrator", "rk", \
         integrator = ci.Integrator("integrator", "cvodes", \
             self.__dae_scaled, integrator_options)
