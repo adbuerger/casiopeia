@@ -119,4 +119,4 @@ class IntegrationTestODE1(unittest.TestCase):
             x0 = self.ydata[0,:])
 
         simdata = np.array(np.loadtxt("test/data_lotka_volterra_sim.txt")).T
-        assert_array_almost_equal(sim.simulation_results, simdata)
+        assert_array_almost_equal(sim.simulation_results, simdata, decimal = 3)

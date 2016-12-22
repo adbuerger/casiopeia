@@ -99,7 +99,7 @@ class ODEMultipleShooting(Discretization):
             ci.repmat(self.optimization_variables["P"], 1, self.number_of_intervals), \
             self.optimization_variables["EPS_U"]])
 
-        shooting = integrator.map("shooting", "knampf", self.number_of_intervals)
+        shooting = integrator.map("shooting", "openmp", self.number_of_intervals)
         X_next = shooting(x0 = self.optimization_variables["X"][:,:-1], \
             p = params)["xf"]
 
