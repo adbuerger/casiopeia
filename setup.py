@@ -58,10 +58,10 @@ royalty-free even in commercial applications.
 
         casadi_version = casadi.CasadiMeta.getVersion()
 
-        if not float(casadi_version[:3]) >= 2.4:
+        if not float(casadi_version[:3]) >= 3.1:
 
             errmsg = '''
-The version of CasADi found on your system is {0} <= 2.4.2, and therefor
+The version of CasADi found on your system is {0} <= 3.1, and therefor
 not suitable for use with casiopeia.
 
 If you think that you have already installed a newer version of CasADi on your
@@ -96,7 +96,7 @@ if on_rtd:
     setup(
 
         name='casiopeia',
-        version='0.1.2',
+        version='0.2.0',
 
         author='Adrian Buerger',
         author_email='adrian.buerger@hs-karlsruhe.de',
@@ -123,7 +123,7 @@ else:
 
     setup(
         name='casiopeia',
-        version='0.1.2',
+        version='0.2.0',
 
         author='Adrian Buerger',
         author_email='adrian.buerger@hs-karlsruhe.de',

@@ -61,7 +61,7 @@ class ODECollocation(Discretization):
             self.optimization_variables["X"] = ci.mx_sym("X", self.system.nx, \
                 (self.collocation_polynomial_degree + 1) * \
                 self.number_of_intervals + 1)
-        
+
 
         if self.system.neps_u != 0:
                 
@@ -132,8 +132,8 @@ class ODECollocation(Discretization):
           
             # Evaluate the polynomial at the final time to get the
             # coefficients of the continuity equation
-            
-            [self.__D[j]] = lfcn([1])
+
+            self.__D[j] = lfcn([1])
 
             # Evaluate the time derivative of the polynomial at all 
             # collocation points to get the coefficients of the
@@ -168,7 +168,7 @@ class ODECollocation(Discretization):
 
         collocation_node = ci.vertcat([ \
 
-            h * self.__ffcn([ \
+            h * self.__ffcn.call([ \
 
                 u, q, p, \
 
@@ -258,7 +258,6 @@ class ODECollocation(Discretization):
 
             ci.horzcat([self.optimization_variables["U"], \
                 self.optimization_variables["U"][:, -1]]), 
-            
             self.optimization_variables["Q"], \
             
             self.optimization_variables["X"][:, \

@@ -117,8 +117,18 @@ Run compute_covariance_matrix() to do so.
 
         try:
 
-            return ci.sqrt([abs(var) for var \
-                in ci.diag(self.covariance_matrix)])
+            variances = []
+
+            for k in range(ci.diag(self.covariance_matrix).numel()):
+
+                variances.append(abs(ci.diag(self.covariance_matrix)[k]))
+
+            standard_deviations = ci.sqrt(variances)
+
+            return standard_deviations
+
+            # return ci.sqrt([abs(var) for var \
+            #     in ci.diag(self.covariance_matrix)])
 
         except AttributeError:
 
@@ -135,9 +145,8 @@ Run compute_covariance_matrix() to do so.
 
     def _setup_nlp(self):
 
-        self._nlp = ci.mx_function("nlp", \
-            ci.nlpIn(x = self._optimization_variables), \
-            ci.nlpOut(f = self._objective, g = self._constraints))
+        self._nlp = {"x": self._optimization_variables, \
+            "f": self._objective, "g": self._constraints}
 
 
     @abstractmethod
@@ -232,17 +241,19 @@ Parameter estimation finished. Check IPOPT output for status information.
              
             print("\nEstimated parameters p_i:")
 
-            for k, pk in enumerate(self.estimated_parameters):
+            # for k, pk in enumerate(self.estimated_parameters):
+            for k in range(self.estimated_parameters.numel()):
             
                 try:
 
                     print("    p_{0:<3} = {1} +/- {2}".format( \
-                         k, pk[0], self.standard_deviations[k]))
+                        k, self.estimated_parameters[k], \
+                        self.standard_deviations[k]))
 
                 except AttributeError:
 
                     print("    p_{0:<3} = {1}".format(\
-                        k, pk[0]))
+                        k, self.estimated_parameters[k]))
 
             print("\nCovariance matrix for the estimated parameters:")
 
@@ -343,7 +354,7 @@ this might take some time ...''')
         beta_fcn = ci.mx_function("beta_fcn", \
             [self._optimization_variables], [beta])
 
-        self._beta = beta_fcn([self.estimation_results["x"]])[0]
+        self._beta = beta_fcn(self.estimation_results["x"])
 
         self._covariance_matrix_scaled = self._beta * \
             self._covariance_matrix.covariance_matrix
@@ -353,7 +364,7 @@ this might take some time ...''')
             [self._covariance_matrix_scaled])
 
         self._covariance_matrix = \
-            covariance_matrix_fcn([self.estimation_results["x"]])[0]
+            covariance_matrix_fcn(self.estimation_results["x"])
 
         self._tend_covariance_computation = time.time()
         self._duration_covariance_computation = \
@@ -445,8 +456,8 @@ Possible values are "collocation" and "multiple_shooting".
             [optimization_variables_for_equality_constraints], \
             [self._discretization.equality_constraints])
 
-        [self._equality_constraints_controls_applied] = \
-            equality_constraints_fcn([optimization_variables_controls_applied])
+        self._equality_constraints_controls_applied = \
+            equality_constraints_fcn(optimization_variables_controls_applied)
 
 
     def _apply_controls_to_measurements(self, udata, qdata):
@@ -482,8 +493,8 @@ Possible values are "collocation" and "multiple_shooting".
             [optimization_variables_for_measurements], \
             [self._discretization.measurements])
 
-        [self._measurements_controls_applied] = \
-            measurements_fcn([optimization_variables_controls_applied])
+        self._measurements_controls_applied = \
+            measurements_fcn(optimization_variables_controls_applied)
 
 
     def _apply_controls_to_discretization(self, udata, qdata):
@@ -498,8 +509,8 @@ Possible values are "collocation" and "multiple_shooting".
 
                 self._discretization.optimization_variables["P"],
                 self._discretization.optimization_variables["X"],
-                self._discretization.optimization_variables["EPS_U"],
                 self._discretization.optimization_variables["V"],
+                self._discretization.optimization_variables["EPS_U"],
 
             ])
 
@@ -518,7 +529,7 @@ Possible values are "collocation" and "multiple_shooting".
         Xinit = ci.horzcat([ \
 
             Xinit.reshape((self._discretization.system.nx, \
-                Xinit.size() / self._discretization.system.nx)),
+                Xinit.numel() / self._discretization.system.nx)),
             xinit[:, -1],
 
             ])
@@ -535,8 +546,8 @@ Possible values are "collocation" and "multiple_shooting".
 
                 Pinit,
                 Xinit,
-                EPS_Uinit,
                 Vinit,
+                EPS_Uinit,
 
             ])
 
@@ -585,8 +596,8 @@ Possible values are "collocation" and "multiple_shooting".
         self._residuals = ci.sqrt(self._weightings_vectorized) * \
             ci.veccat([ \
 
-                self._discretization.optimization_variables["EPS_U"],
                 self._discretization.optimization_variables["V"],
+                self._discretization.optimization_variables["EPS_U"],
 
             ])
 

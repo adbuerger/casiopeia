@@ -33,7 +33,7 @@ u = ca.MX.sym("u", 2)
 
 f = ca.vertcat( \
 
-    [x[3] * pl.cos(x[2] + p[0] * u[0]),
+    x[3] * pl.cos(x[2] + p[0] * u[0]),
 
     x[3] * pl.sin(x[2] + p[0] * u[0]),
 
@@ -43,7 +43,7 @@ f = ca.vertcat( \
         - p[3] * u[1] * x[3] \
         - p[4] * x[3]**2 \
         - p[5] \
-        - (x[3] * u[0])**2 * p[1]* p[0]])
+        - (x[3] * u[0])**2 * p[1]* p[0])
 
 phi = x
 
@@ -77,7 +77,7 @@ for k in range(2):
 
 mdoe = cp.doe.MultiDoE(doe_setups)
 
-# mdoe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
+# mdoe.run_experimental_design(solver_options = {"ipopt": {"linear_solver": "ma86"}})
 mdoe.run_experimental_design()
 
 # pl.savetxt("results_2d_vehicle_multi_doe.txt", doe.design_results["x"])

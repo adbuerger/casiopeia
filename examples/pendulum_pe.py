@@ -44,7 +44,7 @@ x = ca.MX.sym("x", 2)
 p = ca.MX.sym("p", 1)
 u = ca.MX.sym("u", 1)
 
-f = ca.vertcat([x[1], p[0]/(m*(L**2))*(u-x[0]) - g/L * pl.sin(x[0])])
+f = ca.vertcat(x[1], p[0]/(m*(L**2))*(u-x[0]) - g/L * pl.sin(x[0]))
 
 phi = x
 
@@ -88,7 +88,7 @@ pe = cp.pe.LSq( \
     ydata = ydata, wv = wv, \
     discretization_method = "collocation")
 
-# pe.run_parameter_estimation({"linear_solver": "ma27"})
+# pe.run_parameter_estimation({ipopt: {"linear_solver": "ma27"}})
 pe.run_parameter_estimation()
 pe.print_estimation_results()
 

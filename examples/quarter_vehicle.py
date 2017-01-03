@@ -61,14 +61,14 @@ p_true = [k_M_true, c_M_true, c_m_true]
 
 p_scale = [1e3, 1e4, 1e5]
 
-f = ca.vertcat([ \
+f = ca.vertcat( \
 
         x[1], \
         (p_scale[0] * k_M / m) * (x[3] - x[1]) + (p_scale[1] * c_M / m) * (x[2] - x[0]) - (p_scale[2] * c_m / m) * (x[0] - (u + eps_u)), \
         x[3], \
         -(p_scale[0] * k_M / M) * (x[3] - x[1]) - (p_scale[1] * c_M / M) * (x[2] - x[0]) \
 
-    ])
+    )
 
 phi = x
 
@@ -241,4 +241,4 @@ if EXPERIMENTAL_DESIGN:
         umin = umin, umax = umax, \
         xmin = xmin, xmax = xmax)
 
-    doe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
+    doe.run_experimental_design(solver_options = {"ipopt": {"linear_solver": "ma86"}})

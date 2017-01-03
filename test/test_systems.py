@@ -77,9 +77,9 @@ class System(unittest.TestCase):
             p = self.p, x = self.x, eps_u = self.eps_u, \
             phi = self.phi, f = self.f, g = self.g)
         
-        self.assertEqual(sys.nu, self.u.size())
-        self.assertEqual(sys.nq, self.q.size())
-        self.assertEqual(sys.np, self.p.size())
-        self.assertEqual(sys.nx, self.x.size())
-        self.assertEqual(sys.neps_u, self.eps_u.size())
-        self.assertEqual(sys.nphi, self.phi.size())
+        self.assertEqual(sys.nu, self.u.numel())
+        self.assertEqual(sys.nq, self.q.numel())
+        self.assertEqual(sys.np, self.p.numel())
+        self.assertEqual(sys.nx, self.x.numel())
+        self.assertEqual(sys.neps_u, self.eps_u.numel())
+        self.assertEqual(sys.nphi, self.phi.numel())
