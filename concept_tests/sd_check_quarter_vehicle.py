@@ -55,14 +55,14 @@ p_true = [k_M_true, c_M_true, c_m_true]
 
 p_scale = [1e3, 1e4, 1e5]
 
-f = ca.vertcat([ \
+f = ca.vertcat( \
 
         x[1], \
         (p_scale[0] * k_M / m) * (x[3] - x[1]) + (p_scale[1] * c_M / m) * (x[2] - x[0]) - (p_scale[2] * c_m / m) * (x[0] - u), \
         x[3], \
         -(p_scale[0] * k_M / M) * (x[3] - x[1]) - (p_scale[1] * c_M / M) * (x[2] - x[0]) \
 
-    ])
+    )
 
 phi = x
 
@@ -130,17 +130,17 @@ pe_test.compute_covariance_matrix()
 
 # Generate report
 
-print("\np_mean         = " + str(ca.DMatrix(p_mean)))
-print("phat_last_exp  = " + str(ca.DMatrix(pe_test.estimated_parameters)))
+print("\np_mean         = " + str(ca.DM(p_mean)))
+print("phat_last_exp  = " + str(ca.DM(pe_test.estimated_parameters)))
 
-print("\np_sd           = " + str(ca.DMatrix(p_std)))
+print("\np_sd           = " + str(ca.DM(p_std)))
 print("sd_from_covmat = " + str(ca.diag(ca.sqrt(pe_test.covariance_matrix))))
 print("beta           = " + str(pe_test.beta))
 
-print("\ndelta_abs_sd   = " + str(ca.fabs(ca.DMatrix(p_std) - \
+print("\ndelta_abs_sd   = " + str(ca.fabs(ca.DM(p_std) - \
     ca.diag(ca.sqrt(pe_test.covariance_matrix)))))
-print("delta_rel_sd   = " + str(ca.fabs(ca.DMatrix(p_std) - \
-    ca.diag(ca.sqrt(pe_test.covariance_matrix))) / ca.DMatrix(p_std)))
+print("delta_rel_sd   = " + str(ca.fabs(ca.DM(p_std) - \
+    ca.diag(ca.sqrt(pe_test.covariance_matrix))) / ca.DM(p_std)))
 
 
 fname = os.path.basename(__file__)[:-3] + ".rst"
@@ -209,20 +209,20 @@ report.write("\n**Test results:**\n\n.. code-block:: python")
 report.write("\n\n    repetitions    = " + str(repetitions))
 # report.write("\n    sigma          = " + str(sigma))
 
-report.write("\n\n    p_true         = " + str(ca.DMatrix(p_true)))
-report.write("\n\n    p_mean         = " + str(ca.DMatrix(p_mean)))
+report.write("\n\n    p_true         = " + str(ca.DM(p_true)))
+report.write("\n\n    p_mean         = " + str(ca.DM(p_mean)))
 report.write("\n    phat_last_exp  = " + \
-    str(ca.DMatrix(pe_test.estimated_parameters)))
+    str(ca.DM(pe_test.estimated_parameters)))
 
-report.write("\n\n    p_sd           = " + str(ca.DMatrix(p_std)))
+report.write("\n\n    p_sd           = " + str(ca.DM(p_std)))
 report.write("\n    sd_from_covmat = " \
     + str(ca.diag(ca.sqrt(pe_test.covariance_matrix))))
 report.write("\n    beta           = " + str(pe_test.beta))
 
-report.write("\n\n    delta_abs_sd   = " + str(ca.fabs(ca.DMatrix(p_std) - \
+report.write("\n\n    delta_abs_sd   = " + str(ca.fabs(ca.DM(p_std) - \
     ca.diag(ca.sqrt(pe_test.covariance_matrix)))))
-report.write("\n    delta_rel_sd   = " + str(ca.fabs(ca.DMatrix(p_std) - \
-    ca.diag(ca.sqrt(pe_test.covariance_matrix))) / ca.DMatrix(p_std)) \
+report.write("\n    delta_rel_sd   = " + str(ca.fabs(ca.DM(p_std) - \
+    ca.diag(ca.sqrt(pe_test.covariance_matrix))) / ca.DM(p_std)) \
     + "\n")
 
 report.close()

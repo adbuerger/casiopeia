@@ -129,49 +129,44 @@ if PARAMETER_ESTIMATION:
 
     dt = T / N
 
-    ffcn = ca.MXFunction("ffcn", \
-        ca.daeIn(x = x, p = ca.vertcat([u, eps_u, p])), \
-        ca.daeOut(ode = f))
+    ffcn = {"x": x, "p": ca.vertcat(u, eps_u, p), "ode": f}
 
-    ffcn = ffcn.expand()
-
-    rk4 = ca.Integrator("cvodes", "rk", ffcn, {"t0": 0, "tf": dt}) #, \
-        #"number_of_finite_elements": 1})
+    rk4 = ca.integrator("rk", "rk", ffcn, {"t0": 0, "tf": dt, "expand":}) #, \
+        # "number_of_finite_elements": 1})
 
     P = ca.MX.sym("P", 3)
     EPS_U = ca.MX.sym("EPS_U", N)
     X0 = ca.MX.sym("X0", 4)
 
-    V = ca.vertcat([P, EPS_U, X0])
+    V = ca.vertcat(P, EPS_U, X0)
 
     x_end = X0
     obj = [x_end - ydata_noise[0,:].T]
 
     for k in range(N):
 
-        x_end = rk4(x0 = x_end, p = ca.vertcat([udata[k], EPS_U[k], P]))["xf"]
+        x_end = rk4(x0 = x_end, p = ca.vertcat(udata[k], EPS_U[k], P))["xf"]
         obj.append(x_end - ydata_noise[k+1, :].T)
 
-    r = ca.vertcat([ca.vertcat(obj), EPS_U])
+    r = ca.vertcat(ca.vertcat(*obj), EPS_U)
 
     Sigma_y_inv = ca.diag(ca.vec(wv))
     Sigma_u_inv = ca.diag(weps_u)
-    Z = ca.DMatrix(pl.zeros((Sigma_y_inv.shape[0], Sigma_u_inv.shape[1])))
+    Z = ca.DM(pl.zeros((Sigma_y_inv.shape[0], Sigma_u_inv.shape[1])))
 
     Sigma = ca.blockcat(Sigma_y_inv, Z, Z.T, Sigma_u_inv)
 
-    nlp = ca.MXFunction("nlp", ca.nlpIn(x = V), \
-        ca.nlpOut(f = 0.5 * ca.mul([r.T, Sigma, r])))
+    nlp = {"x": V, "f": 0.5 * ca.mtimes([r.T, Sigma, r])}
 
-    nlpsolver = ca.NlpSolver("nlpsolver", "ipopt", nlp)
+    nlpsolver = ca.nlpsol("nlpsolver", "ipopt", nlp)
 
-    V0 = ca.vertcat([
+    V0 = ca.vertcat(
 
             pl.ones(3), \
             pl.zeros(N), \
             ydata[0,:].T
 
-        ])
+        )
 
     sol = nlpsolver(x0 = V0)
 
@@ -181,18 +176,18 @@ if PARAMETER_ESTIMATION:
 
     J_s = ca.jacobian(r, V)
 
-    F_s = ca.mul([J_s.T, Sigma, J_s])
+    F_s = ca.mtimes([J_s.T, Sigma, J_s])
 
-    beta = (ca.mul([r.T, Sigma, r]) / (r.size() - V.size())) 
+    beta = (ca.mtimes([r.T, Sigma, r]) / (r.numel() - V.numel())) 
     Sigma_p_s = beta * ca.solve(F_s, ca.MX.eye(F_s.shape[0]), "csparse")
 
-    beta_fcn = ca.MXFunction("beta_fcn", [V], [beta])
-    print beta_fcn([sol["x"]])[0]
+    beta_fcn = ca.Function("beta_fcn", [V], [beta])
+    print beta_fcn.call([sol["x"]])[0]
 
-    Sigma_p_s_fcn = ca.MXFunction("Sigma_p_s_fcn", \
+    Sigma_p_s_fcn = ca.Function("Sigma_p_s_fcn", \
         [V] , [Sigma_p_s])
 
-    Cov_p = Sigma_p_s_fcn([sol["x"]])[0][:3, :3]
+    Cov_p = Sigma_p_s_fcn.call([sol["x"]])[0][:3, :3]
 
     tend_Sigma_p = time()
 
