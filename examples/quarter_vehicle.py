@@ -241,4 +241,4 @@ if EXPERIMENTAL_DESIGN:
         umin = umin, umax = umax, \
         xmin = xmin, xmax = xmax)
 
-    doe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
+    doe.run_experimental_design(solver_options = {"ipopt": {"linear_solver": "ma86"}})

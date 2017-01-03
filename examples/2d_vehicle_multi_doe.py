@@ -77,7 +77,7 @@ for k in range(2):
 
 mdoe = cp.doe.MultiDoE(doe_setups)
 
-# mdoe.run_experimental_design(solver_options = {"linear_solver": "ma86"})
+# mdoe.run_experimental_design(solver_options = {"ipopt": {"linear_solver": "ma86"}})
 mdoe.run_experimental_design()
 
 # pl.savetxt("results_2d_vehicle_multi_doe.txt", doe.design_results["x"])
