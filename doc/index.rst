@@ -39,9 +39,6 @@ In the following sections, you will receive the information necessary to obtain,
 install and use casiopeia. If you encounter any problems using this software, please feel free
 to submit your errors with a description of how they occurred to adrian.buerger@hs-karlsruhe.de.
 
-**New:** `try casiopeia live in your browser <https://141.52.38.152/notebooks/casiopeia_demo.ipynb>`_ [#f1]_
-
-
 Contents
 --------
 
@@ -55,8 +52,6 @@ Contents
    pe
    doe
    samples
-
-.. [#f1] This service is at the moment limited to one user at a time, due to restricted resources. If your computations do no start immediately, there's probably another user testing casiopeia at the moment. 
 
 .. Indices and tables
 .. ------------------
