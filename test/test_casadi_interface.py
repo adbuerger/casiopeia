@@ -111,11 +111,11 @@ class SXFunction(unittest.TestCase):
         self.output = [a**2]
 
 
-    def test_sx_function_is_sx_function_instance(self):
+    def test_sx_function_is_function_instance(self):
 
         sx_function = ci.sx_function(self.name, self.input, self.output)
         
-        self.assertTrue(isinstance(sx_function, ca.casadi.SXFunction))
+        self.assertTrue(isinstance(sx_function, ca.casadi.Function))
 
 
     def test_sx_function_call(self):
@@ -137,11 +137,11 @@ class MXFunction(unittest.TestCase):
         self.output = [a**2]
 
 
-    def test_mx_function_is_mx_function_instance(self):
+    def test_mx_function_is_function_instance(self):
 
         mx_function = ci.mx_function(self.name, self.input, self.output)
         
-        self.assertTrue(isinstance(mx_function, ca.casadi.MXFunction))
+        self.assertTrue(isinstance(mx_function, ca.casadi.Function))
 
 
     def test_mx_function_call(self):
@@ -307,33 +307,33 @@ class Sqrt(unittest.TestCase):
         self.assertEqual(b, 3)
 
 
-class NlpIn(unittest.TestCase):
+# class NlpIn(unittest.TestCase):
 
-    def setUp(self):
+#     def setUp(self):
 
-        self.x = ca.MX.sym("x")
-        self.ref_str = "({'x': MX(x)}, ['x', 'p'])"
-
-
-    def test_nlp_in_return_value(self):
-
-        ret_tuple = ci.nlpIn(x = self.x)
-        self.assertEqual(str(ret_tuple), self.ref_str)
+#         self.x = ca.MX.sym("x")
+#         self.ref_str = "{'x': MX(x)}"
 
 
-class NlpOut(unittest.TestCase):
+#     def test_nlp_in_return_value(self):
 
-    def setUp(self):
-
-        self.f = ca.MX.sym("f")
-        self.g = ca.MX.sym("g")
-        self.ref_str = "({'g': MX(g), 'f': MX(f)}, ['f', 'g'])"
+#         ret_tuple = ci.nlpIn(x = self.x)
+#         self.assertEqual(str(ret_tuple), self.ref_str)
 
 
-    def test_nlp_out_return_value(self):
+# class NlpOut(unittest.TestCase):
 
-        ret_tuple = ci.nlpOut(f = self.f, g = self.g)
-        self.assertEqual(str(ret_tuple), self.ref_str)
+#     def setUp(self):
+
+#         self.f = ca.MX.sym("f")
+#         self.g = ca.MX.sym("g")
+#         self.ref_str = "{'g': MX(g), 'f': MX(f)}"
+
+
+#     def test_nlp_out_return_value(self):
+
+#         ret_tuple = ci.nlpOut(f = self.f, g = self.g)
+#         self.assertEqual(str(ret_tuple), self.ref_str)
 
 
 class Mul(unittest.TestCase):
@@ -359,11 +359,10 @@ class NLpSolver(unittest.TestCase):
     def setUp(self):
 
         self.x = ca.MX.sym("x")
-        self.f = ca.MX.sym("f")
-        self.g = ca.MX.sym("g")
+        self.f = 2 * self.x
+        self.g = self.x + 3
 
-        self.nlp = ca.MXFunction("nlp", ca.nlpIn(x = self.x), \
-            ca.nlpOut(f = self.f, g = self.g))
+        self.nlp = {"x": self.x, "f": self.f, "g": self.g}
 
 
     def test_nlp_solver_class_exists(self):
@@ -382,14 +381,14 @@ class DaeIn(unittest.TestCase):
 
     def test_dae_in_return_value_no_t(self):
 
-        ref_str = "({'x': MX(x), 'p': MX(p)}, ['x', 'z', 'p', 't'])"
+        ref_str = "{'x': MX(x), 'p': MX(p)}"
         ret_tuple = ci.daeIn(x = self.x, p = self.p)
         self.assertEqual(str(ret_tuple), ref_str)
 
 
     def test_dae_in_return_value(self):
 
-        ref_str = "({'x': MX(x), 't': MX(t), 'p': MX(p)}, ['x', 'z', 'p', 't'])"
+        ref_str = "{'x': MX(x), 't': MX(t), 'p': MX(p)}"
         ret_tuple = ci.daeIn(t = self.t, x = self.x, p = self.p)
         self.assertEqual(str(ret_tuple), ref_str)
 
@@ -404,14 +403,14 @@ class DaeOut(unittest.TestCase):
 
     def test_dae_out_return_value_no_alg(self):
 
-        ref_str = "({'ode': MX(f)}, ['ode', 'alg', 'quad'])"
+        ref_str = "{'ode': MX(f)}"
         ret_tuple = ci.daeOut(ode = self.f)
         self.assertEqual(str(ret_tuple), ref_str)
 
 
     def test_dae_out_return_value(self):
 
-        ref_str = "({'alg': MX(g), 'ode': MX(f)}, ['ode', 'alg', 'quad'])"
+        ref_str = "{'alg': MX(g), 'ode': MX(f)}"
         ret_tuple = ci.daeOut(ode = self.f, alg = self.g)
         self.assertEqual(str(ret_tuple), ref_str)
 
@@ -424,10 +423,9 @@ class Integrator(unittest.TestCase):
     def setUp(self):
 
         self.x = ca.MX.sym("x")
-        self.f = ca.MX.sym("f")
+        self.f = self.x
 
-        self.dae = ca.MXFunction("dae", ca.daeIn(x = self.x), \
-            ca.daeOut(ode = self.f))
+        self.dae = {"x": self.x, "ode": self.f}
 
 
     def test_nlp_solver_class_exists(self):

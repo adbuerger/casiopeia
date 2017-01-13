@@ -54,14 +54,14 @@ p_true = [k_M_true, c_M_true, c_m_true]
 
 p_scale = [1e3, 1e4, 1e5]
 
-f = ca.vertcat([ \
+f = ca.vertcat( \
 
         x[1], \
         (p_scale[0] * k_M / m) * (x[3] - x[1]) + (p_scale[1] * c_M / m) * (x[2] - x[0]) - (p_scale[2] * c_m / m) * (x[0] - (u + eps_u)), \
         x[3], \
         -(p_scale[0] * k_M / M) * (x[3] - x[1]) - (p_scale[1] * c_M / M) * (x[2] - x[0]) \
 
-    ])
+    )
 
 phi = x
 
@@ -102,30 +102,26 @@ for tf in time_horizons:
     ydata_noise = ydata + sigma_y * pl.randn(*ydata.shape)
 
 
-    ffcn = ca.MXFunction("ffcn", \
-        ca.daeIn(x = x, p = ca.vertcat([u, eps_u, p])), \
-        ca.daeOut(ode = f))
+    ffcn = {"x": x, "p": ca.vertcat(u, eps_u, p), "ode": f}
 
-    ffcn = ffcn.expand()
-
-    rk4 = ca.Integrator("rk4", "rk", ffcn, {"t0": 0, "tf": dt, \
+    rk4 = ca.integrator("rk4", "rk", ffcn, {"t0": 0, "tf": dt, \
         "number_of_finite_elements": 1})
 
     P = ca.MX.sym("P", 3)
     EPS_U = ca.MX.sym("EPS_U", int(N))
     X0 = ca.MX.sym("X0", 4)
 
-    V = ca.vertcat([P, EPS_U, X0])
+    V = ca.vertcat(P, EPS_U, X0)
 
     x_end = X0
     obj = [x_end - ydata[0,:].T]
 
     for k in range(int(N)):
 
-        x_end = rk4(x0 = x_end, p = ca.vertcat([udata[k], EPS_U[k], P]))["xf"]
+        x_end = rk4(x0 = x_end, p = ca.vertcat(udata[k], EPS_U[k], P))["xf"]
         obj.append(x_end - ydata_noise[k+1, :].T)
 
-    r = ca.vertcat([ca.vertcat(obj), EPS_U])
+    r = ca.vertcat(ca.vertcat(*obj), EPS_U)
 
     wv = (1.0 / sigma_y**2) * pl.ones(ydata.shape)
     weps_u = (1.0 / sigma_u**2) * pl.ones(udata.shape)
@@ -133,20 +129,20 @@ for tf in time_horizons:
     Sigma_y_inv = ca.diag(ca.vec(wv))
     Sigma_u_inv = ca.diag(weps_u)
 
-    Sigma = ca.blockcat(Sigma_y_inv, ca.DMatrix(pl.zeros((Sigma_y_inv.shape[0], Sigma_u_inv.shape[1]))),\
-        ca.DMatrix(pl.zeros((Sigma_u_inv.shape[0], Sigma_y_inv.shape[1]))), Sigma_u_inv)
+    Sigma = ca.blockcat(Sigma_y_inv, ca.DM(pl.zeros((Sigma_y_inv.shape[0], Sigma_u_inv.shape[1]))),\
+        ca.DM(pl.zeros((Sigma_u_inv.shape[0], Sigma_y_inv.shape[1]))), Sigma_u_inv)
 
-    nlp = ca.MXFunction("nlp", ca.nlpIn(x = V), ca.nlpOut(f = ca.mul([r.T, Sigma, r])))
+    nlp = {"x": V, "f": ca.mtimes([r.T, Sigma, r])}
 
-    nlpsolver = ca.NlpSolver("nlpsolver", "ipopt", nlp)
+    nlpsolver = ca.nlpsol("nlpsolver", "ipopt", nlp)
 
-    V0 = ca.vertcat([
+    V0 = ca.vertcat(
 
             pl.ones(3), \
             pl.zeros(N), \
             ydata_noise[0,:].T
 
-        ])
+        )
 
     sol = nlpsolver(x0 = V0)
 
@@ -156,18 +152,18 @@ for tf in time_horizons:
 
     J_s = ca.jacobian(r, V)
 
-    F_s = ca.mul(J_s.T, J_s)
+    F_s = ca.mtimes(J_s.T, J_s)
 
-    beta = (ca.mul(r.T, r) / (r.size() - V.size())) 
+    beta = (ca.mtimes(r.T, r) / (r.numel() - V.numel())) 
     Sigma_p_s = beta * ca.solve(F_s, ca.MX.eye(F_s.shape[0]), "csparse")
 
-    beta_fcn = ca.MXFunction("beta_fcn", [V], [beta])
-    print beta_fcn([sol["x"]])[0]
+    beta_fcn = ca.Function("beta_fcn", [V], [beta])
+    print beta_fcn.call([sol["x"]])[0]
 
-    Sigma_p_s_fcn = ca.MXFunction("Sigma_p_s_fcn", \
+    Sigma_p_s_fcn = ca.Function("Sigma_p_s_fcn", \
         [V] , [Sigma_p_s])
 
-    Cov_p = Sigma_p_s_fcn([sol["x"]])[0][:3, :3]
+    Cov_p = Sigma_p_s_fcn.call([sol["x"]])[0][:3, :3]
 
     tend_Sigma_p = time()
 

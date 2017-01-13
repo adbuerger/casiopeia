@@ -39,8 +39,8 @@ class IntegrationTestODE1(unittest.TestCase):
         self.p = ca.MX.sym("p", 2)
 
         self.f = ca.vertcat( \
-            [-1.0 * self.x[0] + self.p[0] * self.x[0] * self.x[1], 
-            1.0 * self.x[1] - self.p[1] * self.x[0] * self.x[1]])
+            -1.0 * self.x[0] + self.p[0] * self.x[0] * self.x[1], 
+            1.0 * self.x[1] - self.p[1] * self.x[0] * self.x[1])
 
         self.phi = self.x
 
@@ -119,4 +119,4 @@ class IntegrationTestODE1(unittest.TestCase):
             x0 = self.ydata[0,:])
 
         simdata = np.array(np.loadtxt("test/data_lotka_volterra_sim.txt")).T
-        assert_array_almost_equal(sim.simulation_results, simdata)
+        assert_array_almost_equal(sim.simulation_results, simdata, decimal = 3)

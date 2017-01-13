@@ -59,9 +59,9 @@ can be accessed, please run run_system_simulation() first.
             self.__system.eps_u, self.__system.p], \
             [self.__system.f])
 
-        # Needs to be changes for allowance of explicit time dependency!
+        # Needs to be changes for allowance of explicit time dependecy!
 
-        self.__ode_parameters_applied = ode_fcn([ \
+        self.__ode_parameters_applied = ode_fcn.call([ \
             self.__system.u, q, self.__system.x, \
             np.zeros(self.__system.neps_u), p])[0]
 
@@ -73,14 +73,9 @@ can be accessed, please run run_system_simulation() first.
 
         t_scale = ci.mx_sym("t_scale", 1)
 
-        dae_scaled = \
-            ci.mx_function("dae_scaled", \
-                ci.daeIn(x = self.__system.x, \
-                    p = ci.vertcat([t_scale, self.__system.u])), \
-                ci.daeOut(ode = t_scale * self.__ode_parameters_applied))
-
-        self.__dae_scaled = dae_scaled.expand()
-
+        self.__dae_scaled = {"x": self.__system.x, \
+            "p": ci.vertcat([t_scale, self.__system.u]), \
+            "ode": t_scale * self.__ode_parameters_applied}
 
     def __init__(self, system, pdata, qdata = None):
 
@@ -123,7 +118,7 @@ can be accessed, please run run_system_simulation() first.
         self.__simulation_input = ci.vertcat([np.atleast_2d(time_steps), udata])
 
         integrator_options = integrator_options_user.copy()
-        integrator_options.update({"t0": 0, "tf": 1}) # ,  "number_of_finite_elements": 1})
+        integrator_options.update({"t0": 0, "tf": 1, "expand": True}) # ,  "number_of_finite_elements": 1})
         # integrator = ci.Integrator("integrator", "rk", \
         integrator = ci.Integrator("integrator", "cvodes", \
             self.__dae_scaled, integrator_options)

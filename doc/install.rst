@@ -20,10 +20,10 @@ Get and install casiopeia
 
 Within the next sections, you will get to know how to obtain and install casiopeia, and what prerequisites have to be met to get casiopeia working correctly.
 
-Installation on Ubuntu 14.04
+Installation on Ubuntu 16.04
 ----------------------------
 
-The following instructions show the installation on Ubuntu 14.04. If you are planning to install casiopeia on Linux systems different from Ubuntu 14.04, these commands need to be adapted accordingly.
+The following instructions show the installation on Ubuntu 16.04. If you are planning to install casiopeia on Linux systems different from Ubuntu 16.04, these commands need to be adapted accordingly.
 
 Prerequesites
 ~~~~~~~~~~~~~
@@ -58,7 +58,7 @@ Also, you might want to install the `Spyder IDE <https://pythonhosted.org/spyder
 CasADi
 ^^^^^^
 
-For casiopeia to work correctly, you need `CasADi <http://casadi.org>`_  version >= 2.4.2 but (for the moment) < 3.x to be installed on your system. Installation instructions for CasADi can be found  `here <https://github.com/casadi/casadi/wiki/InstallationInstructions>`_. You can simply use `"Option 1: Download a binary installation" <https://github.com/casadi/casadi/wiki/InstallationInstructions#option-1-download-a-binary-installation-recommended>`_ and download and unpack e. g. `this archive <http://sourceforge.net/projects/casadi/files/CasADi/2.4.2/linux/casadi-py27-np1.9.1-v2.4.2.tar.gz/download>`_.
+For casiopeia to work correctly, you need `CasADi <http://casadi.org>`_  version >= 3.1 to be installed on your system. Installation instructions for CasADi can be found  `here <https://github.com/casadi/casadi/wiki/InstallationInstructions>`_.
 
 .. note:: Some plugins for CasADi require extra prerequisites to work on Linux. For a list of the required libraries and installation instructions, see `the corresponding section in the CasADi installation guide <https://github.com/casadi/casadi/wiki/linuxplugins>`_. If something goes wrong with executing CasADi and/or casiopeia, missing one or more of these libraries might be the reason.
 
@@ -214,7 +214,7 @@ The easiest way to meet the prerequesites for casiopeia and CasADi on a Windows 
 CasADi
 ^^^^^^
 
-After installing Python(x,y), a recent version of `CasADi <http://casadi.org>`_ (>= 2.4.2, but for the Moment <3.x) needs to be installed on your system. Installation instructions for CasADi can be found  `here <https://github.com/casadi/casadi/wiki/InstallationInstructions>`_. You can simpy use `"Option 1: Download a binary installation" <https://github.com/casadi/casadi/wiki/InstallationInstructions#option-1-download-a-binary-installation-recommended>`_ and download and unpack e. g. `this archive <http://sourceforge.net/projects/casadi/files/CasADi/2.4.2/windows/casadi-py27-np1.9.1-v2.4.2.zip/download>`_, which is compatible with the previous Python(x,y) installation.
+For casiopeia to work correctly, you need `CasADi <http://casadi.org>`_  version >= 3.1 to be installed on your system. Installation instructions for CasADi can be found  `here <https://github.com/casadi/casadi/wiki/InstallationInstructions>`_.
 
 After unpacking the archive, go to :code:`My Computer > Properties > Advanced System Settings > Environment Variables`. If a variable :code:`PYTHONPATH` already exists, apply the full path to the CasADi folder to the end of the variable value, and separate this new path from the ones already contained by :code:`;`. If :code:`PYTHONPATH` does not yet exist on the system, create a new environmental variable with this name, and fill in the path to the unpacked CasADi folder.
 

@@ -40,7 +40,7 @@ class IntegrationTestODEMultiSetups(unittest.TestCase):
 
         self.f = ca.vertcat( \
 
-            [self.x[3] * np.cos(self.x[2] + self.p[0] * self.u[0]),
+            self.x[3] * np.cos(self.x[2] + self.p[0] * self.u[0]),
 
             self.x[3] * np.sin(self.x[2] + self.p[0] * self.u[0]),
 
@@ -50,7 +50,7 @@ class IntegrationTestODEMultiSetups(unittest.TestCase):
                 - self.p[3] * self.u[1] * self.x[3] \
                 - self.p[4] * self.x[3]**2 \
                 - self.p[5] \
-                - (self.x[3] * self.u[0])**2 * self.p[1] * self.p[0]])
+                - (self.x[3] * self.u[0])**2 * self.p[1] * self.p[0])
 
         self.phi = self.x
 
