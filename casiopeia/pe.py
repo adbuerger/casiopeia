@@ -83,6 +83,24 @@ can be accessed, please run run_parameter_estimation() first.
 
 
     @property
+    def estimated_initial_states(self):
+
+        try:
+
+            return self._estimation_results["x"][ \
+                self._discretization.system.np: \
+                self._discretization.system.np + \
+                    self._discretization.system.nx]
+
+        except AttributeError:
+
+            raise AttributeError('''
+A parameter estimation has to be executed before the estimated initial states
+can be accessed, please run run_parameter_estimation() first.
+''')
+
+
+    @property
     def beta(self):
 
         try:
