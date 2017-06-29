@@ -29,11 +29,11 @@ install:
  - pip install coverage coveralls python-coveralls nose-cov
  - pip --version
 
- - wget http://sourceforge.net/projects/casadi/files/CasADi/$CASADIVERSION/linux/casadi-py27-np1.9.1-v$CASADIVERSION.tar.gz/download -O casadi-py27-np1.9.1-v$CASADIVERSION.tar.gz
- - mkdir $HOME/casadi-py27-np1.9.1-v$CASADIVERSION
- - tar -zxvf casadi-py27-np1.9.1-v$CASADIVERSION.tar.gz -C $HOME/casadi-py27-np1.9.1-v$CASADIVERSION
+ - wget http://sourceforge.net/projects/casadi/files/CasADi/$CASADIVERSION/linux/casadi-py27-np1.9-v$CASADIVERSION.tar.gz/download -O casadi-py27-np1.9-v$CASADIVERSION.tar.gz
+ - mkdir $HOME/casadi-py27-np1.9-v$CASADIVERSION
+ - tar -zxvf casadi-py27-np1.9-v$CASADIVERSION.tar.gz -C $HOME/casadi-py27-np1.9-v$CASADIVERSION
 
- - export PYTHONPATH=$PYTHONPATH:$HOME/casadi-py27-np1.9.1-v$CASADIVERSION
+ - export PYTHONPATH=$PYTHONPATH:$HOME/casadi-py27-np1.9-v$CASADIVERSION
 
  - python setup.py install
 
