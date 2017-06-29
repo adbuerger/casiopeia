@@ -20,7 +20,7 @@ before_install:
  - conda update --yes conda
 
 install:
- - conda install --yes numpy=$NUMPY scipy=$SCIPY matplotlib nose mock
+ - conda install --yes numpy=$NUMPY scipy=$SCIPY matplotlib nose mock libgfortran
 
 # Specific version of coverage (3.7.1) necessary here, higher versions include
 # the renaming of a class used by python-coveralls that else won't be found
