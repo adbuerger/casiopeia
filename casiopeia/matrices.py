@@ -118,7 +118,7 @@ class FisherMatrix(object):
                         
                         self._fisher_matrix_B, \
                         
-                        "csparse")])
+                        "ma27")])
 
 
     def __init__(self, kkt_matrix, number_of_unknown_parameters):
