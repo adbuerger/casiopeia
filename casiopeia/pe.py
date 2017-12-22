@@ -209,10 +209,13 @@ Starting least squares parameter estimation using IPOPT,
 this might take some time ...
 ''')
 
+        nlpsol_opts = {"ipopt.linear_solver": "mumps"}
+        nlpsol_opts.update(solver_options)
+
         self._tstart_estimation = time.time()
 
         nlpsolver = ci.NlpSolver("solver", "ipopt", self._nlp, \
-            options = solver_options)
+            options = nlpsol_opts)
 
         self._estimation_results = \
             nlpsolver(x0 = self._optimization_variables_initials, \
