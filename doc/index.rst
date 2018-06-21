@@ -37,7 +37,7 @@ casiopeia uses the optimization framework
 
 In the following sections, you will receive the information necessary to obtain,
 install and use casiopeia. If you encounter any problems using this software, please feel free
-to submit your errors with a description of how they occurred to adrian.buerger@hs-karlsruhe.de.
+to submit your errors with a description of how they occurred to adrian(dot)buerger(at)hs-karlsruhe(dot)de.
 
 Contents
 --------
