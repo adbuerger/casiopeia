@@ -3,7 +3,7 @@
 Casadi Interface for Optimum experimental design and Parameter Estimation and Identification Applications
 ---------------------------------------------------------------------------------------------------------
 
-|travis| |coveralls| |rtd|
+|travis| |rtd|
 
 .. |travis| image:: https://travis-ci.org/adbuerger/casiopeia.svg?branch=master
     :target: https://travis-ci.org/adbuerger/casiopeia
