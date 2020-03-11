@@ -224,11 +224,7 @@ Both planning of such experiments and using independent measurements data sets w
 
 .. Process for italic links, see: http://stackoverflow.com/questions/10669099/italicize-text-containing-a-link
 
-.. [#f1] |linkf1|_
-
-.. _linkf1: http://www.iwr.uni-heidelberg.de/~agbock/TEACHING/2006ws/NUM2/UEBUNGSBLAETTER/THEORIE/t09.pdf
-
-.. |linkf1| replace:: *Bock, Sager et al.: Übungen zur Numerischen Mathematik II, sheet 9, IWR, Heidelberg university, 2006.*
+.. [#f1] *Bock, Sager et al.: Übungen zur Numerischen Mathematik II, sheet 9, IWR, Heidelberg university, 2006.*
 
 .. [#f2] |linkf2|_
 

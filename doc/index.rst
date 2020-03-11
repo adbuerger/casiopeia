@@ -33,7 +33,7 @@ Casadi Interface for Optimum experimental design and Parameter Estimation and Id
 casiopeia uses the optimization framework
 `CasADi <http://casadi.org>`_ to solve the resulting optimization problems.
 
-.. note:: casiopeia is still in it's testing state, and does not yet contain all the features it will provide in future versions. Therefore, you should check for updates on a regular basis.
+.. note:: casiopeia makes use of the optimization framework `CasADi <http://casadi.org>`_. For casiopeia to work, you need CasADi version = 3.1.0 to be installed on your system, otherwise the installation of casiopeia will abort or not might work as expected. Also, casiopeia is available only for Python 2.7.
 
 In the following sections, you will receive the information necessary to obtain,
 install and use casiopeia. If you encounter any problems using this software, please feel free

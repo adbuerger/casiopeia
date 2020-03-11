@@ -58,10 +58,10 @@ royalty-free even in commercial applications.
 
         casadi_version = casadi.CasadiMeta.getVersion()
 
-        if not float(casadi_version[:3]) >= 3.1:
+        if not float(casadi_version[:3]) == 3.1:
 
             errmsg = '''
-The version of CasADi found on your system is {0} <= 3.1, and therefor
+The version of CasADi found on your system is {0} != 3.1, and therefor
 not suitable for use with casiopeia.
 
 If you think that you have already installed a newer version of CasADi on your
@@ -96,7 +96,7 @@ if on_rtd:
     setup(
 
         name='casiopeia',
-        version='0.2.0',
+        version='0.2.1',
 
         author='Adrian Buerger',
         author_email='adrian.buerger@hs-karlsruhe.de',
@@ -113,8 +113,8 @@ if on_rtd:
             'Parameter Estimation and Identification Applications',
         long_description = long_description,
 
-        platforms = ["Linux", "Windows"], 
-        use_2to3=True,
+        platforms = ["Linux"], 
+        use_2to3=False,
 
     )
 
@@ -123,7 +123,7 @@ else:
 
     setup(
         name='casiopeia',
-        version='0.2.0',
+        version='0.2.1',
 
         author='Adrian Buerger',
         author_email='adrian.buerger@hs-karlsruhe.de',
@@ -143,13 +143,12 @@ else:
         install_requires=[ 
 
                 "numpy>=1.8.2",
-                "scipy", 
-                "matplotlib",
+                "casadi==3.1.0",
 
             ],
 
-        platforms = ["Linux", "Windows"], 
-        use_2to3=True,
+        platforms = ["Linux"], 
+        use_2to3=False,
 
         cmdclass={"install" : CustomInstall},
 

@@ -333,17 +333,9 @@ and compute_covariance_matrix() before all results can be displayed.
 
         .. rubric:: References
 
-        .. [#f1] |linkf1|_
+        .. [#f1] *Kostina, Ekaterina and Kostyukova, Olga: Computing Covariance Matrices for Constrained Nonlinear Large Scale Parameter Estimation Problems Using Krylov Subspace Methods, 2012.*
 
-        .. _linkf1:  https://www.researchgate.net/publication/228407918_Computing_Covariance_Matrices_for_Constrained_Nonlinear_Large_Scale_Parameter_Estimation_Problems_Using_Krylov_Subspace_Methods
-
-        .. |linkf1| replace:: *Kostina, Ekaterina and Kostyukova, Olga: Computing Covariance Matrices for Constrained Nonlinear Large Scale Parameter Estimation Problems Using Krylov Subspace Methods, 2012.*
-
-        .. [#f2] |linkf2|_
-
-        .. _linkf2: http://www.am.uni-erlangen.de/home/spp1253/wiki/images/b/b3/Freising10_19_-_Kostina_-_Towards_Optimum.pdf
-
-        .. |linkf2| replace:: *Kostina, Ekaterina and Kriwet, Gregor: Towards Optimum Experimental Design for Partial Differential Equations, SPP 1253 annual conference 2010, slides 12/13.*
+        .. [#f2] *Kostina, Ekaterina and Kriwet, Gregor: Towards Optimum Experimental Design for Partial Differential Equations, SPP 1253 annual conference 2010, slides 12/13.*
 
         .. [#f3] *Walter, Eric and Prozanto, Luc: Identification of Parametric Models from Experimental Data, Springer, 1997, pages 288/289.*
 

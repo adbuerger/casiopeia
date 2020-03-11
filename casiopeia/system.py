@@ -199,7 +199,6 @@ Particularly, the system has:
         .. math::
 
             y & = & \phi(u, q, x, p) \\
-
             \dot{x}  & = & f(u, q, x, p, \epsilon_\text{u}).
 
 
