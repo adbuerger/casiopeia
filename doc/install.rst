@@ -37,7 +37,7 @@ Depending on your setup, you might need root privileges to install the following
 
     pip install numpy==1.8 casadi==3.1.0
 
-casiopeia can the also be obtained via pip by issuing the command
+casiopeia can then also be obtained via pip by running the command
 
 .. code:: bash
 
