@@ -10,7 +10,7 @@ notifications:
   email: false
 
 install:
- - sudo apt install libgfortran3 python-tk
+ - sudo apt install libgfortran3 
  - pip install --yes numpy=$NUMPY scipy=$SCIPY matplotlib=$MATPLOTLIB nose=$NOSE casadi=$CASADI
  - python setup.py install
 
