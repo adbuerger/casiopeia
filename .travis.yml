@@ -11,7 +11,7 @@ notifications:
 
 install:
  - sudo apt update && sudo apt install libgfortran3 
- - pip install --yes numpy=$NUMPY casadi=$CASADI nose=$NOSE mock=$MOCK
+ - pip install numpy=$NUMPY casadi=$CASADI nose=$NOSE mock=$MOCK
  - python setup.py install
 
 script:
