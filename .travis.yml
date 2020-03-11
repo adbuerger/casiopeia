@@ -1,4 +1,4 @@
-dist: xenial
+dist: bionic
 language: python
 
 matrix:
@@ -10,7 +10,7 @@ notifications:
   email: false
 
 install:
- - sudo apt install libgfortran3 
+ - sudo apt install python-tk libgfortran3 
  - pip install --yes numpy=$NUMPY scipy=$SCIPY matplotlib=$MATPLOTLIB nose=$NOSE casadi=$CASADI
  - python setup.py install
 
