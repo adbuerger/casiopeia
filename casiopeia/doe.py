@@ -22,7 +22,12 @@
 experimental design.'''
 
 import numpy as np
-import matplotlib.pyplot as plt
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    print("Matplotlib not found, no plotting available")
+
 import time
 import __main__
 import os
