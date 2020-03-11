@@ -10,7 +10,7 @@ notifications:
   email: false
 
 install:
- - sudo apt install libgfortran3 
+ - sudo apt update && sudo apt install libgfortran3 
  - pip install --yes numpy=$NUMPY casadi=$CASADI nose=$NOSE mock=$MOCK
  - python setup.py install
 
